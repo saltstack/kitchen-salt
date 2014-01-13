@@ -17,6 +17,7 @@
 # limitations under the License.
 
 require 'kitchen/provisioner/base'
+require 'yaml'
 
 module Kitchen
 
@@ -122,12 +123,7 @@ module Kitchen
       def prepare_state_top
         info("Preparing state_top")
 
-        state_top_content = <<-STATE_TOP.gsub(/^ {10}/, '')
-          base:
-            '*':
-              - #{config[:formula]}
-        STATE_TOP
-
+        state_top_content = config[:attributes][:state_top].to_yaml
         sandbox_state_top_path = File.join(sandbox_path, config[:salt_state_top])
 
         # create the directory & drop the file in
