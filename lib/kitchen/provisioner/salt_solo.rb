@@ -50,9 +50,13 @@ module Kitchen
         <<-INSTALL
           sh -c '
           #{Util.shell_helpers}
+          SALT_CALL=`which salt-call`
 
-          do_download #{url} /tmp/bootstrap-salt.sh
-          #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
+          if [ -z "${SALT_CALL}" ]
+          then
+            do_download #{url} /tmp/bootstrap-salt.sh
+            #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
+          fi
           '
         INSTALL
       end
@@ -120,10 +124,20 @@ module Kitchen
 
       end
 
+      def unsymbolize(obj)
+        return obj.inject({}){|memo,(k,v)| memo[k.to_s] =  unsymbolize(v); memo} if obj.is_a? Hash
+        return obj.inject([]){|memo,v| memo << unsymbolize(v); memo} if obj.is_a? Array
+        return obj
+      end
+
       def prepare_state_top
         info("Preparing state_top")
 
-        state_top_content = config[:attributes][:state_top].to_yaml
+        # we get a hash with all the keys converted to symbols, salt doesn't like this
+        # to convert all the keys back to strings again
+        state_top_content = unsymbolize(config[:attributes][:state_top]).to_yaml
+        # .to_yaml will produce ! '*' for a key, Salt doesn't like this either
+        state_top_content.gsub!(/(!\s'\*')/, "'*'")
         sandbox_state_top_path = File.join(sandbox_path, config[:salt_state_top])
 
         # create the directory & drop the file in
