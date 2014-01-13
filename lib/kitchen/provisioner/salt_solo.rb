@@ -28,20 +28,24 @@ module Kitchen
     class SaltSolo < Base
 
       default_config :salt_bootstrap, true
-      default_config :salt_bootstrap, "http://bootstrap.saltstack.org"
+      default_config :salt_bootstrap_url, "http://bootstrap.saltstack.org"
       default_config :salt_bootstrap_options, ""
 
+      default_config :salt_config, "/etc/salt"
       default_config :salt_minion_config, "/etc/salt/minion"
       default_config :salt_file_root, "/srv/salt"
       default_config :salt_pillar_root, "/srv/pillar"
       default_config :salt_state_top, "/srv/salt/top.sls"
+      default_config :pillar, {}
+      default_config :state_top, {}
       default_config :salt_run_highstate, true
 
       def install_command
-        return unless config[:salt_autoinstaller]
+        return unless config[:salt_bootstrap]
 
         url = config[:salt_bootstrap_url]
         bootstrap_options = config[:salt_bootstrap_options]
+
         <<-INSTALL
           sh -c '
           #{Util.shell_helpers}
@@ -69,7 +73,7 @@ module Kitchen
         # sudo(File.join(config[:root_path], File.basename(config[:script])))
         info(diagnose())
         if config[:salt_run_highstate]
-          sudo("salt-call --config-dir=#{config[:minion_config_path]} --local state.highstate")
+          sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         end
       end
 
