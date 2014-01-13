@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 #
-# Author:: Chris Lundquist (<chris.lundquist@github.com>)
+# Author:: Simon McCartney <simon.mccartney@hp.com>
 #
-# Copyright (C) 2013, Chris Lundquist
+# Copyright (C) 2013, Chris Lundquist, Simon McCartney
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ module Kitchen
 
   module Provisioner
 
-    # Basic shell provisioner.
+    # Basic Salt Masterless Provisioner, based on work by
     #
     # @author Chris Lundquist (<chris.ludnquist@github.com>)
     class SaltSolo < Base
