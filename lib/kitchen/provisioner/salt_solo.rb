@@ -32,6 +32,8 @@ module Kitchen
       default_config :salt_bootstrap_url, "http://bootstrap.saltstack.org"
       default_config :salt_bootstrap_options, ""
 
+      default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
+
       default_config :salt_config, "/etc/salt"
       default_config :salt_minion_config, "/etc/salt/minion"
       default_config :salt_file_root, "/srv/salt"
@@ -44,19 +46,33 @@ module Kitchen
       def install_command
         return unless config[:salt_bootstrap]
 
-        url = config[:salt_bootstrap_url]
+        salt_url = config[:salt_bootstrap_url]
+        chef_url = config[:chef_bootstrap_url]
         bootstrap_options = config[:salt_bootstrap_options]
 
         <<-INSTALL
           sh -c '
           #{Util.shell_helpers}
-          SALT_CALL=`which salt-call`
 
+          # install salt, if not already installed
+          SALT_CALL=`which salt-call`
           if [ -z "${SALT_CALL}" ]
           then
-            do_download #{url} /tmp/bootstrap-salt.sh
+            do_download #{salt_url} /tmp/bootstrap-salt.sh
             #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
           fi
+
+          # install chef omnibus so that busser works :(
+          # TODO: work out how to install enough ruby
+          # and set busser: { :ruby_bindir => '/usr/bin/ruby' } so that we dont need the
+          # whole chef client
+          if [ ! -d "/opt/chef" ]
+          then
+            echo "-----> Installing Chef Omnibus"
+            do_download #{chef_url} /tmp/install.sh
+            #{sudo('sh')} /tmp/install.sh
+          fi
+
           '
         INSTALL
       end
