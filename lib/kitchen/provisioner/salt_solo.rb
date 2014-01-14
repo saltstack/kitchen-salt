@@ -39,7 +39,7 @@ module Kitchen
       default_config :salt_file_root, "/srv/salt"
       default_config :salt_pillar_root, "/srv/pillar"
       default_config :salt_state_top, "/srv/salt/top.sls"
-      default_config :pillar, {}
+      default_config :pillars, {}
       default_config :state_top, {}
       default_config :salt_run_highstate, true
 
@@ -82,17 +82,20 @@ module Kitchen
         prepare_data
         prepare_minion
         prepare_state_top
+        prepare_pillars
         prepare_formula
       end
 
       def init_command
+        debug("initialising Driver #{self.name}")
         data = File.join(config[:root_path], "data")
         "#{sudo('rm')} -rf #{data} ; mkdir -p #{config[:root_path]}"
       end
 
       def run_command
+        debug("running driver #{self.name}")
         # sudo(File.join(config[:root_path], File.basename(config[:script])))
-        info(diagnose())
+        debug(diagnose())
         if config[:salt_run_highstate]
           sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         end
@@ -129,7 +132,7 @@ module Kitchen
         MINION_CONFIG
 
         # create the temporary path for the salt-minion config file
-        info("sandbox is #{sandbox_path}")
+        debug("sandbox is #{sandbox_path}")
         sandbox_minion_config_path = File.join(sandbox_path, config[:salt_minion_config])
 
         # create the directory & drop the file in
@@ -160,6 +163,38 @@ module Kitchen
         FileUtils.mkdir_p(File.dirname(sandbox_state_top_path))
         File.open(sandbox_state_top_path, "wb") do |file|
           file.write(state_top_content)
+        end
+      end
+
+      def prepare_pillars
+        info("Preparing pillars into #{config[:salt_pillar_root]}")
+        debug("Pillars Hash: #{config[:attributes][:pillars]}")
+
+        # we get a hash with all the keys converted to symbols, salt doesn't like this
+        # to convert all the keys back to strings again
+        pillars = unsymbolize(config[:attributes][:pillars])
+        debug("unsymbolized pillars hash: #{pillars}")
+
+        # write out each pillar (we get key/contents pairs)
+        pillars.each do |key,contents|
+
+          # convert the hash to yaml
+          pillar = contents.to_yaml
+
+          # .to_yaml will produce ! '*' for a key, Salt doesn't like this either
+          pillar.gsub!(/(!\s'\*')/, "'*'")
+
+          # generate the filename
+          sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
+
+          # create the directory where the pillar file will go
+          FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
+
+          debug("Rendered pillar yaml for #{key}:\n #{pillar}")
+          # create the directory & drop the file in
+          File.open(sandbox_pillar_path, "wb") do |file|
+            file.write(pillar)
+          end
         end
       end
 
