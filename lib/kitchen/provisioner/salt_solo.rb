@@ -170,6 +170,8 @@ module Kitchen
         info("Preparing pillars into #{config[:salt_pillar_root]}")
         debug("Pillars Hash: #{config[:attributes][:pillars]}")
 
+        return if config[:attributes][:pillars].nil?
+
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
         pillars = unsymbolize(config[:attributes][:pillars])
