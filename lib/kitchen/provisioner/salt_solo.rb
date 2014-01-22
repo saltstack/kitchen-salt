@@ -28,9 +28,16 @@ module Kitchen
     # @author Chris Lundquist (<chris.ludnquist@github.com>)
     class SaltSolo < Base
 
-      default_config :salt_bootstrap, true
+      # supported install methods: bootstrap|apt
+      default_config :salt_install, "bootstrap"
+
       default_config :salt_bootstrap_url, "http://bootstrap.saltstack.org"
       default_config :salt_bootstrap_options, ""
+
+      # alternative method of installing salt
+      default_config :salt_version, "0.16.2"
+      default_config :salt_apt_repo, "http://apt.mccartney.ie"
+      default_config :salt_apt_repo_key, "http://apt.mccartney.ie/KEY"
 
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
@@ -44,22 +51,50 @@ module Kitchen
       default_config :salt_run_highstate, true
 
       def install_command
-        return unless config[:salt_bootstrap]
+        debug(diagnose())
+        salt_install = config[:salt_install]
 
         salt_url = config[:salt_bootstrap_url]
         chef_url = config[:chef_bootstrap_url]
         bootstrap_options = config[:salt_bootstrap_options]
 
+        salt_version = config[:salt_version]
+        salt_apt_repo = config[:salt_apt_repo]
+        salt_apt_repo_key = config[:salt_apt_repo_key]
+
         <<-INSTALL
           sh -c '
           #{Util.shell_helpers}
 
-          # install salt, if not already installed
-          SALT_CALL=`which salt-call`
-          if [ -z "${SALT_CALL}" ]
+          # what version of salt is installed?
+          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+
+
+          if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
           then
             do_download #{salt_url} /tmp/bootstrap-salt.sh
             #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
+          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
+          then
+            . /etc/lsb-release
+
+            echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
+
+            do_download #{salt_apt_repo_key} /tmp/repo.key
+            #{sudo('apt-key')} add /tmp/repo.key
+
+            #{sudo('apt-get')} update
+            #{sudo('apt-get')} install -y salt-minion
+          elif [ -z "${SALT_VERSION}" ]
+          then
+            echo "No salt-minion installed and I do not know how to install one!"
+            exit 2
+          elif [ "${SALT_VERSION}" = "#{salt_version}" ]
+          then
+            echo "You asked for #{salt_version} and you have already got ${SALT_VERSION} installed, sweet!"
+          else
+            echo "You asked for #{salt_version} and you have got ${SALT_VERSION} installed, dunno how to fix that, sorry!"
+            exit 2
           fi
 
           # install chef omnibus so that busser works :(
