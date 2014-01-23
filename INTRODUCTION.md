@@ -5,7 +5,7 @@ I'd like to introduce you to something I've been working on over the last few da
 ##Installation
 Test Kitchen is packaged as a RubyGem, and so is kitchen-salt, so we need a working Ruby 1.9 environment, and some supporting bits, like somewhere to create virtual machines etc, in this example we're going to use Vagrant & VirtualBox, infact pretty much everything they have in the [Test Kitchen Installing](http://kitchen.ci/docs/getting-started/installing) step.
 
-At the moment, kitchen-salt depends on the 1.1.2.dev release in github, the easiest way to get that into usable environment is to use bundler, which we'll show below.  I like keeping my Ruby environments self contained using RVM, (it's quite like Python's virtualenv, if you ignore the fact that it compiles stuff :/), so we'll create an environment with the right bits to get us started:
+At the moment, kitchen-salt depends on the 1.1.2.dev release in github, the easiest way to get that into usable environment is to use bundler, which we'll show below. The curl command (pulling down [https://gist.github.com/simonmcc/8564612](https://gist.github.com/simonmcc/8564612) is just a Gemfile that bundler will use to install the correct rubygems). I like keeping my Ruby environments self contained using RVM, (it's quite like Python's virtualenv, if you ignore the fact that it compiles stuff :/), so we'll create an environment with the right bits to get us started:
 
     $ mkdir kitchen-salt-tutorial
     $ cd kitchen-salt-tutorial
@@ -21,8 +21,7 @@ So now what?  Well, we need to get a copy of a salt formula in our workspace and
     $ git clone https://github.com/simonmcc/beaver-formula.git
     $ cd beaver-formula
 
-Now what?  well, Test Kitchen keeps it's primary config in `.kitchen.yml`, we use this to tell it some usefull bits, like what platforms we want to test & where to get vagrant boxes (or other VM information if you are using some of the other drivers for ec2, OpenStack etc), this is a simple YAML file, put this in your `beaver-formula/.kitchen.yml`
-
+Now what?  well, Test Kitchen keeps it's primary config in `.kitchen.yml`, we use this to tell it some usefull bits, like what platforms we want to test, this is a simple YAML file, put this in your `beaver-formula/.kitchen.yml`
 
 	---
 	driver:
@@ -68,7 +67,82 @@ Right now we have enough to see if the formula will converge on it's own without
            [default] Booting VM...
            
 This is the start of Test Kitchen doing it's thing, it's creating an environment to execute our formula in, the kitchen-salt provisioner will then make sure salt is installed, and that we have enough working ruby for busser to work, let's skip to the end of the output:
+    
+           ----------
+               State: - file
+               Name:      /etc/beaver.conf
+               Function:  managed
+            Result:    True
+            Comment:   File /etc/beaver.conf updated
+                   Changes:   diff: ---
+           +++
+           @@ -1,2 +1,10 @@
+           +# Managed by Salt.
+            [beaver]
+           -files: /var/log/syslog,/var/log/*.log+
+           +transport: stdout
+           +format: raw
+           +logstash_version: 0
+           +sincedb_path: /var/cache/beaver/sincedb.sqlite
+           +
+           +# Monitored Files:
+           +
+    
+                       mode: 644
+    
+           ----------
+               State: - file
+               Name:      /var/cache/beaver
+               Function:  directory
+            Result:    True
+            Comment:   Directory /var/cache/beaver updated
+                   Changes:   /var/cache/beaver: New Dir
+    
+           ----------
+               State: - service
+               Name:      beaver
+               Function:  running
+            Result:    True
+            Comment:   Started Service beaver
+                   Changes:   beaver: True
+    
+    
+           Summary
+           ------------
+           Succeeded: 5
+           Failed:    0
+           ------------
+           Total:     5
+           Finished converging <default-ubuntu-1204> (1m25.31s).
+    -----> Setting up <default-ubuntu-1204>...
+           Finished setting up <default-ubuntu-1204> (0m0.00s).
+    -----> Verifying <default-ubuntu-1204>...
+           Finished verifying <default-ubuntu-1204> (0m0.00s).
+    -----> Destroying <default-ubuntu-1204>...
+           [default] Forcing shutdown of VM...
+           [default] Destroying VM and associated drives...
+           Vagrant instance <default-ubuntu-1204> destroyed.
+           Finished destroying <default-ubuntu-1204> (0m3.47s).
+           Finished testing <default-ubuntu-1204> (2m6.00s).
+    -----> Kitchen is finished. (2m6.56s)
 
-    INSERT TEST RESULTS ETC HERE
+So, we can see that `salt-call` executed our state(s) successfully, in 2m6.56s, all we know is that salt-call completed successfully, which is a great start.
 
-So, we can see that `salt-call` executed our state(s) successfully, now what? Test Kitchen support a number of testing frameworks, bats, serverspec and a few more
+But we can do better than that, much better. Test Kitchen support a number of testing frameworks, bats, serverspec and a few more.  We're going to add some simple tests to further validate our formula, lets start with the simplest, bats.
+
+First of call, we need somewhere to put our tests, test-kitchen defaults to storing tests in `test/integration/`, tests are grouped by suite, so our first test should be in `test/integration/default`, they are then grouped by the test framework, so the full path for our first bats test is `test/integration/bats`.  Lets create a simple bats test:
+
+    $ mkdir -p test/integration/bats
+    $ cat > test/integration/default/bats/beaver_installed.bats <<TEST
+    #!/usr/bin/env bats
+    
+    @test "beaver binary is found in PATH" {
+      run which beaver
+      [ "$status" -eq 0 ]
+    }
+    TEST
+    $
+    
+And now we'll re-run the `kitchen test`, as this generates a lot of output while installing salt and various other bits, only the last few interesting lines are shown below:
+
+
