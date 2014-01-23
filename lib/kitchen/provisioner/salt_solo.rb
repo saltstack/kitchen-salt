@@ -189,7 +189,7 @@ module Kitchen
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
-        state_top_content = unsymbolize(config[:attributes][:state_top]).to_yaml
+        state_top_content = unsymbolize(config[:state_top]).to_yaml
         # .to_yaml will produce ! '*' for a key, Salt doesn't like this either
         state_top_content.gsub!(/(!\s'\*')/, "'*'")
         sandbox_state_top_path = File.join(sandbox_path, config[:salt_state_top])
@@ -203,13 +203,13 @@ module Kitchen
 
       def prepare_pillars
         info("Preparing pillars into #{config[:salt_pillar_root]}")
-        debug("Pillars Hash: #{config[:attributes][:pillars]}")
+        debug("Pillars Hash: #{config[:pillars]}")
 
-        return if config[:attributes][:pillars].nil?
+        return if config[:pillars].nil?
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
-        pillars = unsymbolize(config[:attributes][:pillars])
+        pillars = unsymbolize(config[:pillars])
         debug("unsymbolized pillars hash: #{pillars}")
 
         # write out each pillar (we get key/contents pairs)
