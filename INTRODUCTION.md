@@ -132,17 +132,148 @@ But we can do better than that, much better. Test Kitchen support a number of te
 
 First of call, we need somewhere to put our tests, test-kitchen defaults to storing tests in `test/integration/`, tests are grouped by suite, so our first test should be in `test/integration/default`, they are then grouped by the test framework, so the full path for our first bats test is `test/integration/bats`.  Lets create a simple bats test:
 
-    $ mkdir -p test/integration/bats
+    $ mkdir -p test/integration/default/bats
     $ cat > test/integration/default/bats/beaver_installed.bats <<TEST
     #!/usr/bin/env bats
     
     @test "beaver binary is found in PATH" {
       run which beaver
-      [ "$status" -eq 0 ]
+      [ "\$status" -eq 0 ]
     }
     TEST
     $
     
 And now we'll re-run the `kitchen test`, as this generates a lot of output while installing salt and various other bits, only the last few interesting lines are shown below:
+	
+	       Finished converging <default-ubuntu-1204> (5m32.64s).
+	-----> Setting up <default-ubuntu-1204>...
+	Fetching: thor-0.18.1.gem (100%)
+	Fetching: busser-0.6.0.gem (100%)
+	Successfully installed thor-0.18.1
+	Successfully installed busser-0.6.0
+	2 gems installed
+	-----> Setting up Busser
+	       Creating BUSSER_ROOT in /tmp/busser
+	       Creating busser binstub
+	       Plugin bats installed (version 0.1.0)
+	-----> Running postinstall for bats plugin
+	      create  /tmp/bats20140124-2927-12zodae/bats
+	      create  /tmp/bats20140124-2927-12zodae/bats.tar.gz
+	Installed Bats to /tmp/busser/vendor/bats/bin/bats
+	      remove  /tmp/bats20140124-2927-12zodae
+	       Finished setting up <default-ubuntu-1204> (0m23.23s).
+	-----> Verifying <default-ubuntu-1204>...
+	       Suite path directory /tmp/busser/suites does not exist, skipping.
+	Uploading /tmp/busser/suites/bats/beaver_installed.bats (mode=0644)
+	-----> Running bats test suite
+	 ✓ beaver binary is found in PATH
+	
+	1 test, 0 failures
+	       Finished verifying <default-ubuntu-1204> (0m1.36s).
+	-----> Destroying <default-ubuntu-1204>...
+	       [default] Forcing shutdown of VM...
+	       [default] Destroying VM and associated drives...
+	       Vagrant instance <default-ubuntu-1204> destroyed.
+	       Finished destroying <default-ubuntu-1204> (0m4.88s).
+	       Finished testing <default-ubuntu-1204> (6m55.08s).
+	-----> Kitchen is finished. (6m56.01s)
 
+The first section is Test Kitchen setting up the test frameworks for you (thor, busser, Bats), the last section:
 
+	-----> Running bats test suite
+	 ✓ beaver binary is found in PATH
+	
+	1 test, 0 failures
+	       Finished verifying <default-ubuntu-1204> (0m1.36s).
+	-----> Destroying <default-ubuntu-1204>...
+	       [default] Forcing shutdown of VM...
+	       [default] Destroying VM and associated drives...
+	       Vagrant instance <default-ubuntu-1204> destroyed.
+	       Finished destroying <default-ubuntu-1204> (0m4.88s).
+	       Finished testing <default-ubuntu-1204> (6m55.08s).
+	-----> Kitchen is finished. (6m56.01s)
+
+is the really interesting bit, we just verified that the beaver binary was installed.
+
+Bats is a little bit crude and relies on you knowing various things about your platform, in this instance, Ubuntu 12.04.  One of the other supported test frameworks is [serverspec](http://serverspec.org/). serverspec is a much more complete testing toolkit, allowing youto abstract your tests & let serverspec handle the platform specific bits.
+
+Lets add a more complete serverspec test suite:
+
+    $ mkdir -p test/integration/default/serverspec
+    $ curl https://gist.github.com/simonmcc/8589713/raw/a2f52f3cfe2dbb00082999fe518709e114069a38/beaver_spec.rb > test/integration/default/serverspec/beaver_spec.rb
+    $ cat test/integration/default/serverspec/beaver_spec.rb
+    require 'serverspec'
+	
+	include Serverspec::Helper::Exec
+	include Serverspec::Helper::DetectOS
+	
+	RSpec.configure do |c|
+	  c.before :all do
+	    c.path = '/sbin:/usr/sbin'
+	  end
+	end
+	
+	describe "beaver log shipper" do
+	
+	  it "has a running service of beaver" do
+	    expect(service("beaver")).to be_running
+	  end
+	
+	  describe service('beaver') do
+	      it { should be_enabled   }
+	      it { should be_running   }
+	  end
+	
+	  describe file('/etc/beaver.conf') do
+	      it { should be_file }
+	      it { should be_owned_by 'root' }
+	      it { should contain "transport: stdout" }
+	  end
+	
+	  describe file('/var/cache/beaver') do
+	    it { should be_directory }
+	    it { should be_owned_by 'root' }
+	    it { should be_grouped_into 'root' }
+	    it { should be_mode 750 }
+	  end
+	
+	end
+	
+So, with serverspec you describe a set of features that your server should comply with, it's a fairly easy to understand notation.  Let's re-run our tests (via `kitchen verify`) and look at the results:
+	
+	$ kitchen verify
+	-----> Starting Kitchen (v1.1.2.dev)
+	-----> Verifying <default-ubuntu-1204>...
+	       Removing /tmp/busser/suites/bats
+	       Removing /tmp/busser/suites/serverspec
+	Uploading /tmp/busser/suites/bats/beaver_installed.bats (mode=0644)
+	Uploading /tmp/busser/suites/serverspec/beaver_spec.rb (mode=0644)
+	-----> Running bats test suite
+	 ✓ beaver binary is found in PATH
+	
+	1 test, 0 failures
+	-----> Running serverspec test suite
+	/opt/chef/embedded/bin/ruby -I/tmp/busser/suites/serverspec -S /opt/chef/embedded/bin/rspec /tmp/busser/suites/serverspec/beaver_spec.rb --color --format documentation
+	
+	beaver log shipper
+	  has a running service of beaver
+	  Service "beaver"
+	    should be enabled
+	    should be running
+	         File "/etc/beaver.conf"
+	
+	    should be file
+	    should be owned by "root"
+	    should contain "transport: stdout"
+	  File "/var/cache/beaver"
+	    should be directory
+	    should be owned by "root"
+	    should be grouped into "root"
+	    should be mode 750
+	
+	Finished in 0.14824 seconds
+	10 examples, 0 failures
+	       Finished verifying <default-ubuntu-1204> (0m2.71s).
+	-----> Kitchen is finished. (0m3.79s)
+	
+So now we've verified that the service is running, that the files are owned by who we expect, that the config file contains fragments we're interested in. Awesome.
