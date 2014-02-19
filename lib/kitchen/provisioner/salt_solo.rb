@@ -96,6 +96,9 @@ module Kitchen
           elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
           then
             echo "You asked for #{salt_version} and you have already got ${SALT_VERSION} installed, sweet!"
+          elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
+          then
+            echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
           else
             echo "You asked for #{salt_version} and you have got ${SALT_VERSION} installed, dunno how to fix that, sorry!"
             exit 2
