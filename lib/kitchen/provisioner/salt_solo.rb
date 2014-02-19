@@ -35,7 +35,7 @@ module Kitchen
       default_config :salt_bootstrap_options, ""
 
       # alternative method of installing salt
-      default_config :salt_version, "0.16.2"
+      default_config :salt_version, "latest"
       default_config :salt_apt_repo, "http://apt.mccartney.ie"
       default_config :salt_apt_repo_key, "http://apt.mccartney.ie/KEY"
 
@@ -46,9 +46,13 @@ module Kitchen
       default_config :salt_file_root, "/srv/salt"
       default_config :salt_pillar_root, "/srv/pillar"
       default_config :salt_state_top, "/srv/salt/top.sls"
+      default_config :state_collection, false
       default_config :pillars, {}
       default_config :state_top, {}
       default_config :salt_run_highstate, true
+
+      # salt-call version that supports the undocumented --retcode-passthrough command
+      RETCODE_VERSION = '0.17.5'
 
       def install_command
         debug(diagnose())
@@ -89,7 +93,7 @@ module Kitchen
           then
             echo "No salt-minion installed and I do not know how to install one!"
             exit 2
-          elif [ "${SALT_VERSION}" = "#{salt_version}" ]
+          elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
           then
             echo "You asked for #{salt_version} and you have already got ${SALT_VERSION} installed, sweet!"
           else
@@ -118,7 +122,11 @@ module Kitchen
         prepare_minion
         prepare_state_top
         prepare_pillars
-        prepare_formula
+        if config[:state_collection]
+          prepare_state_collection
+        else
+          prepare_formula
+        end
       end
 
       def init_command
@@ -132,8 +140,20 @@ module Kitchen
         # sudo(File.join(config[:root_path], File.basename(config[:script])))
         debug(diagnose())
         if config[:salt_run_highstate]
-          sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
+          cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         end
+
+        cmd << " --log-level=#{config[:log_level]}"
+
+        # config[:salt_version] can be 'latest' or 'x.y.z'
+        if config[:salt_version] >= RETCODE_VERSION
+          debug("Skipping the ropey --retcode-passthrough argument")
+          # cmd = cmd + " --retcode-passthrough"
+        else
+          cmd << " | tee /tmp/salt-call-output ; grep -e ERROR -e CRITICAL /tmp/salt-call-output ; [ $? -eq 0 ] && exit 1 ; [ $? -eq 1 ] && exit 0 "
+        end
+
+        cmd
       end
 
       protected
@@ -242,6 +262,17 @@ module Kitchen
         formula_dir = File.join(sandbox_path, config[:salt_file_root], config[:formula])
         FileUtils.mkdir_p(formula_dir)
         FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], config[:formula], "*")), formula_dir)
+
+      end
+
+      def prepare_state_collection
+        info("Preparing state collection (get with it! this should be a formula already!)")
+        debug("Using config #{config}")
+
+        file_root = File.join(sandbox_path, config[:salt_file_root])
+        formula_dir = File.join(sandbox_path, config[:salt_file_root], config[:formula])
+        FileUtils.mkdir_p(formula_dir)
+        FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], "*")), formula_dir)
 
       end
     end
