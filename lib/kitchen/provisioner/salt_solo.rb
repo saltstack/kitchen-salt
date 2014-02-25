@@ -228,6 +228,16 @@ module Kitchen
         info("Preparing pillars into #{config[:salt_pillar_root]}")
         debug("Pillars Hash: #{config[:pillars]}")
 
+        # load any pillars from disk, if specified
+        if !config[:'pillars-from-files'].nil?
+          external_pillars = unsymbolize(config[:'pillars-from-files'])
+          debug("external_pillars (unsymbolize): #{external_pillars}")
+          external_pillars.each do |key, value|
+            debug("loading externalpillar: #{key}, #{value}")
+            config[:pillars][key] = YAML.load(File.read(value))
+          end
+        end
+
         return if config[:pillars].nil?
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
