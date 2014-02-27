@@ -133,9 +133,8 @@ module Kitchen
       end
 
       def init_command
-        debug("initialising Driver #{self.name}")
-        data = File.join(config[:root_path], "data")
-        "#{sudo('rm')} -rf #{data} ; mkdir -p #{config[:root_path]}"
+        debug("Initialising Driver #{self.name} by cleaning #{config[:root_path]}")
+        "#{sudo('rm')} -rf #{config[:root_path]} ; mkdir -p #{config[:root_path]}"
       end
 
       def run_command
@@ -276,6 +275,19 @@ module Kitchen
         FileUtils.mkdir_p(formula_dir)
         FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], config[:formula], "*")), formula_dir)
 
+        # copy across the _modules etc directories for python implementation
+        ['_modules', '_states', '_grains', '_renderers', '_returners'].each do |extrapath|
+          src = File.join(config[:kitchen_root], extrapath)
+
+          if (File.directory?(src))
+            debug("prepare_formula: #{src} exists, copying..")
+            extrapath_dir = File.join(sandbox_path, config[:salt_file_root], extrapath)
+            FileUtils.mkdir_p(extrapath_dir)
+            FileUtils.cp_r(Dir.glob(File.join(src, "*")), extrapath_dir)
+          else
+            debug("prepare_formula: #{src} doesn't exist, skipping.")
+          end
+        end
       end
 
       def prepare_state_collection
