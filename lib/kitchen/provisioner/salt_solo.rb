@@ -163,7 +163,9 @@ module Kitchen
           debug("Skipping the ropey --retcode-passthrough argument")
           # cmd = cmd + " --retcode-passthrough"
         else
-          cmd << " 2>&1 | tee /tmp/salt-call-output ; grep -e ERROR -e CRITICAL /tmp/salt-call-output ; [ $? -eq 0 ] && exit 1 ; [ $? -eq 1 ] && exit 0 "
+          # grep the output for ERROR or CRITICAL & return a 1 on finding a problem
+          fail_grep = 'grep -e ERROR -e CRITICAL'
+          cmd << " 2>&1 | tee /tmp/salt-call-output ; (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
         end
 
         cmd
