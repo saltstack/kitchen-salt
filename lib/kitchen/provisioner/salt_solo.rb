@@ -89,13 +89,24 @@ module Kitchen
 
             #{sudo('apt-get')} update
             #{sudo('apt-get')} install -y salt-minion
-          elif [ -z "${SALT_VERSION}" ]
+          fi
+
+          # check again, now that an install of some form should have happened
+          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+
+          if [ -z "${SALT_VERSION}" ]
           then
-            echo "No salt-minion installed and I do not know how to install one!"
+            echo "No salt-minion installed, install must have failed!!"
+            echo "salt_install = #{salt_install}"
+            echo "salt_url = #{salt_url}"
+            echo "bootstrap_options = #{bootstrap_options}"
+            echo "salt_version = #{salt_version}"
+            echo "salt_apt_repo = #{salt_apt_repo}"
+            echo "salt_apt_repo_key = #{salt_apt_repo_key}"
             exit 2
           elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
           then
-            echo "You asked for #{salt_version} and you have already got ${SALT_VERSION} installed, sweet!"
+            echo "You asked for #{salt_version} and you have ${SALT_VERSION} installed, sweet!"
           elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
           then
             echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
