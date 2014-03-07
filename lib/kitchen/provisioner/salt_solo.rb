@@ -28,6 +28,8 @@ module Kitchen
     # @author Chris Lundquist (<chris.ludnquist@github.com>)
     class SaltSolo < Base
 
+      default_config :salt_version, "latest"
+
       # supported install methods: bootstrap|apt
       default_config :salt_install, "bootstrap"
 
@@ -35,7 +37,6 @@ module Kitchen
       default_config :salt_bootstrap_options, ""
 
       # alternative method of installing salt
-      default_config :salt_version, "latest"
       default_config :salt_apt_repo, "http://apt.mccartney.ie"
       default_config :salt_apt_repo_key, "http://apt.mccartney.ie/KEY"
 
@@ -56,6 +57,14 @@ module Kitchen
 
       def install_command
         debug(diagnose())
+
+        # if salt_verison is set, bootstrap is being used & bootstrap_options is empty,
+        # set the bootstrap_options string to git install the requested version
+        if ((config[:salt_version] != 'latest') && (config[:salt_install] == 'bootstrap') && config[:salt_bootstrap_options].empty?)
+          debug("Using bootstrap git to install #{config[:salt_version]}")
+          config[:salt_bootstrap_options] = "-P git v#{config[:salt_version]}"
+        end
+
         salt_install = config[:salt_install]
 
         salt_url = config[:salt_bootstrap_url]
