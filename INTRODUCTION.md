@@ -3,14 +3,14 @@ I'd like to introduce you to something I've been working on over the last few da
 [Test Kitchen](http://kitchen.ci/) describes itself as "a test harness tool to execute your configured code on one or more platforms", through it's modular architecture, I was able to build a working salt provider in a few hours, this is [kitchen-salt](https://github.com/simonmcc/kitchen-salt). There is lots more info about Test Kitchen on their website, including a very useful tutorial on creating a Chef Cookbook and then adding some Test Kitchen love, I suggest you read through this to get a feel for what possible & what I'm trying to achieve here.
 
 ##Installation
-Test Kitchen is packaged as a RubyGem, and so is kitchen-salt, so we need a working Ruby 1.9 environment, and some supporting bits, like somewhere to create virtual machines etc, in this example we're going to use Vagrant & VirtualBox, infact pretty much everything they have in the [Test Kitchen Installing](http://kitchen.ci/docs/getting-started/installing) step.
+Test Kitchen is packaged as a RubyGem, and so is kitchen-salt, so we need a working Ruby 1.9 environment, and some supporting bits, like somewhere to create virtual machines etc, in this example we're going to use Vagrant & VirtualBox, in fact pretty much everything they have in the [Test Kitchen Installing](http://kitchen.ci/docs/getting-started/installing) step.
 
-At the moment, kitchen-salt depends on the 1.1.2.dev release in github, the easiest way to get that into usable environment is to use bundler, which we'll show below. The curl command (pulling down [https://gist.github.com/simonmcc/8564612](https://gist.github.com/simonmcc/8564612) is just a Gemfile that bundler will use to install the correct rubygems). I like keeping my Ruby environments self contained using RVM, (it's quite like Python's virtualenv, if you ignore the fact that it compiles stuff :/), so we'll create an environment with the right bits to get us started:
+kitchen-salt depends on test-kitchen-1.2.1, which is a standard ruby gem, the easiest way to get that into a usable environment is to use bundler, which we'll show below. The curl command (pulling down [https://gist.github.com/simonmcc/8564612](https://gist.github.com/simonmcc/8564612) is just a Gemfile that bundler will use to install the correct rubygems). I like keeping my Ruby environments self contained using RVM, (it's quite like Python's virtualenv, if you ignore the fact that it compiles stuff :/), so we'll create an environment with the right bits to get us started:
 
     $ mkdir kitchen-salt-tutorial
     $ cd kitchen-salt-tutorial
     $ rvm --create --ruby-version use 1.9.3@kitchen-salt-tutorial
-    $ curl https://gist.github.com/simonmcc/8564612/raw/ab1bd1895c5dbf92f32d28f1ac30fe5513ce14bf/- > Gemfile
+    $ curl https://gist.githubusercontent.com/simonmcc/8564612/raw/50aa21f2a52ca554e4afb50a44b0903f415113eb/- > Gemfile
     $ bundle install
 
     ## we can now check that we have a working kitchen executable
