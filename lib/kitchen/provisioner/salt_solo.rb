@@ -169,8 +169,7 @@ module Kitchen
 
         # config[:salt_version] can be 'latest' or 'x.y.z'
         if config[:salt_version] >= RETCODE_VERSION
-          debug("Skipping the ropey --retcode-passthrough argument")
-          # cmd = cmd + " --retcode-passthrough"
+          cmd = cmd + " --retcode-passthrough"
         else
           # grep the output for ERROR or CRITICAL & return a 1 on finding a problem
           fail_grep = 'grep -e ERROR -e CRITICAL'
