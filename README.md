@@ -17,7 +17,7 @@ You'll need the test-kitchen & kitchen-salt gem's installed in your system, alon
     # hack. work. test.
     git add stuff
     gem bump --no-commit
-    got add lib/kitchen-salt/version.rb
+    git add lib/kitchen-salt/version.rb
     git commit -v
     gem release
 

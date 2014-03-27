@@ -53,7 +53,7 @@ module Kitchen
       default_config :salt_run_highstate, true
 
       # salt-call version that supports the undocumented --retcode-passthrough command
-      RETCODE_VERSION = '2014.2.0'
+      RETCODE_VERSION = '0.17.5'
 
       def install_command
         debug(diagnose())
@@ -175,11 +175,19 @@ module Kitchen
         if config[:salt_version] > RETCODE_VERSION && config[:salt_version] != 'latest'
           # hope for the best and hope it works eventually
           cmd = cmd + " --retcode-passthrough"
-        else
-          # scan the output for signs of failure, there is a risk of false negatives
-          fail_grep = 'grep Result.*False'
-          cmd << " 2>&1 | tee /tmp/salt-call-output ; (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
         end
+
+        # scan the output for signs of failure, there is a risk of false negatives
+        fail_grep = 'grep -e Result.*False -e Data.failed.to.compile'
+        fail_grep = 'grep -e Result.*False'
+        # capture any non-zero exit codes from the salt-call | tee pipe
+        cmd = 'set -o pipefail ; ' << cmd
+        # Capture the salt-call output & exit code
+        cmd << " 2>&1 | tee /tmp/salt-call-output ; SC=$? ; echo salt-call exit code: $SC ;"
+        # check the salt-call output for fail messages
+        cmd << " (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; echo salt-call output grep exit code ${EC} ;"
+        # use the non-zer exit code from salt-call, then invert the results of the grep for failures
+        cmd << " [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
 
         cmd
       end
