@@ -53,7 +53,7 @@ module Kitchen
       default_config :salt_run_highstate, true
 
       # salt-call version that supports the undocumented --retcode-passthrough command
-      RETCODE_VERSION = '0.17.5'
+      RETCODE_VERSION = '2014.2.0'
 
       def install_command
         debug(diagnose())
@@ -167,12 +167,17 @@ module Kitchen
 
         cmd << " --log-level=#{config[:log_level]}"
 
-        # config[:salt_version] can be 'latest' or 'x.y.z'
-        if config[:salt_version] >= RETCODE_VERSION
+        # config[:salt_version] can be 'latest' or 'x.y.z', 'YYYY.M.x' etc
+        # error return codes are a mess in salt:
+        #  https://github.com/saltstack/salt/pull/11337
+        # Unless we know we have a version that supports --retcode-passthrough
+        # attempt to scan the output for signs of failure
+        if config[:salt_version] > RETCODE_VERSION && config[:salt_version] != 'latest'
+          # hope for the best and hope it works eventually
           cmd = cmd + " --retcode-passthrough"
         else
-          # grep the output for ERROR or CRITICAL & return a 1 on finding a problem
-          fail_grep = 'grep -e ERROR -e CRITICAL'
+          # scan the output for signs of failure, there is a risk of false negatives
+          fail_grep = 'grep Result.*False'
           cmd << " 2>&1 | tee /tmp/salt-call-output ; (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
         end
 

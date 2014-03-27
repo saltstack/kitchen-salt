@@ -11,3 +11,14 @@ You'll need a driver box that is supported by both the SaltStack [bootstrap](htt
 
 ## Installation & Setup
 You'll need the test-kitchen & kitchen-salt gem's installed in your system, along with kitchen-vagrant or some ther suitable driver for test-kitchen.  Please see the [INTRODUCTION](https://github.com/simonmcc/kitchen-salt/blob/master/INTRODUCTION.md).
+
+# Releasing
+
+    # hack. work. test.
+    git add stuff
+    gem bump --no-commit
+    got add lib/kitchen-salt/version.rb
+    git commit -v
+    gem release
+
+
