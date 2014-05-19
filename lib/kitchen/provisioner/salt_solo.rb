@@ -48,7 +48,6 @@ module Kitchen
       default_config :salt_pillar_root, "/srv/pillar"
       default_config :salt_state_top, "/srv/salt/top.sls"
       default_config :state_collection, false
-      default_config :pillars, {}
       default_config :state_top, {}
       default_config :salt_run_highstate, true
 
@@ -145,6 +144,7 @@ module Kitchen
         prepare_minion
         prepare_state_top
         prepare_pillars
+        prepare_grains
         if config[:state_collection]
           prepare_state_collection
         else
@@ -298,6 +298,31 @@ module Kitchen
           File.open(sandbox_pillar_path, "wb") do |file|
             file.write(pillar)
           end
+        end
+      end
+
+      def prepare_grains
+        debug("Grains Hash: #{config[:grains]}")
+
+        return if config[:grains].nil?
+
+        info("Preparing grains into #{config[:salt_config]}/grains")
+        # we get a hash with all the keys converted to symbols, salt doesn't like this
+        # to convert all the keys back to strings again we use unsymbolize
+        # then we convert the hash to yaml
+        grains = unsymbolize(config[:grains]).to_yaml
+
+        # generate the filename
+        sandbox_grains_path = File.join(sandbox_path, config[:salt_config], 'grains')
+        debug("sandbox_grains_path: #{sandbox_grains_path}")
+
+        # create the directory where the pillar file will go
+        FileUtils.mkdir_p(File.dirname(sandbox_grains_path))
+
+        debug("Rendered grains yaml")
+        # create the directory & drop the file in
+        File.open(sandbox_grains_path, "wb") do |file|
+          file.write(grains)
         end
       end
 
