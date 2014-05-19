@@ -18,7 +18,8 @@ salt_state_top| "/srv/salt/top.sls"|
 salt_run_highstate| true |
 state_top| {} | states that should be applied, in standard top.sls format
 pillars| {} | pillar data 
-pillars-from-files | | a list of key-value pairs for files that should be loaded as pillar data
+[pillars-from-files](#pillars-from-files) | | a list of key-value pairs for files that should be loaded as pillar data
+[grains](#grains) | | a hash to be re-written as /etc/salt/grains on the guest
 
 
 ##Configuring Provisioner Options
@@ -67,3 +68,21 @@ Consider the following suite definition:
                   - beaver
 
 In this example, the beaver pillar is loaded from the example file in the repo, ``beaver-example.sls``, but we can still define the ``top.sls`` inline in the .kitchen.yml file. 
+
+### [grains](id:grains) (since v0.0.15)
+
+This options allows you to set grains on the guest, they are written out to ``/etc/salt/grains``
+
+For example, the following suite will define grains on the guest:
+    
+      - name: set-grains-test
+        provisioner:
+          salt_version: 0.16.2
+          grains:
+            roles:
+              - webserver
+              - memcache
+            deployment: datacenter4
+            cabinet: 13
+            cab_u: 14-15
+            
