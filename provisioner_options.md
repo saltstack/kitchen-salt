@@ -3,6 +3,7 @@
 
 key | default value | Notes
 ----|---------------|--------
+formula | | name of the formula, used to derive the path we need to copy to the guest
 salt_install| "bootstrap" | Method by which to install salt, "bootstrap" or "apt"
 salt_bootstrap_url | "http://bootstrap.saltstack.org" | location of bootstrap script
 salt_bootstrap_options | | optional options passed to the bootstrap script
@@ -17,6 +18,8 @@ salt_pillar_root| "/srv/pillar"|
 salt_state_top| "/srv/salt/top.sls"|
 salt_run_highstate| true |
 state_top| {} | states that should be applied, in standard top.sls format
+state_collection | false | treat this directory as a salt state collection and not a formula
+collection_name | | used to derive then name of states we want to apply in a state collection. (if collection_name isn't set, formula will be used)
 pillars| {} | pillar data
 [pillars-from-files](#pillars-from-files) | | a list of key-value pairs for files that should be loaded as pillar data
 [grains](#grains) | | a hash to be re-written as /etc/salt/grains on the guest

@@ -350,13 +350,25 @@ module Kitchen
       end
 
       def prepare_state_collection
-        info("Preparing state collection (get with it! this should be a formula already!)")
+        info("Preparing state collection")
         debug("Using config #{config}")
 
-        file_root = File.join(sandbox_path, config[:salt_file_root])
-        formula_dir = File.join(sandbox_path, config[:salt_file_root], config[:formula])
-        FileUtils.mkdir_p(formula_dir)
-        FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], "*")), formula_dir)
+        if config[:collection_name].nil? and config[:formula].nil?
+          error("neither collection_name or formula have been set!")
+          exit(2)
+        else
+          if config[:collection_name].nil?
+            debug("collection_name not set, using #{config[:formula]}")
+            config[:collection_name] = config[:formula]
+          end
+        end
+
+        debug("sandbox_path = #{sandbox_path}")
+        debug("salt_file_root = #{config[:salt_file_root]}")
+        debug("collection_name = #{config[:collection_name]}")
+        collection_dir = File.join(sandbox_path, config[:salt_file_root], config[:collection_name])
+        FileUtils.mkdir_p(collection_dir)
+        FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], "*")), collection_dir)
 
       end
     end
