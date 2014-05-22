@@ -17,7 +17,8 @@ salt_file_root| "/srv/salt"|
 salt_pillar_root| "/srv/pillar"|
 salt_state_top| "/srv/salt/top.sls"|
 salt_run_highstate| true |
-state_top| {} | states that should be applied, in standard top.sls format
+[state_top](#state_top)| {} | states that should be applied, in standard top.sls format
+[state_top_from_file](#state_top_from_file) | false |
 state_collection | false | treat this directory as a salt state collection and not a formula
 [collection_name](#collection_name) | | used to derive then name of states we want to apply in a state collection. (if collection_name isn't set, formula will be used)
 [pillars](#pillars)| {} | pillar data
@@ -80,6 +81,34 @@ Version of salt to install, via the git bootstrap method, unless ```salt_install
 ### [salt_state_top](id:salt_state_top)
 ### [salt_run_highstate](id:salt_run_highstate)
 ### [state_top](id:state_top)
+The states to be applied, this is rendered into top.sls in the guest, you can define a different state_top for each suite to test different states that may clash
+
+    suites:
+      - name: client
+        provisioner:
+        state_top:
+          base:
+            '*':
+              - beaver
+              - beaver.ppa
+              
+      - name: server
+        provisioner:
+        state_top:
+          base:
+            '*':
+              - beaver.server
+              - beaver.ppa              
+
+### [state_top_from_file](id:state_top_from_file)
+Instead of rendering ```top.sls``` on the guest from the definition in .kitchen.yml, use top.sls found in the repo. 
+
+    suites:
+      - name: use-top-from-disk
+        provisioner:
+          state_top_from_file: true
+          
+          
 ### [state_collection](id:state_collection)
 
 ### [collection_name](id:collection_name)

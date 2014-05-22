@@ -49,6 +49,7 @@ module Kitchen
       default_config :salt_state_top, "/srv/salt/top.sls"
       default_config :state_collection, false
       default_config :state_top, {}
+      default_config :state_top_from_file, false
       default_config :salt_run_highstate, true
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -243,12 +244,20 @@ module Kitchen
       def prepare_state_top
         info("Preparing state_top")
 
-        # we get a hash with all the keys converted to symbols, salt doesn't like this
-        # to convert all the keys back to strings again
-        state_top_content = unsymbolize(config[:state_top]).to_yaml
-        # .to_yaml will produce ! '*' for a key, Salt doesn't like this either
-        state_top_content.gsub!(/(!\s'\*')/, "'*'")
         sandbox_state_top_path = File.join(sandbox_path, config[:salt_state_top])
+
+        if (config[:state_top_from_file] == false)
+          # use the top.sls embedded in .kitchen.yml
+
+          # we get a hash with all the keys converted to symbols, salt doesn't like this
+          # to convert all the keys back to strings again
+          state_top_content = unsymbolize(config[:state_top]).to_yaml
+          # .to_yaml will produce ! '*' for a key, Salt doesn't like this either
+          state_top_content.gsub!(/(!\s'\*')/, "'*'")
+        else
+          # load a top.sls from disk
+          state_top_content = File.read("top.sls")
+        end
 
         # create the directory & drop the file in
         FileUtils.mkdir_p(File.dirname(sandbox_state_top_path))
