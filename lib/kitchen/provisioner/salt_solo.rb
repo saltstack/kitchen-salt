@@ -17,6 +17,8 @@
 # limitations under the License.
 
 require 'kitchen/provisioner/base'
+require 'find'
+require 'fileutils'
 require 'yaml'
 
 module Kitchen
@@ -51,6 +53,9 @@ module Kitchen
       default_config :state_top, {}
       default_config :state_top_from_file, false
       default_config :salt_run_highstate, true
+      default_config :salt_copy_filter, ['.git', '.svn', '.kitchen']
+      default_config :is_file_root, false
+
 
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'
@@ -146,7 +151,7 @@ module Kitchen
         prepare_state_top
         prepare_pillars
         prepare_grains
-        if config[:state_collection]
+        if config[:state_collection] || config[:is_file_root]
           prepare_state_collection
         else
           prepare_formula
@@ -203,7 +208,8 @@ module Kitchen
 
         tmpdata_dir = File.join(sandbox_path, "data")
         FileUtils.mkdir_p(tmpdata_dir)
-        FileUtils.cp_r(Dir.glob("#{config[:data_path]}/*"), tmpdata_dir)
+        #FileUtils.cp_r(Dir.glob("#{config[:data_path]}/*"), tmpdata_dir)
+        cp_r_with_filter(config[:data_path], tmpdata_dir, config[:salt_copy_filter])
       end
 
       def prepare_minion
@@ -270,17 +276,9 @@ module Kitchen
         info("Preparing pillars into #{config[:salt_pillar_root]}")
         debug("Pillars Hash: #{config[:pillars]}")
 
-        # load any pillars from disk, if specified
-        if !config[:'pillars-from-files'].nil?
-          external_pillars = unsymbolize(config[:'pillars-from-files'])
-          debug("external_pillars (unsymbolize): #{external_pillars}")
-          external_pillars.each do |key, value|
-            debug("loading externalpillar: #{key}, #{value}")
-            config[:pillars][key] = YAML.load(File.read(value))
-          end
-        end
+        return if config[:pillars].nil? && config[:'pillars-from-files'].nil?
 
-        return if config[:pillars].nil?
+
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
@@ -306,6 +304,22 @@ module Kitchen
           # create the directory & drop the file in
           File.open(sandbox_pillar_path, "wb") do |file|
             file.write(pillar)
+          end
+        end
+
+        # copy the pillars from files straight across, as YAML.load/to_yaml and
+        # munge multiline strings
+        if !config[:'pillars-from-files'].nil?
+          external_pillars = unsymbolize(config[:'pillars-from-files'])
+          debug("external_pillars (unsymbolize): #{external_pillars}")
+          external_pillars.each do |key, srcfile|
+            debug("Copying external pillar: #{key}, #{srcfile}")
+            # generate the filename
+            sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
+            # create the directory where the pillar file will go
+            FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
+            # copy the file across
+            FileUtils.copy srcfile, sandbox_pillar_path
           end
         end
       end
@@ -341,7 +355,8 @@ module Kitchen
 
         formula_dir = File.join(sandbox_path, config[:salt_file_root], config[:formula])
         FileUtils.mkdir_p(formula_dir)
-        FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], config[:formula], "*")), formula_dir)
+        #FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], config[:formula], "*")), formula_dir)
+        cp_r_with_filter(File.join(config[:kitchen_root], config[:formula]), formula_dir, config[:salt_copy_filter])
 
         # copy across the _modules etc directories for python implementation
         ['_modules', '_states', '_grains', '_renderers', '_returners'].each do |extrapath|
@@ -351,7 +366,8 @@ module Kitchen
             debug("prepare_formula: #{src} exists, copying..")
             extrapath_dir = File.join(sandbox_path, config[:salt_file_root], extrapath)
             FileUtils.mkdir_p(extrapath_dir)
-            FileUtils.cp_r(Dir.glob(File.join(src, "*")), extrapath_dir)
+            #FileUtils.cp_r(Dir.glob(File.join(src, "*")), extrapath_dir)
+            cp_r_with_filter(src, extrapath_dir, config[:salt_copy_filter])
           else
             debug("prepare_formula: #{src} doesn't exist, skipping.")
           end
@@ -363,8 +379,8 @@ module Kitchen
         debug("Using config #{config}")
 
         if config[:collection_name].nil? and config[:formula].nil?
-          error("neither collection_name or formula have been set!")
-          exit(2)
+          info("neither collection_name or formula have been set, assuming this is a pre-built collection")
+          config[:collection_name] = ""
         else
           if config[:collection_name].nil?
             debug("collection_name not set, using #{config[:formula]}")
@@ -377,8 +393,28 @@ module Kitchen
         debug("collection_name = #{config[:collection_name]}")
         collection_dir = File.join(sandbox_path, config[:salt_file_root], config[:collection_name])
         FileUtils.mkdir_p(collection_dir)
-        FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], "*")), collection_dir)
+        cp_r_with_filter(config[:kitchen_root], collection_dir, config[:salt_copy_filter])
 
+      end
+
+      def cp_r_with_filter(source_path, target_path, filter=[])
+        debug("cp_r_with_filter:source_path = #{source_path}")
+        debug("cp_r_with_filter:target_path = #{target_path}")
+        debug("cp_r_with_filter:filter = #{filter}")
+
+        Array(source_path).each do |source_path|
+          Find.find(source_path) do |source|
+            target = source.sub(/^#{source_path}/, target_path)
+            debug("cp_r_with_filter:source = #{source}")
+            debug("cp_r_with_filter:target = #{target}")
+            if File.directory? source
+              Find.prune if filter.include?(File.basename(source))
+              FileUtils.mkdir target unless File.exists? target
+            else
+              FileUtils.copy source, target
+            end
+          end
+        end
       end
     end
   end
