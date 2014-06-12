@@ -53,7 +53,7 @@ module Kitchen
       default_config :state_top, {}
       default_config :state_top_from_file, false
       default_config :salt_run_highstate, true
-      default_config :salt_copy_filter, ['.git', '.svn', '.kitchen']
+      default_config :salt_copy_filter, []
       default_config :is_file_root, false
 
 
@@ -184,8 +184,7 @@ module Kitchen
         end
 
         # scan the output for signs of failure, there is a risk of false negatives
-        fail_grep = 'grep -e Result.*False -e Data.failed.to.compile'
-        fail_grep = 'grep -e Result.*False'
+        fail_grep = 'grep -e Result.*False -e Data.failed.to.compile -e No.matching.sls.found.for'
         # capture any non-zero exit codes from the salt-call | tee pipe
         cmd = 'set -o pipefail ; ' << cmd
         # Capture the salt-call output & exit code
@@ -408,7 +407,10 @@ module Kitchen
             debug("cp_r_with_filter:source = #{source}")
             debug("cp_r_with_filter:target = #{target}")
             if File.directory? source
-              Find.prune if filter.include?(File.basename(source))
+              if filter.include?(File.basename(source))
+                debug("Found #{source} in #{filter}, pruning it from the Find")
+                Find.prune
+              end
               FileUtils.mkdir target unless File.exists? target
             else
               FileUtils.copy source, target

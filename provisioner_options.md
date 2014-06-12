@@ -4,6 +4,7 @@
 key | default value | Notes
 ----|---------------|--------
 formula | | name of the formula, used to derive the path we need to copy to the guest
+[is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
 salt_install| "bootstrap" | Method by which to install salt, "bootstrap" or "apt"
 salt_bootstrap_url | "http://bootstrap.saltstack.org" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
@@ -12,6 +13,7 @@ salt_apt_repo | "http://apt.mccartney.ie"| apt repo
 salt_apt_repo_key| "http://apt.mccartney.ie/KEY"| apt repo key
 chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS
 salt_config| "/etc/salt"|
+[salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
 salt_minion_config| "/etc/salt/minion"|
 salt_file_root| "/srv/salt"|
 salt_pillar_root| "/srv/pillar"|
@@ -53,10 +55,70 @@ The provisioner can be configured globally or per suite, global settings act as 
         provisioner:
           salt_version: 0.16.2
           salt_install: apt
-
+          
+	  - name: tcp-output
+	    provisioner:
+	      pillars:
+	        top.sls:
+	          base:
+	            '*':
+	              - beaver
+	        beaver.sls:
+	          beaver:
+	            transport: tcp
+	    
 in this example, the default suite will install salt via the bootstrap method, meaning that it will get the latest package available for the platform via the [bootstrap shell script](http://bootstrap.saltstack.org). We then define another suite called `default_0162`, this has the provisioner install salt-0.16.2 via apt-get (this defaults to a mini repo of mine, which you can override, my repo only contains 0.16.2)
 
 ### [formula](id:formula)
+When running in normal mode, this must be set to the name of the formula your testing, this name is used to derive the name of the directory that should copied down to the guest.  
+
+For a project layout like this:
+
+    .kitchen.yml
+    beaver/init.sls
+    beaver/foo.sls
+    
+formula should be set to ```beaver```
+
+
+If you want all files & directories copied down to the host, see the [is_file_root](#is_file_root) option. 
+### [is_file_root](id:is_file_root)
+Setting the ```is_file_root``` flag allows you to work with a directory tree that more closely resembles a built file_root on a salt-master, where you have may have multiple directories of states or formula.  The project is recursively copied down to guest instance, excluding any hidden files or directories (i.e. .git is not copied down, this is the standard behaviour of ruby's FileUtil.cp_r method)
+
+Consider a directory that looks like this:
+
+    top.sls
+    .kitchen.yml
+    apache/init.sls
+    mysql/init.sls
+    mysql/client.sls
+    mysql/server.sls
+    php/init.sls
+    ...
+    
+With a .kitchen.yml like this you can now test the completed collection:
+
+    ---
+    driver:
+      name: vagrant
+      
+    provisioner:
+      name: salt_solo
+      is_file_root: true
+      state_top:
+        base:
+          '*':
+            - apache
+            - mysql.client
+            
+    platforms:
+      - name: ubuntu-12.04
+
+    suites:
+      - name: default
+      
+In this example, the apache state could use functionality from the php state etc.  You're not just restricted to a single formula.
+
 ### [salt_install](id:salt_install)
 ### [salt_bootstrap_options](id:salt_bootstrap_options) 
 Options to pass to the salt bootstrap installer.  For example, you could choose to install salt from the develop branch like this:
@@ -67,6 +129,22 @@ Options to pass to the salt bootstrap installer.  For example, you could choose 
           salt_bootstrap_options: -M -N git develop
 
 Details on the various options available at the [salt-bootstrap](https://github.com/saltstack/salt-bootstrap/blob/develop/bootstrap-salt.sh#L180) documentation. 
+
+### [salt_copy_filter](id:salt_copy_filter)
+When kitchen copies states, formula & pillars down to the guests it creates to execute the states & run tests against, you can filter out paths that you don't want copied down.  The copy is conducted by ruby's FileUtils.cp method, so all hidden directories are skipped (e.g. ```.git```, ```.kitchen``` etc).
+
+You can supply a list of paths or files to skip by setting an array in the provisioner block:
+
+
+    suites:
+      - name: copy_filter_example
+        provisioner:
+          salt_copy_filter:
+            - somefilenametoskip
+            - adirectorythatshouldbeskipped
+
+
+
 
 ### [salt_version](id:salt_version)
 Version of salt to install, via the git bootstrap method, unless ```salt_install``` is set to ```apt```, in which case the version number is used to generate the package name requested via apt
@@ -110,6 +188,7 @@ Instead of rendering ```top.sls``` on the guest from the definition in .kitchen.
           
           
 ### [state_collection](id:state_collection)
+Setting the ```state_collection``` flag to true makes kitchen-salt assume that the state files are at the same level as the ```.kitchen.yml```, unlike a formula, where the states are in a directory underneath the directory containing ```.kitchen.yml```.  When using ```state_collection:true```, you must also set the [collection_name](#collection_name).
 
 ### [collection_name](id:collection_name)
 When dealing with a collection of states, it's necessary to set the primary collection name, so that when we call salt-call in the guest, the states have been put into directory that matches the name referenced in the state_top, for example, consider this simple logrotate state collection:
@@ -143,6 +222,17 @@ In order for salt-call to be able to find the logrotate state and apply init.sls
 
 ### [pillars](id:pillars)
 
+define the pillars you want supplied to salt, you must define top.sls so that any subsequent pillars are loaded:
+
+      pillars:
+        top.sls:
+          base:
+            '*':
+              - beaver
+        beaver.sls:
+          beaver:
+            transport: tcp
+
 ### [pillars-from-files](id:pillars-from-files)
 The pillars-from-files option allows you to load pillar data from an external file, instead of being embedded in the .kitchen.yml.  This allows you to re-use the example files or reduce the clutter in your .kitchen.yml
 
@@ -151,14 +241,23 @@ Consider the following suite definition:
       - name: tcp-output-external-pillar
         provisioner:
           pillars-from-files:
-            beaver.sls: beaver-example.sls
+            beaver.sls: pillar.example
           pillars:
             top.sls:
               base:
                 '*':
                   - beaver
+                  
+                  
+And the contents of pillar.example is a normal pillar file:
 
-In this example, the beaver pillar is loaded from the example file in the repo, ``beaver-example.sls``, but we can still define the ``top.sls`` inline in the .kitchen.yml file.
+	$ cat pillar.example
+	# defaults are set in map.jinja and can be over-ridden like this
+	beaver:
+	  transport: stdout
+	  format: json
+
+
 
 ### [grains](id:grains)
 (since v0.0.15)
