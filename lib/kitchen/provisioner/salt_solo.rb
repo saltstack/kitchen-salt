@@ -214,7 +214,15 @@ module Kitchen
       def prepare_minion
         info("Preparing salt-minion")
 
+        # set the minion id if it is given in configuration
+        minion_id = ''
+        if !config[:minion_id].nil?
+          minion_id = "id: #{ config[:minion_id] }"
+        end
+
         minion_config_content = <<-MINION_CONFIG.gsub(/^ {10}/, '')
+          #{ minion_id }
+
           state_top: top.sls
 
           file_client: local
