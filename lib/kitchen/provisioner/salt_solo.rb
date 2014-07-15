@@ -56,6 +56,7 @@ module Kitchen
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
 
+      default_config :dependancies, []
 
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'
@@ -154,7 +155,11 @@ module Kitchen
         if config[:state_collection] || config[:is_file_root]
           prepare_state_collection
         else
-          prepare_formula
+          prepare_formula config[:kitchen_root], config[:formula]
+
+          config[:dependancies].each do |formula|
+            prepare_formula formula[:path], formula[:name]
+          end
         end
       end
 
@@ -348,18 +353,17 @@ module Kitchen
         end
       end
 
-      def prepare_formula
-        info("Preparing formula")
+      def prepare_formula(path, formula)
+        info("Preparing formula: #{formula} from #{path}")
         debug("Using config #{config}")
 
-        formula_dir = File.join(sandbox_path, config[:salt_file_root], config[:formula])
+        formula_dir = File.join(sandbox_path, config[:salt_file_root], formula)
         FileUtils.mkdir_p(formula_dir)
-        #FileUtils.cp_r(Dir.glob(File.join(config[:kitchen_root], config[:formula], "*")), formula_dir)
-        cp_r_with_filter(File.join(config[:kitchen_root], config[:formula]), formula_dir, config[:salt_copy_filter])
+        cp_r_with_filter(File.join(path, formula), formula_dir, config[:salt_copy_filter])
 
         # copy across the _modules etc directories for python implementation
         ['_modules', '_states', '_grains', '_renderers', '_returners'].each do |extrapath|
-          src = File.join(config[:kitchen_root], extrapath)
+          src = File.join(path, extrapath)
 
           if (File.directory?(src))
             debug("prepare_formula: #{src} exists, copying..")

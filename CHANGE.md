@@ -1,3 +1,7 @@
+v0.0.19
+* Added ability to copy additional dependency formulas into the VM
+  See https://github.com/simonmcc/kitchen-salt/blob/master/provisioner_options.md#dependancies
+
 v0.0.18
 * Added ability to filter paths from the set of files copied to the guest
   See https://github.com/simonmcc/kitchen-salt/blob/master/provisioner_options.md#salt_copy_filter
