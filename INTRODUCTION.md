@@ -32,7 +32,8 @@ Now what?  well, Test Kitchen keeps it's primary config in `.kitchen.yml`, we us
 
 	provisioner:
 	  name: salt_solo
-	  formula: beaver
+	  formula:
+       - beaver
       state_top:
         base:
           '*':
@@ -127,6 +128,30 @@ This is the start of Test Kitchen doing it's thing, it's creating an environment
     -----> Kitchen is finished. (2m6.56s)
 
 So, we can see that `salt-call` executed our state(s) successfully, in 2m6.56s, all we know is that salt-call completed successfully, which is a great start.
+
+If we want to get real crazy, we can add in multiple formulas and let the world unite in peace over the magic that you've put together. 
+
+	---
+	driver:
+	  name: vagrant
+
+	platforms:
+	  - name: ubuntu-12.04
+
+	provisioner:
+	  name: salt_solo
+	  formula:
+       - beaver
+       - platypus
+      state_top:
+        base:
+          '*':
+            - beaver
+            - beaver.ppa
+            - platypus
+
+	suites:
+	  - name: default
 
 But we can do better than that, much better. Test Kitchen support a number of testing frameworks, bats, serverspec and a few more.  We're going to add some simple tests to further validate our formula, lets start with the simplest, bats.
 

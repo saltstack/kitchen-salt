@@ -56,7 +56,6 @@ module Kitchen
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
 
-      default_config :dependancies, []
 
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'
@@ -86,7 +85,7 @@ module Kitchen
           #{Util.shell_helpers}
 
           # what version of salt is installed?
-          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+          SALT_VERSION=`salt-call --version 2>/dev/null | cut -d " " -f 2`
 
 
           if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
@@ -102,12 +101,12 @@ module Kitchen
             do_download #{salt_apt_repo_key} /tmp/repo.key
             #{sudo('apt-key')} add /tmp/repo.key
 
-            #{sudo('apt-get')} update
-            #{sudo('apt-get')} install -y salt-minion
+            #{sudo('apt-get')} update >/dev/null 2>&1
+            #{sudo('apt-get')} install -y salt-minion >/dev/null 2>&1
           fi
 
           # check again, now that an install of some form should have happened
-          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+          SALT_VERSION=`salt-call --version 2>/dev/null | cut -d " " -f 2`
 
           if [ -z "${SALT_VERSION}" ]
           then
@@ -155,11 +154,7 @@ module Kitchen
         if config[:state_collection] || config[:is_file_root]
           prepare_state_collection
         else
-          prepare_formula config[:kitchen_root], config[:formula]
-
-          config[:dependancies].each do |formula|
-            prepare_formula formula[:path], formula[:name]
-          end
+          prepare_formula
         end
       end
 
@@ -353,26 +348,29 @@ module Kitchen
         end
       end
 
-      def prepare_formula(path, formula)
-        info("Preparing formula: #{formula} from #{path}")
+      def prepare_formula
+        info("Preparing formulas")
+        info("Formulas: #{config[:formula]}")
         debug("Using config #{config}")
 
-        formula_dir = File.join(sandbox_path, config[:salt_file_root], formula)
-        FileUtils.mkdir_p(formula_dir)
-        cp_r_with_filter(File.join(path, formula), formula_dir, config[:salt_copy_filter])
+        config[:formula].each do |formula|
+          formula_dir = File.join(sandbox_path, config[:salt_file_root], formula)
+          FileUtils.mkdir_p(formula_dir)
+          cp_r_with_filter(File.join(config[:kitchen_root], formula), formula_dir, config[:salt_copy_filter])
 
-        # copy across the _modules etc directories for python implementation
-        ['_modules', '_states', '_grains', '_renderers', '_returners'].each do |extrapath|
-          src = File.join(path, extrapath)
+          # copy across the _modules etc directories for python implementation
+          ['_modules', '_states', '_grains', '_renderers', '_returners'].each do |extrapath|
+            src = File.join(config[:kitchen_root], extrapath)
 
-          if (File.directory?(src))
-            debug("prepare_formula: #{src} exists, copying..")
-            extrapath_dir = File.join(sandbox_path, config[:salt_file_root], extrapath)
-            FileUtils.mkdir_p(extrapath_dir)
-            #FileUtils.cp_r(Dir.glob(File.join(src, "*")), extrapath_dir)
-            cp_r_with_filter(src, extrapath_dir, config[:salt_copy_filter])
-          else
-            debug("prepare_formula: #{src} doesn't exist, skipping.")
+            if (File.directory?(src))
+              debug("prepare_formula: #{src} exists, copying..")
+              extrapath_dir = File.join(sandbox_path, config[:salt_file_root], extrapath)
+              FileUtils.mkdir_p(extrapath_dir)
+              #FileUtils.cp_r(Dir.glob(File.join(src, "*")), extrapath_dir)
+              cp_r_with_filter(src, extrapath_dir, config[:salt_copy_filter])
+            else
+              debug("prepare_formula: #{src} doesn't exist, skipping.")
+            end
           end
         end
       end
