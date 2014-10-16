@@ -56,7 +56,8 @@ module Kitchen
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
 
-      default_config :dependancies, []
+      default_config :dependencies, []
+      default_config :vendor_path, ""
 
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'
@@ -157,7 +158,17 @@ module Kitchen
         else
           prepare_formula config[:kitchen_root], config[:formula]
 
-          config[:dependancies].each do |formula|
+          deps = if Pathname.new(config[:vendor_path]).absolute?
+            Dir["#{config[:vendor_path]}/*"]
+          else
+            Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
+          end
+
+          deps.each do |d|
+            prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+          end
+
+          config[:dependencies].each do |formula|
             prepare_formula formula[:path], formula[:name]
           end
         end
@@ -416,6 +427,9 @@ module Kitchen
                 Find.prune
               end
               FileUtils.mkdir target unless File.exists? target
+              if File.symlink? source
+                FileUtils.cp_r "#{source}/.", target
+              end
             else
               FileUtils.copy source, target
             end
