@@ -58,6 +58,7 @@ module Kitchen
 
       default_config :dependencies, []
       default_config :vendor_path, ""
+      default_config :omnibus_cachier, false
 
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'
@@ -81,6 +82,8 @@ module Kitchen
         salt_version = config[:salt_version]
         salt_apt_repo = config[:salt_apt_repo]
         salt_apt_repo_key = config[:salt_apt_repo_key]
+
+        omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
 
         <<-INSTALL
           sh -c '
@@ -131,15 +134,15 @@ module Kitchen
             exit 2
           fi
 
-          # install chef omnibus so that busser works :(
-          # TODO: work out how to install enough ruby
-          # and set busser: { :ruby_bindir => '/usr/bin/ruby' } so that we dont need the
-          # whole chef client
           if [ ! -d "/opt/chef" ]
           then
             echo "-----> Installing Chef Omnibus"
-            do_download #{chef_url} /tmp/install.sh
-            #{sudo('sh')} /tmp/install.sh
+            mkdir -p #{omnibus_download_dir}
+            if [ ! -x #{omnibus_download_dir}/install.sh ]
+            then
+              do_download #{chef_url} #{omnibus_download_dir}/install.sh
+            fi
+            #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
           fi
 
           '
