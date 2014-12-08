@@ -56,7 +56,9 @@ module Kitchen
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
 
-      default_config :dependancies, []
+      default_config :dependencies, []
+      default_config :vendor_path, ""
+      default_config :omnibus_cachier, false
 
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'
@@ -80,6 +82,8 @@ module Kitchen
         salt_version = config[:salt_version]
         salt_apt_repo = config[:salt_apt_repo]
         salt_apt_repo_key = config[:salt_apt_repo_key]
+
+        omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
 
         <<-INSTALL
           sh -c '
@@ -130,15 +134,15 @@ module Kitchen
             exit 2
           fi
 
-          # install chef omnibus so that busser works :(
-          # TODO: work out how to install enough ruby
-          # and set busser: { :ruby_bindir => '/usr/bin/ruby' } so that we dont need the
-          # whole chef client
           if [ ! -d "/opt/chef" ]
           then
             echo "-----> Installing Chef Omnibus"
-            do_download #{chef_url} /tmp/install.sh
-            #{sudo('sh')} /tmp/install.sh
+            mkdir -p #{omnibus_download_dir}
+            if [ ! -x #{omnibus_download_dir}/install.sh ]
+            then
+              do_download #{chef_url} #{omnibus_download_dir}/install.sh
+            fi
+            #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
           fi
 
           '
@@ -157,7 +161,17 @@ module Kitchen
         else
           prepare_formula config[:kitchen_root], config[:formula]
 
-          config[:dependancies].each do |formula|
+          deps = if Pathname.new(config[:vendor_path]).absolute?
+            Dir["#{config[:vendor_path]}/*"]
+          else
+            Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
+          end
+
+          deps.each do |d|
+            prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+          end
+
+          config[:dependencies].each do |formula|
             prepare_formula formula[:path], formula[:name]
           end
         end
@@ -416,6 +430,9 @@ module Kitchen
                 Find.prune
               end
               FileUtils.mkdir target unless File.exists? target
+              if File.symlink? source
+                FileUtils.cp_r "#{source}/.", target
+              end
             else
               FileUtils.copy source, target
             end
