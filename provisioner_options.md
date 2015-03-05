@@ -25,6 +25,7 @@ state_collection | false | treat this directory as a salt state collection and n
 [collection_name](#collection_name) | | used to derive then name of states we want to apply in a state collection. (if collection_name isn't set, formula will be used)
 [pillars](#pillars)| {} | pillar data
 [pillars-from-files](#pillars-from-files) | | a list of key-value pairs for files that should be loaded as pillar data
+pillar_root| | directory containing pillar data
 [grains](#grains) | | a hash to be re-written as /etc/salt/grains on the guest
 [dependancies](#dependancies) | | a list of hashes specifying dependancies formulas to be copied into the VM. e.g. [{ :path => 'deps/icinga-formula', :name => 'icinga' }]
 
@@ -258,7 +259,16 @@ And the contents of pillar.example is a normal pillar file:
 	  transport: stdout
 	  format: json
 
+### [pillar_root](id:pillar_root)
+Directory of pillar data and pillar topfile for local evaluation.
 
+i.e.
+
+    provisioner:
+      name: salt_solo
+      pillar_root: ../pillar
+      is_file_root: true
+          
 
 ### [grains](id:grains)
 (since v0.0.15)

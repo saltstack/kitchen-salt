@@ -55,6 +55,7 @@ module Kitchen
       default_config :salt_run_highstate, true
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
+      default_config :pillar_root, false
 
       default_config :dependencies, []
       default_config :vendor_path, ""
@@ -297,6 +298,7 @@ module Kitchen
         return if config[:pillars].nil? && config[:'pillars-from-files'].nil?
 
 
+        return if config[:pillars].nil? && config[:'pillars-from-files'].nil? && config[:pillar_root] == false
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
@@ -340,6 +342,15 @@ module Kitchen
             FileUtils.copy srcfile, sandbox_pillar_path
           end
         end
+
+        # Copy directory of pillar data
+        if config[:pillar_root]
+          debug("Using pillars from #{config[:pillar_root]}")
+          sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root])
+          FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
+          FileUtils.cp_r(File.join(config[:pillar_root], '/'), sandbox_pillar_path)
+        end
+
       end
 
       def prepare_grains
