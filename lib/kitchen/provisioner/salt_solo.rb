@@ -424,8 +424,9 @@ module Kitchen
             target = source.sub(/^#{source_path}/, target_path)
             debug("cp_r_with_filter:source = #{source}")
             debug("cp_r_with_filter:target = #{target}")
+            filtered = filter.include?(File.basename(source))
             if File.directory? source
-              if filter.include?(File.basename(source))
+              if filtered
                 debug("Found #{source} in #{filter}, pruning it from the Find")
                 Find.prune
               end
@@ -434,7 +435,11 @@ module Kitchen
                 FileUtils.cp_r "#{source}/.", target
               end
             else
-              FileUtils.copy source, target
+              if filtered
+                debug("Found #{source} in #{filter}, not copying file")
+              else
+                FileUtils.copy source, target
+              end
             end
           end
         end
