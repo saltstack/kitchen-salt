@@ -1,4 +1,10 @@
 # kitchen-salt
+[![Gem Version](https://badge.fury.io/rb/kitchen-salt.svg)](http://badge.fury.io/rb/kitchen-salt)
+[![Gem Downloads](http://ruby-gem-downloads-badge.herokuapp.com/kitchen-salt?type=total&color=brightgreen)](https://rubygems.org/gems/kitchen-salt)
+[![Build Status](https://travis-ci.org/simonmcc/kitchen-salt.png)](https://travis-ci.org/simonmcc/kitchen-salt)
+[![Code Climate](https://codeclimate.com/github/simonmcc/kitchen-salt/badges/gpa.svg)](https://codeclimate.com/github/simonmcc/kitchen-salt)
+[![Test Coverage](https://codeclimate.com/github/simonmcc/kitchen-salt/badges/coverage.svg)](https://codeclimate.com/github/simonmcc/kitchen-salt/coverage)
+
 A Test Kitchen Provisioner for Salt
 
 The provider works by generating a salt-minion config, creating pillars based on attributes in .kitchen.yml & calling salt-call.
