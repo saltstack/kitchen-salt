@@ -30,10 +30,5 @@ You'll need a driver box that is supported by both the SaltStack [bootstrap](htt
 
     # hack. work. test.
     git add stuff
-    gem bump --no-commit
-    git add lib/kitchen-salt/version.rb
     git commit -v
-    git push
-    gem release
-
-
+    gem bump --release --tag
