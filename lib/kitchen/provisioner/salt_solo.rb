@@ -55,6 +55,7 @@ module Kitchen
       default_config :salt_run_highstate, true
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
+      default_config :pillar_root, false
 
       default_config :dependencies, []
       default_config :vendor_path, ""
@@ -245,6 +246,9 @@ module Kitchen
           pillar_roots:
            base:
              - #{File.join(config[:root_path], config[:salt_pillar_root])}
+
+          ext_pillar:
+            - cmd_yaml: 'cat #{File.join(config[:root_path], "pillars")}'
         MINION_CONFIG
 
         # create the temporary path for the salt-minion config file
@@ -294,31 +298,23 @@ module Kitchen
         info("Preparing pillars into #{config[:salt_pillar_root]}")
         debug("Pillars Hash: #{config[:pillars]}")
 
-        return if config[:pillars].nil? && config[:'pillars-from-files'].nil?
-
-
+        return if config[:pillars].nil? && config[:'pillars-from-files'].nil? && config[:pillar_root] == false
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
-        pillars = unsymbolize(config[:pillars])
-        debug("unsymbolized pillars hash: #{pillars}")
-
-        # write out each pillar (we get key/contents pairs)
-        pillars.each do |key,contents|
+        if !config[:pillars].nil?
+          pillars = unsymbolize(config[:pillars])
+          debug("unsymbolized pillars hash: #{pillars}")
 
           # convert the hash to yaml
-          pillar = contents.to_yaml
+          pillar = pillars.to_yaml
 
           # .to_yaml will produce ! '*' for a key, Salt doesn't like this either
           pillar.gsub!(/(!\s'\*')/, "'*'")
 
           # generate the filename
-          sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
+          sandbox_pillar_path = File.join(sandbox_path, 'pillars')
 
-          # create the directory where the pillar file will go
-          FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
-
-          debug("Rendered pillar yaml for #{key}:\n #{pillar}")
           # create the directory & drop the file in
           File.open(sandbox_pillar_path, "wb") do |file|
             file.write(pillar)
@@ -340,6 +336,15 @@ module Kitchen
             FileUtils.copy srcfile, sandbox_pillar_path
           end
         end
+
+        # Copy directory of pillar data
+        if config[:pillar_root]
+          debug("Using pillars from #{config[:pillar_root]}")
+          sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root])
+          FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
+          FileUtils.cp_r(File.join(config[:pillar_root], '/'), sandbox_pillar_path)
+        end
+
       end
 
       def prepare_grains
