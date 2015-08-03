@@ -26,7 +26,8 @@ state_collection | false | treat this directory as a salt state collection and n
 [pillars](#pillars)| {} | pillar data
 [pillars-from-files](#pillars-from-files) | | a list of key-value pairs for files that should be loaded as pillar data
 [grains](#grains) | | a hash to be re-written as /etc/salt/grains on the guest
-[dependencies](#dependencies) | | a list of hashes specifying dependencies formulas to be copied into the VM. e.g. [{ :path => 'deps/icinga-formula', :name => 'icinga' }]
+[dependencies](#dependencies) | [] | a list of hashes specifying dependencies formulas to be copied into the VM. e.g. [{ :path => 'deps/icinga-formula', :name => 'icinga' }]
+[vendor_path](#vendor_path) |""| path (absolute or relative) to a collection of formula reuired to be copied to the guest 
 
 
 ##Configuring Provisioner Options
@@ -277,4 +278,8 @@ For example, the following suite will define grains on the guest:
             deployment: datacenter4
             cabinet: 13
             cab_u: 14-15
+            
+### [dependencies](id:dependencies)
+
+### [vendor_path](id:vendor_path)
 

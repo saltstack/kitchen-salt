@@ -156,19 +156,22 @@ module Kitchen
         prepare_state_top
         prepare_pillars
         prepare_grains
+
         if config[:state_collection] || config[:is_file_root]
           prepare_state_collection
         else
           prepare_formula config[:kitchen_root], config[:formula]
 
-          deps = if Pathname.new(config[:vendor_path]).absolute?
-            Dir["#{config[:vendor_path]}/*"]
-          else
-            Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
-          end
+          if Pathname.new(config[:vendor_path]).exist?
+            deps = if Pathname.new(config[:vendor_path]).absolute?
+              Dir["#{config[:vendor_path]}/*"]
+            else
+              Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
+            end
 
-          deps.each do |d|
-            prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+            deps.each do |d|
+              prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+            end
           end
 
           config[:dependencies].each do |formula|
@@ -295,8 +298,6 @@ module Kitchen
         debug("Pillars Hash: #{config[:pillars]}")
 
         return if config[:pillars].nil? && config[:'pillars-from-files'].nil?
-
-
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
