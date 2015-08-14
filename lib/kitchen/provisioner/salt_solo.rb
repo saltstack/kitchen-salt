@@ -57,7 +57,7 @@ module Kitchen
       default_config :is_file_root, false
 
       default_config :dependencies, []
-      default_config :vendor_path, ""
+      default_config :vendor_path, nil
       default_config :omnibus_cachier, false
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -162,15 +162,20 @@ module Kitchen
         else
           prepare_formula config[:kitchen_root], config[:formula]
 
-          if Pathname.new(config[:vendor_path]).exist?
-            deps = if Pathname.new(config[:vendor_path]).absolute?
-              Dir["#{config[:vendor_path]}/*"]
-            else
-              Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
-            end
+          unless config[:vendor_path].nil?
+            if Pathname.new(config[:vendor_path]).exist?
+              deps = if Pathname.new(config[:vendor_path]).absolute?
+                Dir["#{config[:vendor_path]}/*"]
+              else
+                Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
+              end
 
-            deps.each do |d|
-              prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+              deps.each do |d|
+                prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+              end
+            else
+              # :vendor_path was set, but not valid
+              raise UserError, "kitchen-salt: Invalid vendor_path set: #{config[:vendor_path]}"
             end
           end
 
