@@ -14,6 +14,9 @@ This provider has been tested against the Ubuntu boxes running in vagrant/virtua
 ## Installation & Setup
 You'll need the test-kitchen & kitchen-salt gem's installed in your system, along with kitchen-vagrant or some ther suitable driver for test-kitchen.  Please see the [INTRODUCTION](https://github.com/simonmcc/kitchen-salt/blob/master/INTRODUCTION.md).
 
+## Provisioner Options 
+More details on all the configuration optins are in [README.md](https://github.com/simonmcc/kitchen-salt/blob/master/provisioner_options.md)
+
 ## Catching salt failures
 Catching salt failures is particularly troublesome, as salt & salt-call don't do a very good job of setting the exit
 code to something useful, around ~0.17.5, the `--retcode-passthrough` option was added, but even in 2014.1.0 this is
