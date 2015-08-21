@@ -1,3 +1,4 @@
+sudo: false
 language: ruby
 
 rvm:
@@ -10,3 +11,36 @@ script: bundle exec rspec
 matrix:
   allow_failures:
     - rvm: ruby-head
+
+before_install:
+  - ls -la ~/.ssh/
+  - openssl aes-256-cbc -K $encrypted_b0dec7dc31b1_key -iv $encrypted_b0dec7dc31b1_iv -in id_rsa_travis.enc -out ~/.ssh/id_rsa_travis -d
+  - chmod 0600 ~/.ssh/id_rsa_travis
+  - ls -la ~/.ssh/
+
+install:
+  - pwd
+  - git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
+  - cd ../beaver-formula
+  - export BUNDLE_GEMFILE=$PWD/Gemfile
+  - bundle install
+  - 'echo "driver:" >> .kitchen.local.yml'
+  - 'echo "  name: ec2" >> .kitchen.local.yml'
+  - 'echo "  aws_ssh_key_id: travis" >> .kitchen.local.yml'
+  - 'echo "  region: eu-west-1" >> .kitchen.local.yml'
+  - 'echo "  availability_zone: b" >> .kitchen.local.yml'
+  - 'echo "  instance_type: t1.micro" >> .kitchen.local.yml'
+  - 'echo "  image_id: ami-e893299b" >> .kitchen.local.yml'
+  - 'echo "  interface: dns" >> .kitchen.local.yml'
+  - 'echo "transport:" >> .kitchen.local.yml'
+  - 'echo "  ssh_key: ~/.ssh/id_rsa_travis" >> .kitchen.local.yml'
+  - bundle exec kitchen list
+
+script:
+  - pwd
+  - bundle exec kitchen test
+
+after_script:
+  - bundle exec kitchen list
+  - bundle exec kitchen destroy all
+  - bundle exec kitchen diagnose --all

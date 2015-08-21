@@ -26,3 +26,4 @@ doc/
 
 # Other
 *.DS_Store
+.kitchen/

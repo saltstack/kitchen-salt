@@ -29,6 +29,10 @@ non-zero exit code from salt-call.
 ## Requirements
 You'll need a driver box that is supported by both the SaltStack [bootstrap](https://github.com/saltstack/salt-bootstrap) system & the Chef Omnibus installer (the Chef Omnibus installer is only needed to provide busser with a useable ruby environment, you can tell busser to use an alternative ruby if your box has suitable ruby support built in).
 
+## Travis-CI
+* http://oj.io/ci/aws-credentials-and-travis-ci/
+
+
 ## Releasing
 
     # hack. work. test.
