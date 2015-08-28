@@ -188,6 +188,8 @@ module Kitchen
         debug(diagnose())
         if config[:salt_run_highstate]
           cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
+        else
+          cmd = sudo("salt-call state.highstate")
         end
 
         cmd << " --log-level=#{config[:log_level]}"
