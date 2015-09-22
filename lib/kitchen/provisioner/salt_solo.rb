@@ -99,7 +99,11 @@ module Kitchen
             #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
           elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
           then
-            . /etc/lsb-release
+            if [ -z "`which lsb_release`" ]; then
+              . /etc/lsb-release
+            else
+              DISTRIB_CODENAME=`lsb_release -s -c`
+            fi
 
             echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
 
