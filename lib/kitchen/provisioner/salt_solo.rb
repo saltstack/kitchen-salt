@@ -153,7 +153,6 @@ module Kitchen
         super
         prepare_data
         prepare_minion
-        prepare_state_top
         prepare_pillars
         prepare_grains
 
@@ -183,6 +182,7 @@ module Kitchen
             prepare_formula formula[:path], formula[:name]
           end
         end
+        prepare_state_top
       end
 
       def init_command
