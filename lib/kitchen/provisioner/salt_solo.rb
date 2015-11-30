@@ -41,6 +41,7 @@ module Kitchen
       # alternative method of installing salt
       default_config :salt_apt_repo, "http://apt.mccartney.ie"
       default_config :salt_apt_repo_key, "http://apt.mccartney.ie/KEY"
+      default_config :salt_ppa, "ppa:saltstack/salt"
 
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
@@ -82,6 +83,7 @@ module Kitchen
         salt_version = config[:salt_version]
         salt_apt_repo = config[:salt_apt_repo]
         salt_apt_repo_key = config[:salt_apt_repo_key]
+        salt_ppa = config[:salt_ppa]
 
         omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
 
@@ -108,6 +110,11 @@ module Kitchen
 
             #{sudo('apt-get')} update
             #{sudo('apt-get')} install -y salt-minion
+          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
+          then
+            #{sudo('apt-add-repository')} -y #{salt_ppa}
+            #{sudo('apt-get')} update
+            #{sudo('apt-get')} install -y salt-minion
           fi
 
           # check again, now that an install of some form should have happened
@@ -122,6 +129,7 @@ module Kitchen
             echo "salt_version = #{salt_version}"
             echo "salt_apt_repo = #{salt_apt_repo}"
             echo "salt_apt_repo_key = #{salt_apt_repo_key}"
+            echo "salt_ppa = #{salt_ppa}"
             exit 2
           elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
           then
