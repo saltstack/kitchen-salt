@@ -6,19 +6,19 @@ key | default value | Notes
 formula | | name of the formula, used to derive the path we need to copy to the guest
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
 salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt" or "ppa"
-salt_bootstrap_url | "http://bootstrap.saltstack.org" | location of bootstrap script
-[salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
+salt_bootstrap_url | "http://bootstrap.saltstack.org"<br>"https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1" | location of bootstrap script
+[salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script (linux only)
 salt_version | "0.16.2"| desired version, only affects apt installs
 salt_apt_repo | "http://apt.mccartney.ie"| apt repo
 salt_apt_repo_key| "http://apt.mccartney.ie/KEY"| apt repo key
 salt_ppa | "ppa:saltstack/salt" | Official Ubuntu SaltStack PPA
-chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS
-salt_config| "/etc/salt"|
+chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"<br>"https://opscode-omnibus-packages.s3.amazonaws.com/windows/2012r2/i386/chef-client-12.7.2-1-x86.msi"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS
+salt_config| "/etc/salt"<br>"c/salt"|
 [salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
-salt_minion_config| "/etc/salt/minion"|
-salt_file_root| "/srv/salt"|
-salt_pillar_root| "/srv/pillar"|
-salt_state_top| "/srv/salt/top.sls"|
+salt_minion_config| "/etc/salt/minion"<br>"c/salt/conf"|
+salt_file_root| "/srv/salt"<br>"c/srv/salt"|
+salt_pillar_root| "/srv/pillar"<br>"c/srv/salt/pillars"|
+salt_state_top| "/srv/salt/top.sls"<br>"c/srv/salt/states"|
 salt_run_highstate| true |
 [state_top](#state_top)| {} | states that should be applied, in standard top.sls format
 [state_top_from_file](#state_top_from_file) | false |
@@ -50,6 +50,13 @@ The provisioner can be configured globally or per suite, global settings act as 
 
     platforms:
       - name: ubuntu-12.04
+      - name: windows-2012r2    
+        driver_config:
+          box: mwrock/Windows2012R2
+          communicator: winrm
+        transport:
+          name: winrm
+
 
     suites:
       - name: default
@@ -69,6 +76,17 @@ The provisioner can be configured globally or per suite, global settings act as 
 	        beaver.sls:
 	          beaver:
 	            transport: tcp
+
+      - name: default
+        excludes:
+          - ubuntu-12.04
+        provisioner:
+          salt_install: bootstrap
+          salt_bootstrap_url: https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1
+        verifier:
+          name: pester
+
+
 	    
 in this example, the default suite will install salt via the bootstrap method, meaning that it will get the latest package available for the platform via the [bootstrap shell script](http://bootstrap.saltstack.org). We then define another suite called `default_0162`, this has the provisioner install salt-0.16.2 via apt-get (this defaults to a mini repo of mine, which you can override, my repo only contains 0.16.2)
 
@@ -124,7 +142,7 @@ In this example, the apache state could use functionality from the php state etc
 
 ### [salt_install](id:salt_install)
 ### [salt_bootstrap_options](id:salt_bootstrap_options) 
-Options to pass to the salt bootstrap installer.  For example, you could choose to install salt from the develop branch like this:
+Windows doesn't currently support options to pass to the salt bootstrap installer. For example, you could choose to install salt from the develop branch like this:
 
     suites:
       - name: use-development-branch-salt
