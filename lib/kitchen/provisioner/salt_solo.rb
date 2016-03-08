@@ -30,28 +30,28 @@ module Kitchen
     # @author Chris Lundquist (<chris.ludnquist@github.com>)
     class SaltSolo < Base
 
+      # platform independent variables
       default_config :salt_version, "latest"
 
       # supported install methods: bootstrap|apt
       default_config :salt_install, "bootstrap"
-
+      # If windows, override to "http://boohttps://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1"
       default_config :salt_bootstrap_url, "http://bootstrap.saltstack.org"
       default_config :salt_bootstrap_options, ""
-
+      
+      default_config :salt_config, "/etc/salt"
+      default_config :salt_minion_config, "/etc/salt/minion" 
+      default_config :salt_file_root, "/srv/salt"
+      default_config :salt_pillar_root, "/srv/salt/pillar"
+      
       # alternative method of installing salt
       default_config :salt_apt_repo, "http://apt.mccartney.ie"
       default_config :salt_apt_repo_key, "http://apt.mccartney.ie/KEY"
       default_config :salt_ppa, "ppa:saltstack/salt"
 
-      default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
-
-      default_config :salt_config, "/etc/salt"
-      default_config :salt_minion_config, "/etc/salt/minion"
-      default_config :salt_file_root, "/srv/salt"
-      default_config :salt_pillar_root, "/srv/pillar"
       default_config :salt_state_top, "/srv/salt/top.sls"
       default_config :state_collection, false
-      default_config :state_top, {}
+      default_config :state_top, {} 
       default_config :state_top_from_file, false
       default_config :salt_run_highstate, true
       default_config :salt_copy_filter, []
@@ -59,8 +59,11 @@ module Kitchen
 
       default_config :dependencies, []
       default_config :vendor_path, nil
+      default_config :require_chef_omnibus, true
+      # If windows, override to something like "https://opscode-omnibus-packages.s3.amazonaws.com/windows/2012r2/i386/chef-client-12.7.2-1-x86.msi"
+      default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
       default_config :omnibus_cachier, false
-
+      
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'
 
@@ -69,12 +72,14 @@ module Kitchen
 
         # if salt_verison is set, bootstrap is being used & bootstrap_options is empty,
         # set the bootstrap_options string to git install the requested version
+        ### This needs more logic before it works for windows ###
         if ((config[:salt_version] != 'latest') && (config[:salt_install] == 'bootstrap') && config[:salt_bootstrap_options].empty?)
           debug("Using bootstrap git to install #{config[:salt_version]}")
           config[:salt_bootstrap_options] = "-P git v#{config[:salt_version]}"
         end
 
         salt_install = config[:salt_install]
+        chef_omnibus = config[:require_chef_omnibus]
 
         salt_url = config[:salt_bootstrap_url]
         chef_url = config[:chef_bootstrap_url]
@@ -85,76 +90,112 @@ module Kitchen
         salt_apt_repo_key = config[:salt_apt_repo_key]
         salt_ppa = config[:salt_ppa]
 
+        # Not working on windows yet
         omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
 
-        <<-INSTALL
-          sh -c '
-          #{Util.shell_helpers}
+        if windows_os?
+          info("Installing salt minion and chefdk for testing")
+            
+          <<-POWERSHELL
+          # Bootstrap script
+          if (Test-Path $env:ProgramData\\Chocolatey){
+            choco list boxstarter.chocolatey
+          }
+          else{
+            Write-Host "Chocolatey will be installed."
+            iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+          }
+            
+          # Check if Salt Minion is installed
+          if (Test-Path C:/Salt){
+            choco list saltminion    
+          }
+          else{
+            choco install saltminion -r -y
+          }
+                        
+          if (Test-Path C:/opscode/chefdk){
+            choco list chefdk   
+          }
+          elseif($#{chef_omnibus}){
+            choco install chefdk -r -y 
+          }
+          else{
+            Write-Host "Skipping install of ChefDK because 'require_chef_omnibus' is set to #{chef_omnibus}."
+          }
+          POWERSHELL
+              
+        else
 
-          # what version of salt is installed?
-          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+          <<-INSTALL
+            sh -c '
+            #{Util.shell_helpers}
+
+            # what version of salt is installed?
+            SALT_VERSION=`salt-call --version | cut -d " " -f 2`
 
 
-          if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
-          then
-            do_download #{salt_url} /tmp/bootstrap-salt.sh
-            #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
-          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
-          then
-            . /etc/lsb-release
-
-            echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
-
-            do_download #{salt_apt_repo_key} /tmp/repo.key
-            #{sudo('apt-key')} add /tmp/repo.key
-
-            #{sudo('apt-get')} update
-            #{sudo('apt-get')} install -y salt-minion
-          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
-          then
-            #{sudo('apt-add-repository')} -y #{salt_ppa}
-            #{sudo('apt-get')} update
-            #{sudo('apt-get')} install -y salt-minion
-          fi
-
-          # check again, now that an install of some form should have happened
-          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
-
-          if [ -z "${SALT_VERSION}" ]
-          then
-            echo "No salt-minion installed, install must have failed!!"
-            echo "salt_install = #{salt_install}"
-            echo "salt_url = #{salt_url}"
-            echo "bootstrap_options = #{bootstrap_options}"
-            echo "salt_version = #{salt_version}"
-            echo "salt_apt_repo = #{salt_apt_repo}"
-            echo "salt_apt_repo_key = #{salt_apt_repo_key}"
-            echo "salt_ppa = #{salt_ppa}"
-            exit 2
-          elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
-          then
-            echo "You asked for #{salt_version} and you have ${SALT_VERSION} installed, sweet!"
-          elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
-          then
-            echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
-          else
-            echo "You asked for #{salt_version} and you have got ${SALT_VERSION} installed, dunno how to fix that, sorry!"
-            exit 2
-          fi
-
-          if [ ! -d "/opt/chef" ]
-          then
-            echo "-----> Installing Chef Omnibus"
-            mkdir -p #{omnibus_download_dir}
-            if [ ! -x #{omnibus_download_dir}/install.sh ]
+            if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
             then
-              do_download #{chef_url} #{omnibus_download_dir}/install.sh
-            fi
-            #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
-          fi
+              do_download #{salt_url} /tmp/bootstrap-salt.sh
+              #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
+            elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
+            then
+              . /etc/lsb-release
 
-          '
-        INSTALL
+              echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
+
+              do_download #{salt_apt_repo_key} /tmp/repo.key
+              #{sudo('apt-key')} add /tmp/repo.key
+
+              #{sudo('apt-get')} update
+              #{sudo('apt-get')} install -y salt-minion
+            elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
+            then
+              #{sudo('apt-add-repository')} -y #{salt_ppa}
+              #{sudo('apt-get')} update
+              #{sudo('apt-get')} install -y salt-minion
+            fi
+
+            # check again, now that an install of some form should have happened
+            SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+
+            if [ -z "${SALT_VERSION}" ]
+            then
+              echo "No salt-minion installed, install must have failed!!"
+              echo "salt_install = #{salt_install}"
+              echo "salt_url = #{salt_url}"
+              echo "bootstrap_options = #{bootstrap_options}"
+              echo "salt_version = #{salt_version}"
+              echo "salt_apt_repo = #{salt_apt_repo}"
+              echo "salt_apt_repo_key = #{salt_apt_repo_key}"
+              echo "salt_ppa = #{salt_ppa}"
+              exit 2
+            elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
+            then
+              echo "You asked for #{salt_version} and you have ${SALT_VERSION} installed, sweet!"
+            elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
+            then
+              echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
+            else
+              echo "You asked for #{salt_version} and you have got ${SALT_VERSION} installed, dunno how to fix that, sorry!"
+              exit 2
+            fi
+
+            if [ ! -d "/opt/chef" ]
+            then
+              echo "-----> Installing Chef Omnibus"
+              mkdir -p #{omnibus_download_dir}
+              if [ ! -x #{omnibus_download_dir}/install.sh ]
+              then
+                do_download #{chef_url} #{omnibus_download_dir}/install.sh
+              fi
+              #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
+            fi
+
+            '
+          INSTALL
+        end
       end
 
       def create_sandbox
@@ -194,8 +235,14 @@ module Kitchen
       end
 
       def init_command
-        debug("Initialising Driver #{self.name} by cleaning #{config[:root_path]}")
-        "#{sudo('rm')} -rf #{config[:root_path]} ; mkdir -p #{config[:root_path]}"
+        info("Initialising Driver #{self.name} by cleaning #{config[:root_path]}")
+        # Reset upload path permissions for the current ssh user
+        if windows_os?
+            @machine.communicate.sudo("rm ""#{config.upload_path}"" -Recurse -Force;mkdir -Path ""#{config.upload_path}""")
+        else
+            @machine.communicate.sudo("mkdir -p #{config.upload_path}")
+            @machine.communicate.sudo("chown -R #{user} #{config.upload_path}")
+        end
       end
 
       def run_command
