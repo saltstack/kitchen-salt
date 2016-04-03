@@ -206,7 +206,9 @@ module Kitchen
           cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         end
 
-        cmd << " --log-level=#{config[:log_level]}"
+        if config[:log_level]
+          cmd << " --log-level=#{config[:log_level]}"
+        end
 
         # config[:salt_version] can be 'latest' or 'x.y.z', 'YYYY.M.x' etc
         # error return codes are a mess in salt:
