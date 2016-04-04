@@ -150,7 +150,7 @@ module Kitchen
 
           if [ ! -d "/opt/chef" ]
           then
-            echo "-----> Installing Chef Omnibusi (for busser/serverspec ruby support)"
+            echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
             mkdir -p #{omnibus_download_dir}
             if [ ! -x #{omnibus_download_dir}/install.sh ]
             then
