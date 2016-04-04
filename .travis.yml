@@ -31,7 +31,8 @@ install:
   - 'echo "  availability_zone: b" >> .kitchen.local.yml'
   - 'echo "  instance_type: t1.micro" >> .kitchen.local.yml'
   - 'echo "  image_id: ami-e893299b" >> .kitchen.local.yml'
-  - 'echo "  interface: dns" >> .kitchen.local.yml'
+  - 'echo "  associate_public_ip: true" >> .kitchen.local.yml'
+  - 'echo "  interface: public" >> .kitchen.local.yml'
   - 'echo "transport:" >> .kitchen.local.yml'
   - 'echo "  ssh_key: ~/.ssh/id_rsa_travis" >> .kitchen.local.yml'
   - bundle exec kitchen list
