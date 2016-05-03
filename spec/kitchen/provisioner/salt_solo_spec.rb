@@ -18,6 +18,7 @@
 
 require_relative '../../spec_helper'
 require 'kitchen'
+require 'ruby-debug'
 
 # Work around for lazy loading
 require 'kitchen/provisioner/salt_solo'
@@ -32,7 +33,7 @@ describe Kitchen::Provisioner::SaltSolo do
 
   let(:config) do
     {
-      # TODO
+      :formula => "rspec-formula"
     }
   end
 
@@ -73,4 +74,39 @@ describe Kitchen::Provisioner::SaltSolo do
     end
 
   end
+
+  describe "#create_sandbox" do
+    before do
+      @root = Dir.mktmpdir
+      config[:kitchen_root] = @root
+
+      create_dummy_formula_under("#{config[:kitchen_root]}/#{config[:formula]}")
+      config[:data_path] = "#{config[:kitchen_root]}/my_data"
+    end
+
+    after do
+      FileUtils.remove_entry(@root)
+      begin
+        provisioner.cleanup_sandbox
+      rescue # rubocop:disable Lint/HandleExceptions
+      end
+    end
+
+    it "creates a top.sls" do
+      provisioner.create_sandbox
+
+      sandbox_oath("top.sls").file?.must_equal true
+    end
+  end
+
+  def create_dummy_formula_under(path)
+    FileUtils.mkdir_p(File.join(path, "sub"))
+    File.open(File.join(path, "alpha.txt"), "wb") do |file|
+      file.write("stuff")
+    end
+    File.open(File.join(path, "sub", "bravo.txt"), "wb") do |file|
+      file.write("junk")
+    end
+  end
+
 end
