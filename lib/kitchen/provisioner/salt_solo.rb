@@ -56,6 +56,7 @@ module Kitchen
       default_config :salt_run_highstate, true
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
+      default_config :require_chef_for_busser, true
 
       default_config :dependencies, []
       default_config :vendor_path, nil
@@ -148,6 +149,15 @@ module Kitchen
             exit 2
           fi
 
+          #{install_chef_for_busser}
+
+          '
+        INSTALL
+      end
+
+      def install_chef_for_busser
+        return unless config[:require_chef_for_busser]
+        <<-INSTALL
           if [ ! -d "/opt/chef" ]
           then
             echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
@@ -158,8 +168,6 @@ module Kitchen
             fi
             #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
           fi
-
-          '
         INSTALL
       end
 
