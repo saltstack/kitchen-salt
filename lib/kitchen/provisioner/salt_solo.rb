@@ -59,6 +59,7 @@ module Kitchen
 
       default_config :dependencies, []
       default_config :vendor_path, nil
+      default_config :require_chef_omnibus, true
       default_config :omnibus_cachier, false
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -75,6 +76,7 @@ module Kitchen
         end
 
         salt_install = config[:salt_install]
+        chef_omnibus = config[:require_chef_omnibus]
 
         salt_url = config[:salt_bootstrap_url]
         chef_url = config[:chef_bootstrap_url]
@@ -87,84 +89,121 @@ module Kitchen
 
         omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
 
-        <<-INSTALL
-          sh -c '
-          #{Util.shell_helpers}
+        if windows_os?
+          info("Installing salt minion and chef-client for testing")
+            
+          <<-POWERSHELL
+            # Bootstrap script
+            if (Test-Path $env:ProgramData\\Chocolatey){
+              choco list boxstarter.chocolatey
+            }
+            else{
+              Write-Host "Chocolatey will be installed."
+              iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+            }
+              
+            # Check if Salt Minion is installed
+            if (Test-Path C:/Salt){
+              choco list saltminion    
+            }
+            else{
+              choco install saltminion -r -y
+            }
+                          
+            if (Test-Path C:/opscode/chef){
+              choco list chef-client   
+            }
+            elseif($#{chef_omnibus}){
+              choco install chef-client -r -y 
+            }
+            else{
+              Write-Host "Skipping install of chef-client because 'require_chef_omnibus' is set to #{chef_omnibus}."
+            }
+          POWERSHELL
+        else
+          <<-INSTALL
+            sh -c '
+            #{Util.shell_helpers}
 
-          # what version of salt is installed?
-          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+            # what version of salt is installed?
+            SALT_VERSION=`salt-call --version | cut -d " " -f 2`
 
 
-          if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
-          then
-            do_download #{salt_url} /tmp/bootstrap-salt.sh
-            #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
-          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
-          then
-            . /etc/lsb-release
-
-            echo "-----> Configuring apt repo for salt #{salt_version}"
-            echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
-
-            do_download #{salt_apt_repo_key} /tmp/repo.key
-            #{sudo('apt-key')} add /tmp/repo.key
-
-            #{sudo('apt-get')} update
-            sleep 10
-            echo "-----> Installing salt-minion (#{salt_version})"
-            #{sudo('apt-get')} install -y python-support
-            #{sudo('apt-get')} install -y salt-minion
-            #{sudo('apt-get')} install -y salt-common
-            #{sudo('apt-get')} install -y salt-minion
-          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
-          then
-            #{sudo('apt-add-repository')} -y #{salt_ppa}
-            #{sudo('apt-get')} update
-            #{sudo('apt-get')} install -y salt-minion
-          fi
-
-          # check again, now that an install of some form should have happened
-          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
-
-          if [ -z "${SALT_VERSION}" ]
-          then
-            echo "No salt-minion installed, install must have failed!!"
-            echo "salt_install = #{salt_install}"
-            echo "salt_url = #{salt_url}"
-            echo "bootstrap_options = #{bootstrap_options}"
-            echo "salt_version = #{salt_version}"
-            echo "salt_apt_repo = #{salt_apt_repo}"
-            echo "salt_apt_repo_key = #{salt_apt_repo_key}"
-            echo "salt_ppa = #{salt_ppa}"
-            exit 2
-          elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
-          then
-            echo "You asked for #{salt_version} and you have ${SALT_VERSION} installed, sweet!"
-          elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
-          then
-            echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
-          else
-            echo "You asked for #{salt_version} and you have got ${SALT_VERSION} installed, dunno how to fix that, sorry!"
-            exit 2
-          fi
-
-          if [ ! -d "/opt/chef" ]
-          then
-            echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
-            mkdir -p #{omnibus_download_dir}
-            if [ ! -x #{omnibus_download_dir}/install.sh ]
+            if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
             then
-              do_download #{chef_url} #{omnibus_download_dir}/install.sh
-            fi
-            #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
-          fi
+              do_download #{salt_url} /tmp/bootstrap-salt.sh
+              #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
+            elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
+            then
+              . /etc/lsb-release
 
-          '
-        INSTALL
+              echo "-----> Configuring apt repo for salt #{salt_version}"
+              echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
+
+              do_download #{salt_apt_repo_key} /tmp/repo.key
+              #{sudo('apt-key')} add /tmp/repo.key
+
+              #{sudo('apt-get')} update
+              sleep 10
+              echo "-----> Installing salt-minion (#{salt_version})"
+              #{sudo('apt-get')} install -y python-support
+              #{sudo('apt-get')} install -y salt-minion
+              #{sudo('apt-get')} install -y salt-common
+              #{sudo('apt-get')} install -y salt-minion
+            elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
+            then
+              #{sudo('apt-add-repository')} -y #{salt_ppa}
+              #{sudo('apt-get')} update
+              #{sudo('apt-get')} install -y salt-minion
+            fi
+
+            # check again, now that an install of some form should have happened
+            SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+
+            if [ -z "${SALT_VERSION}" ]
+            then
+              echo "No salt-minion installed, install must have failed!!"
+              echo "salt_install = #{salt_install}"
+              echo "salt_url = #{salt_url}"
+              echo "bootstrap_options = #{bootstrap_options}"
+              echo "salt_version = #{salt_version}"
+              echo "salt_apt_repo = #{salt_apt_repo}"
+              echo "salt_apt_repo_key = #{salt_apt_repo_key}"
+              echo "salt_ppa = #{salt_ppa}"
+              exit 2
+            elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
+            then
+              echo "You asked for #{salt_version} and you have ${SALT_VERSION} installed, sweet!"
+            elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
+            then
+              echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
+            else
+              echo "You asked for #{salt_version} and you have got ${SALT_VERSION} installed, dunno how to fix that, sorry!"
+              exit 2
+            fi
+
+            if [ ! -d "/opt/chef" ]
+            then
+              echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
+              mkdir -p #{omnibus_download_dir}
+              if [ ! -x #{omnibus_download_dir}/install.sh ]
+              then
+                do_download #{chef_url} #{omnibus_download_dir}/install.sh
+              fi
+              #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
+            fi
+
+            '
+          INSTALL
+        end
       end
 
       def create_sandbox
         super
+
+        # Salt can't resolve $env:TEMP in the minion file so use a static path instead 
+        config[:root_path] = config[:root_path].sub(/\$env:TEMP/, "C:\\tmp")
+
         prepare_data
         prepare_minion
         prepare_state_top
@@ -201,7 +240,12 @@ module Kitchen
 
       def init_command
         debug("Initialising Driver #{self.name} by cleaning #{config[:root_path]}")
-        "#{sudo('rm')} -rf #{config[:root_path]} ; mkdir -p #{config[:root_path]}"
+
+        if windows_os?
+          "rm ""#{config[:root_path]}"" -Recurse -Force;mkdir -Path ""#{config[:root_path]}"""
+        else
+          "#{sudo('rm')} -rf #{config[:root_path]} ; mkdir -p #{config[:root_path]}"
+        end        
       end
 
       def run_command
@@ -209,7 +253,13 @@ module Kitchen
         # sudo(File.join(config[:root_path], File.basename(config[:script])))
         debug(diagnose())
         if config[:salt_run_highstate]
-          cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
+          if windows_os?
+            salt_command = "C:/salt/salt-call.bat"
+          else
+            salt_command = "salt-call"
+          end
+
+          cmd = sudo("#{salt_command} --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         end
 
         if config[:log_level]
@@ -225,17 +275,20 @@ module Kitchen
           # hope for the best and hope it works eventually
           cmd = cmd + " --retcode-passthrough"
         end
-
-        # scan the output for signs of failure, there is a risk of false negatives
-        fail_grep = 'grep -e Result.*False -e Data.failed.to.compile -e No.matching.sls.found.for'
-        # capture any non-zero exit codes from the salt-call | tee pipe
-        cmd = 'set -o pipefail ; ' << cmd
-        # Capture the salt-call output & exit code
-        cmd << " 2>&1 | tee /tmp/salt-call-output ; SC=$? ; echo salt-call exit code: $SC ;"
-        # check the salt-call output for fail messages
-        cmd << " (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; echo salt-call output grep exit code ${EC} ;"
-        # use the non-zer exit code from salt-call, then invert the results of the grep for failures
-        cmd << " [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
+  
+        # TODO: Get this ported
+        if !windows_os?
+          # scan the output for signs of failure, there is a risk of false negatives
+          fail_grep = 'grep -e Result.*False -e Data.failed.to.compile -e No.matching.sls.found.for'
+          # capture any non-zero exit codes from the salt-call | tee pipe
+          cmd = 'set -o pipefail ; ' << cmd
+          # Capture the salt-call output & exit code
+          cmd << " 2>&1 | tee /tmp/salt-call-output ; SC=$? ; echo salt-call exit code: $SC ;"
+          # check the salt-call output for fail messages
+          cmd << " (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; echo salt-call output grep exit code ${EC} ;"
+          # use the non-zer exit code from salt-call, then invert the results of the grep for failures
+          cmd << " [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
+        end
 
         cmd
       end
