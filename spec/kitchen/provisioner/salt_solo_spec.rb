@@ -23,16 +23,16 @@ require 'kitchen'
 require 'kitchen/provisioner/salt_solo'
 
 describe Kitchen::Provisioner::SaltSolo do
-
   let(:logged_output)   { StringIO.new }
   let(:logger)          { Logger.new(logged_output) }
   let(:platform) do
-    platform = instance_double(Kitchen::Platform, :os_type => nil)
+    platform = instance_double(Kitchen::Platform, :os_type => "unix")
   end
 
   let(:config) do
     {
-      # TODO
+      :root_path => "config_root_path",
+      :sudo_command => "sudo_command"
     }
   end
 
@@ -52,14 +52,62 @@ describe Kitchen::Provisioner::SaltSolo do
     Kitchen::Provisioner::SaltSolo.new(config).finalize_config!(instance)
   end
 
+  describe "#install_command" do
+    context "when unix" do
+      it "should use apt-get" do
+        expect(provisioner.install_command).to match(/apt-get/)
+      end
+    end
+
+    context "when windows" do
+      let(:platform) do
+        platform = instance_double(Kitchen::Platform, :os_type => "windows")
+      end
+
+      it "should use chocolatey" do
+        expect(provisioner.install_command).to match(/choco/)
+      end
+    end
+  end
+
+  describe "#init_command" do
+    context "when unix" do
+      it "should use shell" do
+        expect(provisioner.init_command).to eq("sudo_command rm -rf config_root_path ; mkdir -p config_root_path") 
+      end
+    end
+
+    context "when windows" do
+      let(:platform) do
+        platform = instance_double(Kitchen::Platform, :os_type => "windows")
+      end
+   
+      it "should use powershell" do
+        expect(provisioner.init_command).to eq("rm ""config_root_path"" -Recurse -Force;mkdir -Path ""config_root_path""")
+      end
+    end
+  end
+
   describe "#run_command" do
-    it "should give a sane run_command" do
-      expect(provisioner.run_command).to match(/salt-call/)
+    context "when unix" do
+      it "should give a sane run_command" do
+        expect(provisioner.run_command).to match(/salt-call /)
+      end
+    end
+
+    context "when windows" do
+      let(:platform) do
+        platform = instance_double(Kitchen::Platform, :os_type => "windows")
+      end
+
+      it "should use salt-call.bat" do
+        expect(provisioner.run_command).to match(/C:\/salt\/salt-call.bat /)
+        expect(provisioner.run_command).not_to match(/grep/)
+      end
     end
   end
 
   describe "configuration" do
-
     it "should default to salt-formula mode (state_collection=false)" do
       expect(provisioner[:state_collection]).to eq false
     end
@@ -71,6 +119,5 @@ describe Kitchen::Provisioner::SaltSolo do
     it "should highstate by default" do
       expect(provisioner[:salt_run_highstate]).to eq true
     end
-
   end
 end
