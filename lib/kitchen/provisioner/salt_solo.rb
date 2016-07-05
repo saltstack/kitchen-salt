@@ -192,10 +192,10 @@ module Kitchen
               raise UserError, "kitchen-salt: Invalid vendor_path set: #{config[:vendor_path]}"
             end
           end
+        end
 
-          config[:dependencies].each do |formula|
-            prepare_formula formula[:path], formula[:name]
-          end
+        config[:dependencies].each do |formula|
+          prepare_formula formula[:path], formula[:name]
         end
       end
 
