@@ -53,13 +53,14 @@ module Kitchen
       default_config :state_collection, false
       default_config :state_top, {}
       default_config :state_top_from_file, false
-      default_config :salt_run_highstate, true
+      default_config :salt_run_highstate, false # test in highstate
+      default_config :salt_each_state, false # test each state with own pillar
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
 
       default_config :dependencies, []
       default_config :vendor_path, nil
-      default_config :omnibus_cachier, false
+      default_config :omnibus_cachier, true
 
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'
@@ -208,39 +209,56 @@ module Kitchen
         debug("running driver #{self.name}")
         # sudo(File.join(config[:root_path], File.basename(config[:script])))
         debug(diagnose())
+
+
         if config[:salt_run_highstate]
           cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
+          if config[:log_level]
+            cmd << " --log-level=#{config[:log_level]}"
+          end
+          # config[:salt_version] can be 'latest' or 'x.y.z', 'YYYY.M.x' etc
+          # error return codes are a mess in salt:
+          #  https://github.com/saltstack/salt/pull/11337
+          # Unless we know we have a version that supports --retcode-passthrough
+          # attempt to scan the output for signs of failure
+          if config[:salt_version] > RETCODE_VERSION && config[:salt_version] != 'latest'
+           # hope for the best and hope it works eventually
+           cmd = cmd + " --retcode-passthrough"
+          end
+          # scan the output for signs of failure, there is a risk of false negatives
+          fail_grep = 'grep -e Result.*False -e Data.failed.to.compile -e No.matching.sls.found.for'
+          # capture any non-zero exit codes from the salt-call | tee pipe
+          cmd = 'set -o pipefail ; ' << cmd
+          # Capture the salt-call output & exit code
+          cmd << " 2>&1 | tee /tmp/salt-call-output ; SC=$? ; echo salt-call exit code: $SC ;"
+          # check the salt-call output for fail messages
+          cmd << " (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; echo salt-call output grep exit code ${EC} ;"
+          # use the non-zer exit code from salt-call, then invert the results of the grep for failures
+          cmd << " [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
+
+          cmd
         end
 
-        if config[:log_level]
-          cmd << " --log-level=#{config[:log_level]}"
+        if config[:salt_each_state]
+        state_salt_command = ""
+        @external_pillars.each do |key, value|
+          run_state = key.gsub(".sls", "")
+          state_salt_command = "sudo salt-call --force-color --config-dir=#{File.join(config[:root_path], config[:salt_config])} --pillar-root=/tmp/kitchen/srv/pillar/#{run_state} --local state.sls salt.base.#{run_state};"
+          debug("command to run #{state_salt_command}")
+          @state_salt_command = @state_salt_command.to_s+state_salt_command.to_s
         end
-
-        # config[:salt_version] can be 'latest' or 'x.y.z', 'YYYY.M.x' etc
-        # error return codes are a mess in salt:
-        #  https://github.com/saltstack/salt/pull/11337
-        # Unless we know we have a version that supports --retcode-passthrough
-        # attempt to scan the output for signs of failure
-        if config[:salt_version] > RETCODE_VERSION && config[:salt_version] != 'latest'
-          # hope for the best and hope it works eventually
-          cmd = cmd + " --retcode-passthrough"
-        end
-
-        # scan the output for signs of failure, there is a risk of false negatives
-        fail_grep = 'grep -e Result.*False -e Data.failed.to.compile -e No.matching.sls.found.for'
-        # capture any non-zero exit codes from the salt-call | tee pipe
-        cmd = 'set -o pipefail ; ' << cmd
-        # Capture the salt-call output & exit code
-        cmd << " 2>&1 | tee /tmp/salt-call-output ; SC=$? ; echo salt-call exit code: $SC ;"
-        # check the salt-call output for fail messages
-        cmd << " (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; echo salt-call output grep exit code ${EC} ;"
-        # use the non-zer exit code from salt-call, then invert the results of the grep for failures
-        cmd << " [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
-
+        cmd = "#{@state_salt_command}"
         cmd
+        end
+
       end
 
       protected
+
+      def get_pillar_filenames
+        pillar_files = @external_pillars
+        pillar_files
+      end
 
       def prepare_data
         return unless config[:data_path]
@@ -343,6 +361,7 @@ module Kitchen
           debug("Rendered pillar yaml for #{key}:\n #{pillar}")
           # create the directory & drop the file in
           File.open(sandbox_pillar_path, "wb") do |file|
+
             file.write(pillar)
           end
         end
@@ -350,17 +369,39 @@ module Kitchen
         # copy the pillars from files straight across, as YAML.load/to_yaml and
         # munge multiline strings
         if !config[:'pillars-from-files'].nil?
-          external_pillars = unsymbolize(config[:'pillars-from-files'])
-          debug("external_pillars (unsymbolize): #{external_pillars}")
-          external_pillars.each do |key, srcfile|
-            debug("Copying external pillar: #{key}, #{srcfile}")
+          @external_pillars = unsymbolize(config[:'pillars-from-files'])
+          #external_pillars = unsymbolize(config[:'pillars-from-files']) #OLD CODE
+          debug("@external_pillars (unsymbolize): #{@external_pillars}")
+          @external_pillars.each do |key, srcfile|
+          debug("Copying external pillar: #{key}, #{srcfile}")
+
+          if config[:salt_run_highstate]
             # generate the filename
             sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
+            #state_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key.gsub(".sls", ""), key)
             # create the directory where the pillar file will go
             FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
+            #FileUtils.mkdir_p(File.dirname(state_pillar_path))
             # copy the file across
             FileUtils.copy srcfile, sandbox_pillar_path
           end
+
+          if config[:salt_each_state]
+            sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
+            isolate_pillar_dir = sandbox_pillar_path.gsub(".sls", "")
+            isolate_pillar_file = File.join(isolate_pillar_dir,key)
+            isolate_pillar_top_file = File.join(isolate_pillar_dir,"top.sls")
+            isolate_pillar_top_content = key.gsub(".sls", "")
+            FileUtils::mkdir_p sandbox_pillar_path.gsub(".sls", "")
+            FileUtils.copy srcfile, isolate_pillar_file
+            open(isolate_pillar_top_file, 'w') { |f|
+                f << "---\n"
+                f << "base:\n"
+                f << "  '*':\n"
+                f << "  - #{isolate_pillar_top_content}\n"
+              }
+          end
+         end
         end
       end
 
