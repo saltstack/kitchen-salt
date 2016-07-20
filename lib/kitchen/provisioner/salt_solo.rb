@@ -221,7 +221,7 @@ module Kitchen
         #  https://github.com/saltstack/salt/pull/11337
         # Unless we know we have a version that supports --retcode-passthrough
         # attempt to scan the output for signs of failure
-        if config[:salt_version] > RETCODE_VERSION && config[:salt_version] != 'latest'
+        if config[:salt_version] > RETCODE_VERSION || config[:salt_version] == 'latest'
           # hope for the best and hope it works eventually
           cmd = cmd + " --retcode-passthrough"
         end
