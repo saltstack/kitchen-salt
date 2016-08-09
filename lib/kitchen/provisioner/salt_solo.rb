@@ -103,12 +103,18 @@ module Kitchen
           then
             . /etc/lsb-release
 
+            echo "-----> Configuring apt repo for salt #{salt_version}"
             echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
 
             do_download #{salt_apt_repo_key} /tmp/repo.key
             #{sudo('apt-key')} add /tmp/repo.key
 
             #{sudo('apt-get')} update
+            sleep 10
+            echo "-----> Installing salt-minion (#{salt_version})"
+            #{sudo('apt-get')} install -y python-support
+            #{sudo('apt-get')} install -y salt-minion
+            #{sudo('apt-get')} install -y salt-common
             #{sudo('apt-get')} install -y salt-minion
           elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
           then
@@ -144,7 +150,7 @@ module Kitchen
 
           if [ ! -d "/opt/chef" ]
           then
-            echo "-----> Installing Chef Omnibus"
+            echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
             mkdir -p #{omnibus_download_dir}
             if [ ! -x #{omnibus_download_dir}/install.sh ]
             then
@@ -206,7 +212,9 @@ module Kitchen
           cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         end
 
-        cmd << " --log-level=#{config[:log_level]}"
+        if config[:log_level]
+          cmd << " --log-level=#{config[:log_level]}"
+        end
 
         # config[:salt_version] can be 'latest' or 'x.y.z', 'YYYY.M.x' etc
         # error return codes are a mess in salt:
