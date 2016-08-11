@@ -53,6 +53,11 @@ os=`uname -s`
 if test -f "/etc/lsb-release" && grep -q DISTRIB_ID /etc/lsb-release && ! grep -q wrlinux /etc/lsb-release; then
   platform=`grep DISTRIB_ID /etc/lsb-release | cut -d "=" -f 2 | tr '[A-Z]' '[a-z]'`
   platform_version=`grep DISTRIB_RELEASE /etc/lsb-release | cut -d "=" -f 2`
+  
+  if test "$platform" = "ubuntu"; then
+    platform="debian"
+  fi
+  
 elif test -f "/etc/debian_version"; then
   platform="debian"
   platform_version=`cat /etc/debian_version`
@@ -62,9 +67,9 @@ elif test -f "/etc/redhat-release"; then
 
   # If /etc/redhat-release exists, we act like RHEL by default
   if test "$platform" = "fedora"; then
-    # FIXME: stop remapping fedora to el
     # FIXME: remove client side platform_version mangling and hard coded yolo
     # Change platform version for use below.
+    platform="redhat"
     platform_version="6.0"
   fi
 
@@ -73,7 +78,7 @@ elif test -f "/etc/redhat-release"; then
     platform="xenserver"
   else
     # FIXME: use "redhat"
-    platform="el"
+    platform="redhat"
   fi
 
 elif test -f "/etc/system-release"; then
@@ -81,8 +86,8 @@ elif test -f "/etc/system-release"; then
   platform_version=`sed 's/^.\+ release \([.0-9]\+\).*/\1/' /etc/system-release | tr '[A-Z]' '[a-z]'`
   # amazon is built off of fedora, so act like RHEL
   if test "$platform" = "amazon linux ami"; then
-    # FIXME: remove client side platform_version mangling and hard coded yolo, and remapping to deprecated "el"
-    platform="el"
+    # FIXME: remove client side platform_version mangling and hard coded yolo
+    platform="redhat"
     platform_version="6.0"
   fi
 # Apple OS X
