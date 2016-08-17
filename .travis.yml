@@ -19,6 +19,7 @@ before_script:
  - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
 
 install:
+  - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
   - pwd
   - git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
   - test -e ../beaver-formula/.kitchen.docker.yml || cp .kitchen.docker.yml ../beaver-formula
