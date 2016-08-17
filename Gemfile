@@ -7,6 +7,7 @@ gem 'berkshelf', '~> 4.0'
 
 group :integration do
   gem 'test-kitchen', '~> 1.2'
+  gem "kitchen-salt", :path => '../kitchen-salt'
 end
 
 group :vagrant do
