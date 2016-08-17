@@ -1,7 +1,7 @@
 ---
 driver:
   name: docker
-  hostname: instance.ci.local
+  hostname: kitchen-salt.ci.local
   use_sudo: false
 
 provisioner:
