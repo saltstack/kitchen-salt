@@ -13,24 +13,33 @@ matrix:
 
 sudo: true
 
-before_script:
-- source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/0.5.0/scripts/start_docker.sh)
+bundler_args: --without='vagrant'
 
+before_script:
+ - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
 
 install:
   - pwd
   - git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
   - cd ../beaver-formula
   - export BUNDLE_GEMFILE=$PWD/Gemfile
-  - bundle install
-  - bundle exec kitchen list
+  - bundle install --without='vagrant'
+  - test -e .kitchen.docker.yml || cp ../.kitchen.docker.yml .
+  - test -e Rakefile || cp ../Rakefile .
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
 
 script:
-# Run test-kitchen with docker driver, for example:
-- KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test
+  # Run test-kitchen with docker driver:
+  - pwd
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test
+  #- travis_retry bundle exec rake integration:docker
 
 
 after_script:
-  - bundle exec kitchen list
-  - bundle exec kitchen destroy all
-  - bundle exec kitchen diagnose --all
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen destroy all
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen diagnose --all
+
+
+
+after_failure: cat docker_daemon.log
