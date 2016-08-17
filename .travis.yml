@@ -24,7 +24,8 @@ install:
   - FORMULA=salt-formula-postfix
   - git clone https://github.com/tcpcloud/$FORMULA.git --branch master --single-branch ../$FORMULA
   #- git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
-  - test -e ../$FORMULA/.kitchen.docker.yml || cp .kitchen.docker.yml ../$FORMULA
+  #- test -e ../$FORMULA/.kitchen.docker.yml || 
+  - cp .kitchen.docker.yml ../$FORMULA
   - test -e ../$FORMULA/Rakefile || cp Rakefile ../$FORMULA
   - cp -f Gemfile ../$FORMULA
   - export BUNDLE_GEMFILE=$PWD/Gemfile
