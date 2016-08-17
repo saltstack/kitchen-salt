@@ -24,8 +24,8 @@ install:
   - cd ../beaver-formula
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - bundle install --without='vagrant'
-  - test -e .kitchen.docker.yml || cp ../.kitchen.docker.yml .
-  - test -e Rakefile || cp ../Rakefile .
+  - test -e ../beaver-formula/.kitchen.docker.yml || cp .kitchen.docker.yml ../beaver-formula
+  - test -e ../beaver-formula/Rakefile || cp Rakefile ../beaver-formula
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
 
 script:
