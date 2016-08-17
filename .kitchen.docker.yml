@@ -2,7 +2,7 @@
 driver:
   name: docker
   hostname: kitchen-salt.ci.local
-  use_sudo: false
+  use_sudo: true
 
 provisioner:
   salt_install: bootstrap
