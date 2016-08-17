@@ -21,11 +21,13 @@ before_script:
 install:
   - pwd
   - git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
-  - cd ../beaver-formula
-  - export BUNDLE_GEMFILE=$PWD/Gemfile
-  - bundle install --without='vagrant'
   - test -e ../beaver-formula/.kitchen.docker.yml || cp .kitchen.docker.yml ../beaver-formula
   - test -e ../beaver-formula/Rakefile || cp Rakefile ../beaver-formula
+  - cp -f Gemfile ../beaver-formula
+  - export BUNDLE_GEMFILE=$PWD/Gemfile
+  - cd ../beaver-formula
+  #- export BUNDLE_GEMFILE=$PWD/Gemfile
+  - bundle install --without='vagrant'
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
 
 script:
