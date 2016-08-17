@@ -2,11 +2,6 @@ source "https://rubygems.org"
 
 gemspec
 gem "codeclimate-test-reporter", group: :test, require: nil
-
-
-
-source 'https://rubygems.org'
-
 gem 'rake'
 gem 'berkshelf', '~> 4.0'
 
