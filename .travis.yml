@@ -21,12 +21,14 @@ bundler_args: --without='vagrant'
 install:
   - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
   - pwd
-  - git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
-  - test -e ../beaver-formula/.kitchen.docker.yml || cp .kitchen.docker.yml ../beaver-formula
-  - test -e ../beaver-formula/Rakefile || cp Rakefile ../beaver-formula
-  - cp -f Gemfile ../beaver-formula
+  - FORMULA=salt-formula-postfix
+  - git clone https://github.com/salt-formulas/$FORMULA.git --branch naster --single-branch ../$FORMULA
+  #- git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
+  - test -e ../$FORMULA/.kitchen.docker.yml || cp .kitchen.docker.yml ../$FORMULA
+  - test -e ../$FORMULA/Rakefile || cp Rakefile ../$FORMULA
+  - cp -f Gemfile ../$FORMULA
   - export BUNDLE_GEMFILE=$PWD/Gemfile
-  - cd ../beaver-formula
+  - cd ../$FORMULA
   #- export BUNDLE_GEMFILE=$PWD/Gemfile
   - bundle install --without='vagrant'
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
