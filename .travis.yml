@@ -36,7 +36,6 @@ install:
 
 script:
   # Run test-kitchen with docker driver:
-  - pwd
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test
   #- travis_retry bundle exec rake integration:docker
 
