@@ -43,7 +43,7 @@ module Kitchen
       default_config :salt_apt_repo_key, "http://apt.mccartney.ie/KEY"
       default_config :salt_ppa, "ppa:saltstack/salt"
 
-      default_config :chef_bootstrap_url, "https://raw.githubusercontent.com/ssplatt/kitchen-salt/no-chef/assets/install.sh"
+      default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
       default_config :salt_config, "/etc/salt"
       default_config :salt_minion_config, "/etc/salt/minion"

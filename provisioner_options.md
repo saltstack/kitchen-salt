@@ -12,7 +12,7 @@ salt_version | "0.16.2"| desired version, only affects apt installs
 salt_apt_repo | "http://apt.mccartney.ie"| apt repo
 salt_apt_repo_key| "http://apt.mccartney.ie/KEY"| apt repo key
 salt_ppa | "ppa:saltstack/salt" | Official Ubuntu SaltStack PPA
-chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS
+chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS. However required is only a ruby, under assets/install.sh is an alternative (Chef free) bootstrap script prom PR#42. Example no-"chef_bootstrap url": https://raw.githubusercontent.com/simonmcc/kitchen-salt/assets/install.sh
 salt_config| "/etc/salt"|
 [salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
 salt_minion_config| "/etc/salt/minion"|
