@@ -15,9 +15,6 @@ sudo: true
 
 bundler_args: --without='vagrant'
 
-#before_script:
-# - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
-
 install:
   - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
   - pwd
@@ -30,7 +27,6 @@ install:
   - cp -f Gemfile ../$FORMULA
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - cd ../$FORMULA
-  #- export BUNDLE_GEMFILE=$PWD/Gemfile
   - bundle install --without='vagrant'
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
 
