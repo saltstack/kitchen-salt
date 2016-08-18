@@ -7,7 +7,7 @@ driver:
 provisioner:
   salt_install: bootstrap
   salt_bootstrap_url: https://bootstrap.saltstack.com
-  salt_version: 2016.3.2
+  salt_version: latest
   grains:
     noservices: True
     
