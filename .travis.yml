@@ -29,7 +29,7 @@ install:
 
 script:
   # Run test-kitchen with docker driver:
-  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test server-ubuntu-1404
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test
   #- travis_retry bundle exec rake integration:docker
 
 after_script:
