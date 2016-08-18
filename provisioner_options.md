@@ -5,12 +5,13 @@ key | default value | Notes
 ----|---------------|--------
 formula | | name of the formula, used to derive the path we need to copy to the guest
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
-salt_install| "bootstrap" | Method by which to install salt, "bootstrap" or "apt"
+salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt" or "ppa"
 salt_bootstrap_url | "http://bootstrap.saltstack.org" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
 salt_version | "0.16.2"| desired version, only affects apt installs
 salt_apt_repo | "http://apt.mccartney.ie"| apt repo
 salt_apt_repo_key| "http://apt.mccartney.ie/KEY"| apt repo key
+salt_ppa | "ppa:saltstack/salt" | Official Ubuntu SaltStack PPA
 chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS
 salt_config| "/etc/salt"|
 [salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
@@ -26,7 +27,8 @@ state_collection | false | treat this directory as a salt state collection and n
 [pillars](#pillars)| {} | pillar data
 [pillars-from-files](#pillars-from-files) | | a list of key-value pairs for files that should be loaded as pillar data
 [grains](#grains) | | a hash to be re-written as /etc/salt/grains on the guest
-[dependancies](#dependancies) | | a list of hashes specifying dependancies formulas to be copied into the VM. e.g. [{ :path => 'deps/icinga-formula', :name => 'icinga' }]
+[dependencies](#dependencies) | [] | a list of hashes specifying dependencies formulas to be copied into the VM. e.g. [{ :path => 'deps/icinga-formula', :name => 'icinga' }]
+[vendor_path](#vendor_path) |""| path (absolute or relative) to a collection of formula reuired to be copied to the guest 
 
 
 ##Configuring Provisioner Options
@@ -152,6 +154,9 @@ Version of salt to install, via the git bootstrap method, unless ```salt_install
 
 ### [salt_apt_repo](id:salt_apt_repo) 
 ### [salt_apt_repo_key](id:salt_apt_repo_key)
+### [ salt_ppa](id:salt_ppa)
+Adds the supplied PPA. The default being the Official SaltStack PPA. Useful when the release (e.g. vivid) does not have support via the standard boostrap script or apt repo.
+
 ### [chef_bootstrap_url](id:chef_bootstrap_url)
 ### [salt_config](id:salt_config)
 ### [salt_minion_config](id:salt_minion_config)
@@ -277,4 +282,8 @@ For example, the following suite will define grains on the guest:
             deployment: datacenter4
             cabinet: 13
             cab_u: 14-15
+            
+### [dependencies](id:dependencies)
+
+### [vendor_path](id:vendor_path)
 

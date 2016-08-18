@@ -23,3 +23,7 @@ tmp
 .yardoc
 _yardoc
 doc/
+
+# Other
+*.DS_Store
+.kitchen/

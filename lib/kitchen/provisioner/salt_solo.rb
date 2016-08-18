@@ -41,6 +41,7 @@ module Kitchen
       # alternative method of installing salt
       default_config :salt_apt_repo, "http://apt.mccartney.ie"
       default_config :salt_apt_repo_key, "http://apt.mccartney.ie/KEY"
+      default_config :salt_ppa, "ppa:saltstack/salt"
 
       default_config :chef_bootstrap_url, "https://www.getchef.com/chef/install.sh"
 
@@ -57,7 +58,7 @@ module Kitchen
       default_config :is_file_root, false
 
       default_config :dependencies, []
-      default_config :vendor_path, ""
+      default_config :vendor_path, nil
       default_config :omnibus_cachier, false
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -82,6 +83,7 @@ module Kitchen
         salt_version = config[:salt_version]
         salt_apt_repo = config[:salt_apt_repo]
         salt_apt_repo_key = config[:salt_apt_repo_key]
+        salt_ppa = config[:salt_ppa]
 
         omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
 
@@ -101,11 +103,22 @@ module Kitchen
           then
             . /etc/lsb-release
 
+            echo "-----> Configuring apt repo for salt #{salt_version}"
             echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
 
             do_download #{salt_apt_repo_key} /tmp/repo.key
             #{sudo('apt-key')} add /tmp/repo.key
 
+            #{sudo('apt-get')} update
+            sleep 10
+            echo "-----> Installing salt-minion (#{salt_version})"
+            #{sudo('apt-get')} install -y python-support
+            #{sudo('apt-get')} install -y salt-minion
+            #{sudo('apt-get')} install -y salt-common
+            #{sudo('apt-get')} install -y salt-minion
+          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
+          then
+            #{sudo('apt-add-repository')} -y #{salt_ppa}
             #{sudo('apt-get')} update
             #{sudo('apt-get')} install -y salt-minion
           fi
@@ -122,6 +135,7 @@ module Kitchen
             echo "salt_version = #{salt_version}"
             echo "salt_apt_repo = #{salt_apt_repo}"
             echo "salt_apt_repo_key = #{salt_apt_repo_key}"
+            echo "salt_ppa = #{salt_ppa}"
             exit 2
           elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
           then
@@ -136,7 +150,7 @@ module Kitchen
 
           if [ ! -d "/opt/chef" ]
           then
-            echo "-----> Installing Chef Omnibus"
+            echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
             mkdir -p #{omnibus_download_dir}
             if [ ! -x #{omnibus_download_dir}/install.sh ]
             then
@@ -156,19 +170,27 @@ module Kitchen
         prepare_state_top
         prepare_pillars
         prepare_grains
+
         if config[:state_collection] || config[:is_file_root]
           prepare_state_collection
         else
           prepare_formula config[:kitchen_root], config[:formula]
 
-          deps = if Pathname.new(config[:vendor_path]).absolute?
-            Dir["#{config[:vendor_path]}/*"]
-          else
-            Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
-          end
+          unless config[:vendor_path].nil?
+            if Pathname.new(config[:vendor_path]).exist?
+              deps = if Pathname.new(config[:vendor_path]).absolute?
+                Dir["#{config[:vendor_path]}/*"]
+              else
+                Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
+              end
 
-          deps.each do |d|
-            prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+              deps.each do |d|
+                prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+              end
+            else
+              # :vendor_path was set, but not valid
+              raise UserError, "kitchen-salt: Invalid vendor_path set: #{config[:vendor_path]}"
+            end
           end
 
           config[:dependencies].each do |formula|
@@ -190,7 +212,9 @@ module Kitchen
           cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         end
 
-        cmd << " --log-level=#{config[:log_level]}"
+        if config[:log_level]
+          cmd << " --log-level=#{config[:log_level]}"
+        end
 
         # config[:salt_version] can be 'latest' or 'x.y.z', 'YYYY.M.x' etc
         # error return codes are a mess in salt:
@@ -295,8 +319,6 @@ module Kitchen
         debug("Pillars Hash: #{config[:pillars]}")
 
         return if config[:pillars].nil? && config[:'pillars-from-files'].nil?
-
-
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
