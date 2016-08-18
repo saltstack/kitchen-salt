@@ -16,13 +16,15 @@ sudo: true
 bundler_args: --without='vagrant'
 
 install:
+  # init/start docker in travis
   - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
-  - FORMULA=salt-formula-postfix
-  - git clone https://github.com/tcpcloud/$FORMULA.git --branch master --single-branch ../$FORMULA
-  - cd ../$FORMULA
-  - for f in Rakefile Gemfile .kitchen.docker.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
+  # clone & setup ci for test formula
+  - export FORMULA=salt-formula-postfix
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - bundle install --without='vagrant'
+  - git clone https://github.com/tcpcloud/$FORMULA.git --branch master --single-branch ../$FORMULA
+  - cd ../$FORMULA
+  - for f in Rakefile .kitchen.docker.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
 
 script:
