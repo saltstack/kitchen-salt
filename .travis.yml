@@ -17,16 +17,11 @@ bundler_args: --without='vagrant'
 
 install:
   - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
-  - pwd
   - FORMULA=salt-formula-postfix
   - git clone https://github.com/tcpcloud/$FORMULA.git --branch master --single-branch ../$FORMULA
-  #- git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
-  #- test -e ../$FORMULA/.kitchen.docker.yml || 
-  - cp .kitchen.docker.yml ../$FORMULA
-  - test -e ../$FORMULA/Rakefile || cp Rakefile ../$FORMULA
-  - cp -f Gemfile ../$FORMULA
-  - export BUNDLE_GEMFILE=$PWD/Gemfile
   - cd ../$FORMULA
+  - for f in Rakefile Gemfile .kitchen.docker.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
+  - export BUNDLE_GEMFILE=$PWD/Gemfile
   - bundle install --without='vagrant'
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
 
@@ -35,12 +30,9 @@ script:
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test server-ubuntu-1404
   #- travis_retry bundle exec rake integration:docker
 
-
 after_script:
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen destroy all
   - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen diagnose --all
-
-
 
 after_failure: cat docker_daemon.log
