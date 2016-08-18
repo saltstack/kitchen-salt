@@ -1,0 +1,16 @@
+---
+driver:
+  name: docker
+  hostname: kitchen-salt.ci.local
+  use_sudo: true
+
+provisioner:
+  salt_install: bootstrap
+  salt_bootstrap_url: https://bootstrap.saltstack.com
+  salt_version: latest
+  grains:
+    noservices: True
+    
+#platforms:
+#- name: centos-6.6
+#- name: ubuntu-14.04
