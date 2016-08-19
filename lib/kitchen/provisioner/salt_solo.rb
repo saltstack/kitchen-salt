@@ -57,6 +57,7 @@ module Kitchen
       default_config :salt_run_highstate, true
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
+      default_config :require_chef, true
 
       default_config :dependencies, []
       default_config :vendor_path, nil
@@ -78,7 +79,6 @@ module Kitchen
         salt_install = config[:salt_install]
 
         salt_url = config[:salt_bootstrap_url]
-        chef_url = config[:chef_bootstrap_url]
         bootstrap_options = config[:salt_bootstrap_options]
 
         salt_version = config[:salt_version]
@@ -86,7 +86,6 @@ module Kitchen
         salt_apt_repo_key = config[:salt_apt_repo_key]
         salt_ppa = config[:salt_ppa]
 
-        omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
 
         <<-INSTALL
           sh -c '
@@ -153,6 +152,17 @@ module Kitchen
             exit 2
           fi
 
+          #{install_chef}
+
+          '
+        INSTALL
+      end
+
+      def install_chef
+        return unless config[:require_chef]
+        chef_url = config[:chef_bootstrap_url]
+        omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
+        <<-INSTALL
           if [ ! -d "/opt/chef" ]
           then
             echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
@@ -163,8 +173,6 @@ module Kitchen
             fi
             #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
           fi
-
-          '
         INSTALL
       end
 
