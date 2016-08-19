@@ -1,5 +1,41 @@
 language: ruby
+
 rvm:
-  - 1.9.3
-  - 2.1.5
+  - 2.1.8
+  - 2.2.4
+  - ruby-head
+
 script: bundle exec rspec
+
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+
+sudo: true
+
+bundler_args: --without='vagrant'
+
+install:
+  # init/start docker in travis
+  - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
+  # clone & setup ci for test formula
+  - export FORMULA=salt-formula-postfix
+  - export BUNDLE_GEMFILE=$PWD/Gemfile
+  - bundle install --without='vagrant'
+  - git clone https://github.com/tcpcloud/$FORMULA.git --branch master --single-branch ../$FORMULA
+  - cd ../$FORMULA
+  - for f in Rakefile .kitchen.docker.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
+
+script:
+  # Run test-kitchen with docker driver:
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test server-ubuntu-1404
+  #- KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test server-centos-1404
+  #- travis_retry bundle exec rake integration:docker
+
+after_script:
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen destroy all
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen diagnose --all
+
+after_failure: cat docker_daemon.log

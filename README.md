@@ -29,6 +29,16 @@ non-zero exit code from salt-call.
 ## Requirements
 You'll need a driver box that is supported by both the SaltStack [bootstrap](https://github.com/saltstack/salt-bootstrap) system & the Chef Omnibus installer (the Chef Omnibus installer is only needed to provide busser with a useable ruby environment, you can tell busser to use an alternative ruby if your box has suitable ruby support built in).
 
+## Continuous Integration & Testing
+PR's and other changes should validated using Travis-CI and the test-kitchen branch of [beaver-formula](https://github.com/simonmcc/beaver-formula/blob/test-kitchen/.kitchen.yml), this uses the kitchen-ec2 driver, the version of kitchen-salt under review & the latest release of test-kitchen. 
+
+* http://oj.io/ci/aws-credentials-and-travis-ci/
+
+TODO: Guide on running the tests locally with test-kitchen, vagrant & virtualbox.
+
+TODO: Guide on running the tests locally with test-kitchen & kitchen-ec2.
+
+
 ## Releasing
 
     # hack. work. test.
