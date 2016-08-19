@@ -47,6 +47,7 @@ module Kitchen
 
       default_config :salt_config, "/etc/salt"
       default_config :salt_minion_config, "/etc/salt/minion"
+      default_config :salt_env, "base"
       default_config :salt_file_root, "/srv/salt"
       default_config :salt_pillar_root, "/srv/pillar"
       default_config :salt_state_top, "/srv/salt/top.sls"
@@ -267,11 +268,11 @@ module Kitchen
           file_client: local
 
           file_roots:
-           base:
+           #{config[:salt_env]}:
              - #{File.join(config[:root_path], config[:salt_file_root])}
 
           pillar_roots:
-           base:
+           #{config[:salt_env]}:
              - #{File.join(config[:root_path], config[:salt_pillar_root])}
         MINION_CONFIG
 
