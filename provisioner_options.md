@@ -16,6 +16,7 @@ chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstra
 salt_config| "/etc/salt"|
 [salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
 salt_minion_config| "/etc/salt/minion"|
+salt_env| "base"| environment to use in minion config file
 salt_file_root| "/srv/salt"|
 salt_pillar_root| "/srv/pillar"|
 salt_state_top| "/srv/salt/top.sls"|
