@@ -1,4 +1,3 @@
-sudo: false
 language: ruby
 
 rvm:
@@ -12,35 +11,31 @@ matrix:
   allow_failures:
     - rvm: ruby-head
 
-before_install:
-  - ls -la ~/.ssh/
-  - openssl aes-256-cbc -K $encrypted_b0dec7dc31b1_key -iv $encrypted_b0dec7dc31b1_iv -in id_rsa_travis.enc -out ~/.ssh/id_rsa_travis -d
-  - chmod 0600 ~/.ssh/id_rsa_travis
-  - ls -la ~/.ssh/
+sudo: true
+
+bundler_args: --without='vagrant'
 
 install:
-  - pwd
-  - git clone https://github.com/simonmcc/beaver-formula.git --branch test-kitchen --single-branch ../beaver-formula
-  - cd ../beaver-formula
+  # init/start docker in travis
+  - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
+  # clone & setup ci for test formula
+  - export FORMULA=salt-formula-postfix
   - export BUNDLE_GEMFILE=$PWD/Gemfile
-  - bundle install
-  - 'echo "driver:" >> .kitchen.local.yml'
-  - 'echo "  name: ec2" >> .kitchen.local.yml'
-  - 'echo "  aws_ssh_key_id: travis" >> .kitchen.local.yml'
-  - 'echo "  region: eu-west-1" >> .kitchen.local.yml'
-  - 'echo "  availability_zone: b" >> .kitchen.local.yml'
-  - 'echo "  instance_type: t1.micro" >> .kitchen.local.yml'
-  - 'echo "  image_id: ami-e893299b" >> .kitchen.local.yml'
-  - 'echo "  interface: public" >> .kitchen.local.yml'
-  - 'echo "transport:" >> .kitchen.local.yml'
-  - 'echo "  ssh_key: ~/.ssh/id_rsa_travis" >> .kitchen.local.yml'
-  - bundle exec kitchen list
+  - bundle install --without='vagrant'
+  - git clone https://github.com/tcpcloud/$FORMULA.git --branch master --single-branch ../$FORMULA
+  - cd ../$FORMULA
+  - for f in Rakefile .kitchen.docker.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
 
 script:
-  - pwd
-  - bundle exec kitchen test
+  # Run test-kitchen with docker driver:
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test server-ubuntu-1404
+  #- KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test server-centos-1404
+  #- travis_retry bundle exec rake integration:docker
 
 after_script:
-  - bundle exec kitchen list
-  - bundle exec kitchen destroy all
-  - bundle exec kitchen diagnose --all
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen destroy all
+  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen diagnose --all
+
+after_failure: cat docker_daemon.log

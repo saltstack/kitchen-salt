@@ -47,6 +47,7 @@ module Kitchen
 
       default_config :salt_config, "/etc/salt"
       default_config :salt_minion_config, "/etc/salt/minion"
+      default_config :salt_env, "base"
       default_config :salt_file_root, "/srv/salt"
       default_config :salt_pillar_root, "/srv/pillar"
       default_config :salt_state_top, "/srv/salt/top.sls"
@@ -56,6 +57,7 @@ module Kitchen
       default_config :salt_run_highstate, true
       default_config :salt_copy_filter, []
       default_config :is_file_root, false
+      default_config :require_chef, true
 
       default_config :dependencies, []
       default_config :vendor_path, nil
@@ -77,7 +79,6 @@ module Kitchen
         salt_install = config[:salt_install]
 
         salt_url = config[:salt_bootstrap_url]
-        chef_url = config[:chef_bootstrap_url]
         bootstrap_options = config[:salt_bootstrap_options]
 
         salt_version = config[:salt_version]
@@ -85,7 +86,6 @@ module Kitchen
         salt_apt_repo_key = config[:salt_apt_repo_key]
         salt_ppa = config[:salt_ppa]
 
-        omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
 
         <<-INSTALL
           sh -c '
@@ -101,7 +101,11 @@ module Kitchen
             #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
           elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
           then
-            . /etc/lsb-release
+            if [ -z "`which lsb_release`" ]; then
+              . /etc/lsb-release
+            else
+              DISTRIB_CODENAME=`lsb_release -s -c`
+            fi
 
             echo "-----> Configuring apt repo for salt #{salt_version}"
             echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
@@ -148,6 +152,17 @@ module Kitchen
             exit 2
           fi
 
+          #{install_chef}
+
+          '
+        INSTALL
+      end
+
+      def install_chef
+        return unless config[:require_chef]
+        chef_url = config[:chef_bootstrap_url]
+        omnibus_download_dir = config[:omnibus_cachier] ? "/tmp/vagrant-cache/omnibus_chef" : "/tmp"
+        <<-INSTALL
           if [ ! -d "/opt/chef" ]
           then
             echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
@@ -158,8 +173,6 @@ module Kitchen
             fi
             #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
           fi
-
-          '
         INSTALL
       end
 
@@ -167,7 +180,6 @@ module Kitchen
         super
         prepare_data
         prepare_minion
-        prepare_state_top
         prepare_pillars
         prepare_grains
 
@@ -192,11 +204,12 @@ module Kitchen
               raise UserError, "kitchen-salt: Invalid vendor_path set: #{config[:vendor_path]}"
             end
           end
-
-          config[:dependencies].each do |formula|
-            prepare_formula formula[:path], formula[:name]
-          end
         end
+
+        config[:dependencies].each do |formula|
+          prepare_formula formula[:path], formula[:name]
+        end
+        prepare_state_top
       end
 
       def init_command
@@ -221,21 +234,21 @@ module Kitchen
         #  https://github.com/saltstack/salt/pull/11337
         # Unless we know we have a version that supports --retcode-passthrough
         # attempt to scan the output for signs of failure
-        if config[:salt_version] > RETCODE_VERSION && config[:salt_version] != 'latest'
+        if config[:salt_version] > RETCODE_VERSION || config[:salt_version] == 'latest'
           # hope for the best and hope it works eventually
           cmd = cmd + " --retcode-passthrough"
+        else
+          # scan the output for signs of failure, there is a risk of false negatives
+          fail_grep = 'grep -e Result.*False -e Data.failed.to.compile -e No.matching.sls.found.for'
+          # capture any non-zero exit codes from the salt-call | tee pipe
+          cmd = 'set -o pipefail ; ' << cmd
+          # Capture the salt-call output & exit code
+          cmd << " 2>&1 | tee /tmp/salt-call-output ; SC=$? ; echo salt-call exit code: $SC ;"
+          # check the salt-call output for fail messages
+          cmd << " (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; echo salt-call output grep exit code ${EC} ;"
+          # use the non-zer exit code from salt-call, then invert the results of the grep for failures
+          cmd << " [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
         end
-
-        # scan the output for signs of failure, there is a risk of false negatives
-        fail_grep = 'grep -e Result.*False -e Data.failed.to.compile -e No.matching.sls.found.for'
-        # capture any non-zero exit codes from the salt-call | tee pipe
-        cmd = 'set -o pipefail ; ' << cmd
-        # Capture the salt-call output & exit code
-        cmd << " 2>&1 | tee /tmp/salt-call-output ; SC=$? ; echo salt-call exit code: $SC ;"
-        # check the salt-call output for fail messages
-        cmd << " (sed '/#{fail_grep}/d' /tmp/salt-call-output | #{fail_grep} ; EC=$? ; echo salt-call output grep exit code ${EC} ;"
-        # use the non-zer exit code from salt-call, then invert the results of the grep for failures
-        cmd << " [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)"
 
         cmd
       end
@@ -263,11 +276,11 @@ module Kitchen
           file_client: local
 
           file_roots:
-           base:
+           #{config[:salt_env]}:
              - #{File.join(config[:root_path], config[:salt_file_root])}
 
           pillar_roots:
-           base:
+           #{config[:salt_env]}:
              - #{File.join(config[:root_path], config[:salt_pillar_root])}
         MINION_CONFIG
 
