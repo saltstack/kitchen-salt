@@ -1,5 +1,5 @@
 module Kitchen
   module Salt
-    VERSION = "0.0.23"
+    VERSION = "0.0.24"
   end
 end
