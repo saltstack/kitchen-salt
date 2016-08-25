@@ -58,6 +58,27 @@ describe Kitchen::Provisioner::SaltSolo do
     end
   end
 
+  describe "create_sandbox" do
+    let(:config) do
+      {
+        kitchen_root: @tmpdir,
+        formula: "test_formula"
+      }
+    end
+
+    around(:each) do |example|
+      Dir.mktmpdir do |dir|
+        @tmpdir = dir
+        FileUtils.mkdir(File.join(@tmpdir, "test_formula"))
+        example.run
+      end
+    end
+
+    it "works" do
+      expect { provisioner.create_sandbox }.not_to raise_exception
+    end
+  end
+
   describe "configuration" do
 
     it "should default to salt-formula mode (state_collection=false)" do
