@@ -1,0 +1,7 @@
+name: foo
+os: Ubuntu
+os_family: Debian
+version: 0.1
+release: 0
+summary: Fixture formula
+description: Fixture formula

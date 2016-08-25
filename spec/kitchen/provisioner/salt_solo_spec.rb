@@ -58,6 +58,97 @@ describe Kitchen::Provisioner::SaltSolo do
     end
   end
 
+  describe "#install_command" do
+    subject { provisioner.install_command }
+
+    it 'should include the shell helpers' do
+      expect(subject).to match Kitchen::Util.shell_helpers
+    end
+
+    it { is_expected.to match "http://bootstrap.saltstack.org" }
+  end
+
+  describe "#create_sandbox" do
+    let(:grains) { nil }
+    let(:pillars) { {} }
+    let(:pillars_from_files) { nil }
+    let(:dependencies) { [] }
+    let(:config) do
+      {
+        kitchen_root: @tmpdir,
+        formula: "test_formula",
+        grains: grains,
+        pillars: pillars,
+        dependencies: dependencies,
+        :'pillars-from-files' => pillars_from_files
+      }
+    end
+
+    around(:each) do |example|
+      Dir.mktmpdir do |dir|
+        @tmpdir = dir
+        FileUtils.mkdir(File.join(@tmpdir, "test_formula"))
+        example.run
+      end
+    end
+
+    it { expect { provisioner.create_sandbox }.not_to raise_exception }
+
+    describe 'sandbox_path files' do
+      before { provisioner.create_sandbox }
+
+      let(:sandbox_path) { Pathname.new(provisioner.sandbox_path) }
+      let(:sandbox_files) { Dir[File.join(sandbox_path, "**", "*")] }
+
+      subject do
+        sandbox_files.collect do |f|
+          if File.file?(f)
+            Pathname.new(f).relative_path_from(sandbox_path)
+          end
+        end.compact.collect(&:to_s)
+      end
+
+      it { is_expected.to contain_exactly 'etc/salt/minion', 'srv/salt/top.sls' }
+
+      context 'with grains specified' do
+        let(:grains) { { foo: 'bar' } }
+        it { is_expected.to include 'etc/salt/grains' }
+      end
+
+      context 'with pillars specified' do
+        let(:pillars) do
+          {
+            :'foo.sls' => { foo: 'foo' },
+            :'bar.sls' => { foo: 'bar' }
+          }
+        end
+        it { is_expected.to include 'srv/pillar/foo.sls' }
+        it { is_expected.to include 'srv/pillar/bar.sls' }
+      end
+
+      context 'with pillars from files' do
+        let(:pillars_from_files) do
+          {
+            :'test_pillar.sls' => 'spec/fixtures/test_pillar.sls'
+          }
+        end
+        it { is_expected.to include 'srv/pillar/test_pillar.sls' }
+      end
+
+      context 'with dependencies' do
+        let(:dependencies) do
+          [{
+            name: 'foo',
+            path: 'spec/fixtures/formula-foo'
+          }]
+        end
+
+        it { is_expected.to include 'srv/salt/foo/init.sls' }
+        it { is_expected.to include 'srv/salt/_states/foo.py' }
+      end
+    end
+  end
+
   describe "configuration" do
 
     it "should default to salt-formula mode (state_collection=false)" do
@@ -71,6 +162,5 @@ describe Kitchen::Provisioner::SaltSolo do
     it "should highstate by default" do
       expect(provisioner[:salt_run_highstate]).to eq true
     end
-
   end
 end
