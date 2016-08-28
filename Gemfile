@@ -1,13 +1,13 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
 gemspec
-gem "codeclimate-test-reporter", group: :test, require: nil
+gem 'codeclimate-test-reporter', group: :test, require: nil
 gem 'rake'
 gem 'berkshelf', '~> 4.0'
 
 group :integration do
   gem 'test-kitchen', '~> 1.2'
-  gem "kitchen-salt", :path => '../kitchen-salt'
+  gem 'kitchen-salt', path: '../kitchen-salt'
 end
 
 group :vagrant do
