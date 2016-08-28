@@ -23,6 +23,16 @@ require 'kitchen'
 require 'kitchen/provisioner/salt_solo'
 
 describe Kitchen::Provisioner::SaltSolo do
+  let(:salt_run_highstate) { true }
+  let(:state_top_from_file) { false }
+  let(:salt_version) { "latest" }
+  let(:pillars_from_files) { nil }
+  let(:state_collection) { false }
+  let(:data_path) { nil }
+  let(:dependencies) { [] }
+  let(:pillars) { nil }
+  let(:grains) { nil }
+  let(:formula) { 'test_formula' }
 
   let(:logged_output)   { StringIO.new }
   let(:logger)          { Logger.new(logged_output) }
@@ -32,7 +42,15 @@ describe Kitchen::Provisioner::SaltSolo do
 
   let(:config) do
     {
-      # TODO
+      kitchen_root: @tmpdir,
+      formula: formula,
+      grains: grains,
+      pillars: pillars,
+      data_path: data_path,
+      dependencies: dependencies,
+      state_collection: state_collection,
+      state_top_from_file: state_top_from_file,
+      :'pillars-from-files' => pillars_from_files
     }
   end
 
@@ -50,6 +68,33 @@ describe Kitchen::Provisioner::SaltSolo do
 
   let(:provisioner) do
     Kitchen::Provisioner::SaltSolo.new(config).finalize_config!(instance)
+  end
+
+  around(:each) do |example|
+    Dir.mktmpdir do |dir|
+      @tmpdir = dir
+      FileUtils.mkdir(File.join(@tmpdir, "test_formula"))
+      example.run
+    end
+  end
+
+  describe "configuration defaults" do
+    [
+      :pillars_from_files,
+      :state_top_from_file,
+      :salt_run_highstate,
+      :state_collection,
+      :data_path,
+      :dependencies,
+      :pillars,
+      :grains,
+      :salt_version
+    ].each do |opt|
+      describe opt do
+        subject { provisioner[opt] }
+        it { is_expected.to match send(opt) }
+      end
+    end
   end
 
   describe "#init_command" do
@@ -147,44 +192,12 @@ describe Kitchen::Provisioner::SaltSolo do
   end
 
   describe "#create_sandbox" do
-    let(:data_path) { nil }
-    let(:grains) { nil }
-    let(:state_collection) { 'false' }
-    let(:pillars) { {} }
-    let(:pillars_from_files) { nil }
-    let(:dependencies) { [] }
     let(:sandbox_path) { Pathname.new(provisioner.sandbox_path) }
-    let(:config) do
-      {
-        kitchen_root: @tmpdir,
-        formula: "test_formula",
-        grains: grains,
-        pillars: pillars,
-        data_path: data_path,
-        dependencies: dependencies,
-        state_collection: state_collection,
-        :'pillars-from-files' => pillars_from_files
-      }
-    end
-
-    around(:each) do |example|
-      Dir.mktmpdir do |dir|
-        @tmpdir = dir
-        FileUtils.mkdir(File.join(@tmpdir, "test_formula"))
-        example.run
-      end
-    end
 
     it { expect { provisioner.create_sandbox }.not_to raise_exception }
 
     context 'with state top from file specified' do
-      let(:config) do
-        {
-          kitchen_root: @tmpdir,
-          formula: "test_formula",
-          state_top_from_file: pillars_from_files
-        }
-      end
+      let(:state_top_from_file) { true }
 
       around do |example|
         File.open(File.join(@tmpdir, "top.sls"), 'w') do |f|
@@ -194,8 +207,6 @@ describe Kitchen::Provisioner::SaltSolo do
           Dir.chdir(@tmpdir); example.run; Dir.chdir(wd)
         end
       end
-
-      it { expect { provisioner.create_sandbox }.not_to raise_exception }
 
       it "should use the file" do
         provisioner.create_sandbox
@@ -245,6 +256,12 @@ describe Kitchen::Provisioner::SaltSolo do
             :'test_pillar.sls' => 'spec/fixtures/test_pillar.sls'
           }
         end
+        let(:pillars) do
+          {
+            :'top.sls' => { base: {'*' => ['test_pillar']} }
+          }
+        end
+        it { is_expected.to include 'srv/pillar/top.sls' }
         it { is_expected.to include 'srv/pillar/test_pillar.sls' }
       end
 
@@ -265,21 +282,6 @@ describe Kitchen::Provisioner::SaltSolo do
 
         it { is_expected.to include 'data/foo.txt' }
       end
-    end
-  end
-
-  describe "configuration" do
-
-    it "should default to salt-formula mode (state_collection=false)" do
-      expect(provisioner[:state_collection]).to eq false
-    end
-
-    it "should use the .kitchen.yml embedded top.sls" do
-      expect(provisioner[:state_top_from_file]).to eq false
-    end
-
-    it "should highstate by default" do
-      expect(provisioner[:salt_run_highstate]).to eq true
     end
   end
 end
