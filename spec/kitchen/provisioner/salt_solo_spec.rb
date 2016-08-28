@@ -52,9 +52,78 @@ describe Kitchen::Provisioner::SaltSolo do
     Kitchen::Provisioner::SaltSolo.new(config).finalize_config!(instance)
   end
 
+  describe "#init_command" do
+    subject { provisioner.init_command }
+
+    it "should give a sane command" do
+      is_expected.to match(/mkdir/)
+    end
+  end
+
   describe "#run_command" do
-    it "should give a sane run_command" do
-      expect(provisioner.run_command).to match(/salt-call/)
+    subject { provisioner.run_command }
+    let(:config) do
+      { salt_version: salt_version }
+    end
+
+    context "without salt version specified" do
+      let(:config) do
+        {}
+      end
+
+      it "should give a sane run_command" do
+        is_expected.to match(/salt-call/)
+      end
+
+      it "should not include extra logic to detect failures" do
+        is_expected.not_to match("/tmp/salt-call-output")
+      end
+    end
+
+    context "with salt version 'latest'" do
+      let(:salt_version) { 'latest' }
+
+      it "should give a sane run_command" do
+        is_expected.to match(/salt-call/)
+      end
+
+      it "should not include extra logic to detect failures" do
+        is_expected.not_to match("/tmp/salt-call-output")
+      end
+    end
+
+    context "with salt version 2016.03.1" do
+      let(:salt_version) { '2016.03.1' }
+
+      it "should give a sane run_command" do
+        is_expected.to match(/salt-call/)
+      end
+
+      it "should not include extra logic to detect failures" do
+        is_expected.not_to match("/tmp/salt-call-output")
+      end
+    end
+
+    context "with salt version 0.17.5" do
+      let(:salt_version) { '0.17.5' }
+
+      it "should give a sane run_command" do
+        is_expected.to match(/salt-call/)
+      end
+
+      it "should include extra logic to detect failures" do
+        is_expected.to match("/tmp/salt-call-output")
+      end
+    end
+
+    context "with log-level" do
+      let(:config) do
+        { log_level: 'debug' }
+      end
+
+      it "should include log level option" do
+        is_expected.to match("--log-level")
+      end
     end
   end
 
@@ -62,10 +131,19 @@ describe Kitchen::Provisioner::SaltSolo do
     subject { provisioner.install_command }
 
     it 'should include the shell helpers' do
-      expect(subject).to match Kitchen::Util.shell_helpers
+      is_expected.to match Kitchen::Util.shell_helpers
     end
 
     it { is_expected.to match "http://bootstrap.saltstack.org" }
+
+    context "with salt version 2016.03.1" do
+      let(:salt_version) { '2016.03.1' }
+      let(:config) do
+        { salt_version: salt_version }
+      end
+
+      it { is_expected.to match "-P git v#{salt_version}" }
+    end
   end
 
   describe "#create_sandbox" do
