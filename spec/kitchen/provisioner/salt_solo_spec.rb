@@ -147,17 +147,22 @@ describe Kitchen::Provisioner::SaltSolo do
   end
 
   describe "#create_sandbox" do
+    let(:data_path) { nil }
     let(:grains) { nil }
+    let(:state_collection) { 'false' }
     let(:pillars) { {} }
     let(:pillars_from_files) { nil }
     let(:dependencies) { [] }
+    let(:sandbox_path) { Pathname.new(provisioner.sandbox_path) }
     let(:config) do
       {
         kitchen_root: @tmpdir,
         formula: "test_formula",
         grains: grains,
         pillars: pillars,
+        data_path: data_path,
         dependencies: dependencies,
+        state_collection: state_collection,
         :'pillars-from-files' => pillars_from_files
       }
     end
@@ -172,10 +177,35 @@ describe Kitchen::Provisioner::SaltSolo do
 
     it { expect { provisioner.create_sandbox }.not_to raise_exception }
 
+    context 'with state top from file specified' do
+      let(:config) do
+        {
+          kitchen_root: @tmpdir,
+          formula: "test_formula",
+          state_top_from_file: pillars_from_files
+        }
+      end
+
+      around do |example|
+        File.open(File.join(@tmpdir, "top.sls"), 'w') do |f|
+          f.write("# test state_top_from_file")
+        end
+        Dir.pwd.tap do |wd|
+          Dir.chdir(@tmpdir); example.run; Dir.chdir(wd)
+        end
+      end
+
+      it { expect { provisioner.create_sandbox }.not_to raise_exception }
+
+      it "should use the file" do
+        provisioner.create_sandbox
+        expect(File.read(File.join(sandbox_path, "srv/salt/top.sls"))).to match("state_top_from_file")
+      end
+    end
+
     describe 'sandbox_path files' do
       before { provisioner.create_sandbox }
 
-      let(:sandbox_path) { Pathname.new(provisioner.sandbox_path) }
       let(:sandbox_files) { Dir[File.join(sandbox_path, "**", "*")] }
 
       subject do
@@ -187,6 +217,11 @@ describe Kitchen::Provisioner::SaltSolo do
       end
 
       it { is_expected.to contain_exactly 'etc/salt/minion', 'srv/salt/top.sls' }
+
+      context 'with state collection specified' do
+        let(:state_collection) { true }
+        it { is_expected.to include 'srv/salt/top.sls' }
+      end
 
       context 'with grains specified' do
         let(:grains) { { foo: 'bar' } }
@@ -223,6 +258,12 @@ describe Kitchen::Provisioner::SaltSolo do
 
         it { is_expected.to include 'srv/salt/foo/init.sls' }
         it { is_expected.to include 'srv/salt/_states/foo.py' }
+      end
+
+      context 'with data path' do
+        let(:data_path) { 'spec/fixtures/data-path' }
+
+        it { is_expected.to include 'data/foo.txt' }
       end
     end
   end
