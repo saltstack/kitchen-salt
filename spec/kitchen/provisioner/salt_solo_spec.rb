@@ -34,6 +34,7 @@ describe Kitchen::Provisioner::SaltSolo do
   let(:grains) { nil }
   let(:formula) { 'test_formula' }
   let(:vendor_path) { nil }
+  let(:salt_copy_filter) { [] }
 
   let(:logged_output)   { StringIO.new }
   let(:logger)          { Logger.new(logged_output) }
@@ -52,7 +53,8 @@ describe Kitchen::Provisioner::SaltSolo do
       state_collection: state_collection,
       state_top_from_file: state_top_from_file,
       :'pillars-from-files' => pillars_from_files,
-      vendor_path: vendor_path
+      vendor_path: vendor_path,
+      salt_copy_filter: salt_copy_filter
     }
   end
 
@@ -91,7 +93,8 @@ describe Kitchen::Provisioner::SaltSolo do
       :pillars,
       :grains,
       :salt_version,
-      :vendor_path
+      :vendor_path,
+      :salt_copy_filter
     ].each do |opt|
       describe opt do
         subject { provisioner[opt] }
@@ -253,9 +256,87 @@ describe Kitchen::Provisioner::SaltSolo do
         end
       end
 
+      context 'with symlink file' do
+        before do
+          File.open(File.join(@tmpdir, "test_formula", "init.sls"), 'w') do |f|
+            f.write("# test")
+          end
+          FileUtils.ln_s File.join(@tmpdir, "test_formula", "init.sls"), File.join(@tmpdir, "test_formula", "link.sls")
+        end
+
+        it { is_expected.to include 'srv/salt/test_formula/link.sls' }
+      end
+
+      context 'with symlink directory' do
+        let(:formula) { 'foo' }
+
+        before do
+          FileUtils.ln_s File.expand_path('spec/fixtures/formula-foo/foo'), @tmpdir
+        end
+
+        it 'has the control when no filters are present' do
+          is_expected.to include 'srv/salt/foo/init.sls'
+        end
+      end
+
+      context 'with filter' do
+        before do
+          File.open(File.join(@tmpdir, "test_formula", "init.sls"), 'w') do |f|
+            f.write("# test")
+          end
+        end
+
+        it 'has the control when no filters are present' do
+          is_expected.to include 'srv/salt/test_formula/init.sls'
+        end
+
+        context 'filtering file' do
+          let(:salt_copy_filter) { ['init.sls'] }
+          it { is_expected.not_to include 'srv/salt/test_formula/init.sls' }
+        end
+
+        context 'filtering directory' do
+          let(:salt_copy_filter) { ['test_formula'] }
+          it { is_expected.not_to include 'srv/salt/test_formula/init.sls' }
+        end
+      end
+
       context 'with state collection specified' do
         let(:state_collection) { true }
-        it { is_expected.to include 'srv/salt/top.sls' }
+
+        before do
+          File.open(File.join(@tmpdir, "test_formula", "init.sls"), 'w') do |f|
+            f.write("# test")
+          end
+        end
+
+        context 'with collection_name and without formula_name' do
+          let(:collection_name) { 'test_formula' }
+          let(:formula) { nil }
+
+          it { is_expected.to include 'srv/salt/test_formula/init.sls' }
+        end
+
+        context 'without collection_name or formula_name' do
+          let(:collection_name) { nil }
+          let(:formula) { nil }
+
+          it { is_expected.to include 'srv/salt/test_formula/init.sls' }
+        end
+
+        context 'with collection_name and formula_name' do
+          let(:collection_name) { 'test_formula' }
+          let(:formula) { 'test_formula' }
+
+          it { is_expected.to include 'srv/salt/test_formula/test_formula/init.sls' }
+        end
+
+        context 'without collection_name and with formula_name' do
+          let(:collection_name) { nil }
+          let(:formula) { 'test_formula' }
+
+          it { is_expected.to include 'srv/salt/test_formula/test_formula/init.sls' }
+        end
       end
 
       context 'with grains specified' do
