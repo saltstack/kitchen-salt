@@ -17,7 +17,7 @@
 # limitations under the License.
 
 require 'kitchen/provisioner/base'
-require 'find'
+require 'kitchen-salt/util'
 require 'fileutils'
 require 'yaml'
 
@@ -26,7 +26,10 @@ module Kitchen
     # Basic Salt Masterless Provisioner, based on work by
     #
     # @author Chris Lundquist (<chris.ludnquist@github.com>)
+
     class SaltSolo < Base
+      include Kitchen::Salt::Util
+
       default_config :salt_version, 'latest'
 
       # supported install methods: bootstrap|apt
@@ -281,22 +284,6 @@ module Kitchen
         end
       end
 
-      def unsymbolize(obj)
-        if obj.is_a? Hash
-          obj.each_with_object({}) do |(k, v), a|
-            a[k.to_s] = unsymbolize(v)
-            a
-          end
-        elsif obj.is_a? Array
-          obj.each_with_object([]) do |e, a|
-            a << unsymbolize(e)
-            a
-          end
-        else
-          obj
-        end
-      end
-
       def prepare_state_top
         info('Preparing state_top')
 
@@ -437,34 +424,6 @@ module Kitchen
         collection_dir = File.join(sandbox_path, config[:salt_file_root], config[:collection_name])
         FileUtils.mkdir_p(collection_dir)
         cp_r_with_filter(config[:kitchen_root], collection_dir, config[:salt_copy_filter])
-      end
-
-      def cp_r_with_filter(source_paths, target_path, filter = [])
-        debug("cp_r_with_filter:source_paths = #{source_paths}")
-        debug("cp_r_with_filter:target_path = #{target_path}")
-        debug("cp_r_with_filter:filter = #{filter}")
-
-        Array(source_paths).each do |source_path|
-          Find.find(source_path) do |source|
-            target = source.sub(/^#{source_path}/, target_path)
-            debug("cp_r_with_filter:source = #{source}")
-            debug("cp_r_with_filter:target = #{target}")
-            filtered = filter.include?(File.basename(source))
-            if File.directory? source
-              if filtered
-                debug("Found #{source} in #{filter}, pruning it from the Find")
-                Find.prune
-              end
-              FileUtils.mkdir target unless File.exist? target
-
-              FileUtils.cp_r "#{source}/.", target if File.symlink? source
-            elsif filtered
-              debug("Found #{source} in #{filter}, not copying file")
-            else
-              FileUtils.copy source, target
-            end
-          end
-        end
       end
     end
   end

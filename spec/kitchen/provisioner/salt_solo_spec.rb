@@ -261,55 +261,6 @@ describe Kitchen::Provisioner::SaltSolo do
         end
       end
 
-      context 'with symlink file' do
-        let(:fixture_file) { File.join(@tmpdir, 'test_formula', 'init.sls') }
-        let(:link_file) { File.join(@tmpdir, 'test_formula', 'link.sls') }
-
-        before do
-          File.open(fixture_file, 'w') do |f|
-            f.write('# test')
-          end
-          FileUtils.ln_s fixture_file, link_file
-        end
-
-        it { is_expected.to include 'srv/salt/test_formula/link.sls' }
-      end
-
-      context 'with symlink directory' do
-        let(:formula) { 'foo' }
-
-        before do
-          source = File.expand_path('spec/fixtures/formula-foo/foo')
-          FileUtils.ln_s source, @tmpdir
-        end
-
-        it 'has the control when no filters are present' do
-          is_expected.to include 'srv/salt/foo/init.sls'
-        end
-      end
-
-      context 'with filter' do
-        before do
-          File.open(File.join(@tmpdir, 'test_formula', 'init.sls'), 'w') do |f|
-            f.write('# test')
-          end
-        end
-
-        it 'has the control when no filters are present' do
-          is_expected.to include 'srv/salt/test_formula/init.sls'
-        end
-
-        context 'filtering file' do
-          let(:salt_copy_filter) { ['init.sls'] }
-          it { is_expected.not_to include 'srv/salt/test_formula/init.sls' }
-        end
-
-        context 'filtering directory' do
-          let(:salt_copy_filter) { ['test_formula'] }
-          it { is_expected.not_to include 'srv/salt/test_formula/init.sls' }
-        end
-      end
-
       context 'with state collection specified' do
         let(:state_collection) { true }
 
@@ -396,28 +347,6 @@ describe Kitchen::Provisioner::SaltSolo do
         let(:data_path) { 'spec/fixtures/data-path' }
 
         it { is_expected.to include 'data/foo.txt' }
-      end
-    end
-  end
-
-  describe 'unsymbolize' do
-    [
-      [
-        { a: 1 },
-        { 'a' => 1 }
-      ],
-      [
-        { a: { b: 1 } },
-        { 'a' => { 'b' => 1 } }
-      ],
-      [
-        { a: [{ b: 1 }] },
-        { 'a' => [{ 'b' => 1 }] }
-      ]
-    ].each do |test_case|
-      describe test_case[0] do
-        subject { provisioner.send(:unsymbolize, test_case[0]) }
-        it { is_expected.to eq test_case[1] }
       end
     end
   end
