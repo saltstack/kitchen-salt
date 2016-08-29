@@ -201,11 +201,7 @@ module Kitchen
         debug("sandbox is #{sandbox_path}")
         sandbox_minion_config_path = File.join(sandbox_path, config[:salt_minion_config])
 
-        # create the directory & drop the file in
-        FileUtils.mkdir_p(File.dirname(sandbox_minion_config_path))
-        File.open(sandbox_minion_config_path, 'wb') do |file|
-          file.write(minion_config_content)
-        end
+        write_raw_file(sandbox_minion_config_path, minion_config_content)
       end
 
       def prepare_state_top
@@ -226,11 +222,7 @@ module Kitchen
           state_top_content = File.read('top.sls')
         end
 
-        # create the directory & drop the file in
-        FileUtils.mkdir_p(File.dirname(sandbox_state_top_path))
-        File.open(sandbox_state_top_path, 'wb') do |file|
-          file.write(state_top_content)
-        end
+        write_raw_file(sandbox_state_top_path, state_top_content)
       end
 
       def prepare_pillars
@@ -255,14 +247,8 @@ module Kitchen
           # generate the filename
           sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
 
-          # create the directory where the pillar file will go
-          FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
-
           debug("Rendered pillar yaml for #{key}:\n #{pillar}")
-          # create the directory & drop the file in
-          File.open(sandbox_pillar_path, 'wb') do |file|
-            file.write(pillar)
-          end
+          write_raw_file(sandbox_pillar_path, pillar)
         end
 
         # copy the pillars from files straight across, as YAML.load/to_yaml and
@@ -297,14 +283,7 @@ module Kitchen
         sandbox_grains_path = File.join(sandbox_path, config[:salt_config], 'grains')
         debug("sandbox_grains_path: #{sandbox_grains_path}")
 
-        # create the directory where the pillar file will go
-        FileUtils.mkdir_p(File.dirname(sandbox_grains_path))
-
-        debug('Rendered grains yaml')
-        # create the directory & drop the file in
-        File.open(sandbox_grains_path, 'wb') do |file|
-          file.write(grains)
-        end
+        write_hash_file(sandbox_grains_path, config[:grains])
       end
 
       def prepare_formula(path, formula)
