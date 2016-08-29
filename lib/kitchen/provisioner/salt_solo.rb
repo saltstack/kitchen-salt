@@ -264,7 +264,15 @@ module Kitchen
       def prepare_minion
         info("Preparing salt-minion")
 
+        # set the minion id if it is given in configuration
+        minion_id = ''
+        if !config[:minion_id].nil?
+          minion_id = "id: #{ config[:minion_id] }"
+        end
+
         minion_config_content = <<-MINION_CONFIG.gsub(/^ {10}/, '')
+          #{ minion_id }
+
           state_top: top.sls
 
           file_client: local
@@ -439,7 +447,9 @@ module Kitchen
         debug("collection_name = #{config[:collection_name]}")
         collection_dir = File.join(sandbox_path, config[:salt_file_root], config[:collection_name])
         FileUtils.mkdir_p(collection_dir)
-        cp_r_with_filter(config[:kitchen_root], collection_dir, config[:salt_copy_filter])
+
+        local_root_dir = config[:local_root_dir] or config[:kitchen_root]
+        cp_r_with_filter(local_root_dir, collection_dir, config[:salt_copy_filter])
 
       end
 
