@@ -52,6 +52,18 @@ module Kitchen
           end
         end
       end
+
+      def write_raw_file(name, contents)
+        FileUtils.mkdir_p(File.dirname(name))
+        File.open(name, 'wb') do |file|
+          file.write(contents)
+        end
+      end
+
+      def write_hash_file(name, contents)
+        raw_contents = unsymbolize(contents).to_yaml
+        write_raw_file(name, raw_contents)
+      end
     end
   end
 end

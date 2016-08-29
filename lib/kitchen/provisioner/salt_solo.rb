@@ -76,85 +76,9 @@ module Kitchen
           config[:salt_bootstrap_options] = "-P git v#{config[:salt_version]}"
         end
 
-        salt_install = config[:salt_install]
+        install_template = File.expand_path("./install.erb", File.dirname(__FILE__))
 
-        salt_url = config[:salt_bootstrap_url]
-        bootstrap_options = config[:salt_bootstrap_options]
-
-        salt_version = config[:salt_version]
-        salt_apt_repo = config[:salt_apt_repo]
-        salt_apt_repo_key = config[:salt_apt_repo_key]
-        salt_ppa = config[:salt_ppa]
-
-        <<-INSTALL
-          sh -c '
-          #{Util.shell_helpers}
-
-          # what version of salt is installed?
-          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
-
-
-          if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
-          then
-            do_download #{salt_url} /tmp/bootstrap-salt.sh
-            #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
-          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
-          then
-            if [ -z "`which lsb_release`" ]; then
-              . /etc/lsb-release
-            else
-              DISTRIB_CODENAME=`lsb_release -s -c`
-            fi
-
-            echo "-----> Configuring apt repo for salt #{salt_version}"
-            echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
-
-            do_download #{salt_apt_repo_key} /tmp/repo.key
-            #{sudo('apt-key')} add /tmp/repo.key
-
-            #{sudo('apt-get')} update
-            sleep 10
-            echo "-----> Installing salt-minion (#{salt_version})"
-            #{sudo('apt-get')} install -y python-support
-            #{sudo('apt-get')} install -y salt-minion
-            #{sudo('apt-get')} install -y salt-common
-            #{sudo('apt-get')} install -y salt-minion
-          elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
-          then
-            #{sudo('apt-add-repository')} -y #{salt_ppa}
-            #{sudo('apt-get')} update
-            #{sudo('apt-get')} install -y salt-minion
-          fi
-
-          # check again, now that an install of some form should have happened
-          SALT_VERSION=`salt-call --version | cut -d " " -f 2`
-
-          if [ -z "${SALT_VERSION}" ]
-          then
-            echo "No salt-minion installed, install must have failed!!"
-            echo "salt_install = #{salt_install}"
-            echo "salt_url = #{salt_url}"
-            echo "bootstrap_options = #{bootstrap_options}"
-            echo "salt_version = #{salt_version}"
-            echo "salt_apt_repo = #{salt_apt_repo}"
-            echo "salt_apt_repo_key = #{salt_apt_repo_key}"
-            echo "salt_ppa = #{salt_ppa}"
-            exit 2
-          elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
-          then
-            echo "You asked for #{salt_version} and you have ${SALT_VERSION} installed, sweet!"
-          elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
-          then
-            echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
-          else
-            echo "You asked for #{salt_version} and you have got ${SALT_VERSION} installed, dunno how to fix that, sorry!"
-            exit 2
-          fi
-
-          #{install_chef}
-
-          '
-        INSTALL
+        ERB.new(File.read(install_template)).result(binding)
       end
 
       def install_chef
@@ -277,11 +201,7 @@ module Kitchen
         debug("sandbox is #{sandbox_path}")
         sandbox_minion_config_path = File.join(sandbox_path, config[:salt_minion_config])
 
-        # create the directory & drop the file in
-        FileUtils.mkdir_p(File.dirname(sandbox_minion_config_path))
-        File.open(sandbox_minion_config_path, 'wb') do |file|
-          file.write(minion_config_content)
-        end
+        write_raw_file(sandbox_minion_config_path, minion_config_content)
       end
 
       def prepare_state_top
@@ -302,11 +222,7 @@ module Kitchen
           state_top_content = File.read('top.sls')
         end
 
-        # create the directory & drop the file in
-        FileUtils.mkdir_p(File.dirname(sandbox_state_top_path))
-        File.open(sandbox_state_top_path, 'wb') do |file|
-          file.write(state_top_content)
-        end
+        write_raw_file(sandbox_state_top_path, state_top_content)
       end
 
       def prepare_pillars
@@ -331,14 +247,8 @@ module Kitchen
           # generate the filename
           sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
 
-          # create the directory where the pillar file will go
-          FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
-
           debug("Rendered pillar yaml for #{key}:\n #{pillar}")
-          # create the directory & drop the file in
-          File.open(sandbox_pillar_path, 'wb') do |file|
-            file.write(pillar)
-          end
+          write_raw_file(sandbox_pillar_path, pillar)
         end
 
         # copy the pillars from files straight across, as YAML.load/to_yaml and
@@ -373,14 +283,7 @@ module Kitchen
         sandbox_grains_path = File.join(sandbox_path, config[:salt_config], 'grains')
         debug("sandbox_grains_path: #{sandbox_grains_path}")
 
-        # create the directory where the pillar file will go
-        FileUtils.mkdir_p(File.dirname(sandbox_grains_path))
-
-        debug('Rendered grains yaml')
-        # create the directory & drop the file in
-        File.open(sandbox_grains_path, 'wb') do |file|
-          file.write(grains)
-        end
+        write_hash_file(sandbox_grains_path, config[:grains])
       end
 
       def prepare_formula(path, formula)

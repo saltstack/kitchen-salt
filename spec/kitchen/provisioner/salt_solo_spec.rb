@@ -182,10 +182,10 @@ describe Kitchen::Provisioner::SaltSolo do
     subject { provisioner.install_command }
 
     it 'should include the shell helpers' do
-      is_expected.to match Kitchen::Util.shell_helpers
+      is_expected.to include Kitchen::Util.shell_helpers.to_s
     end
 
-    it { is_expected.to match 'http://bootstrap.saltstack.org' }
+    it { is_expected.to include 'http://bootstrap.saltstack.org' }
 
     context 'with salt version 2016.03.1' do
       let(:salt_version) { '2016.03.1' }
@@ -193,7 +193,7 @@ describe Kitchen::Provisioner::SaltSolo do
         { salt_version: salt_version }
       end
 
-      it { is_expected.to match "-P git v#{salt_version}" }
+      it { is_expected.to include "-P git v#{salt_version}" }
     end
   end
 
