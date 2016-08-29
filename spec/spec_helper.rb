@@ -20,7 +20,12 @@
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 
 require "codeclimate-test-reporter"
-CodeClimate::TestReporter.start
+SimpleCov.start do
+  formatter SimpleCov::Formatter::MultiFormatter.new([
+    SimpleCov::Formatter::HTMLFormatter,
+    CodeClimate::TestReporter::Formatter
+  ])
+end
 
 require 'pry'
 require 'rspec'
