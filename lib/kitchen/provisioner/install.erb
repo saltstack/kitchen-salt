@@ -1,0 +1,79 @@
+<%=
+salt_install = config[:salt_install]
+salt_url = config[:salt_bootstrap_url]
+bootstrap_options = config[:salt_bootstrap_options]
+salt_version = config[:salt_version]
+salt_apt_repo = config[:salt_apt_repo]
+salt_apt_repo_key = config[:salt_apt_repo_key]
+salt_ppa = config[:salt_ppa]
+
+<<-INSTALL
+sh -c '
+#{Util.shell_helpers}
+
+# what version of salt is installed?
+SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+
+
+if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
+then
+  do_download #{salt_url} /tmp/bootstrap-salt.sh
+  #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
+elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
+then
+  if [ -z "`which lsb_release`" ]; then
+    . /etc/lsb-release
+  else
+    DISTRIB_CODENAME=`lsb_release -s -c`
+  fi
+
+  echo "-----> Configuring apt repo for salt #{salt_version}"
+  echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
+
+  do_download #{salt_apt_repo_key} /tmp/repo.key
+  #{sudo('apt-key')} add /tmp/repo.key
+
+  #{sudo('apt-get')} update
+  sleep 10
+  echo "-----> Installing salt-minion (#{salt_version})"
+  #{sudo('apt-get')} install -y python-support
+  #{sudo('apt-get')} install -y salt-minion
+  #{sudo('apt-get')} install -y salt-common
+  #{sudo('apt-get')} install -y salt-minion
+elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
+then
+  #{sudo('apt-add-repository')} -y #{salt_ppa}
+  #{sudo('apt-get')} update
+  #{sudo('apt-get')} install -y salt-minion
+fi
+
+# check again, now that an install of some form should have happened
+SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+
+if [ -z "${SALT_VERSION}" ]
+then
+  echo "No salt-minion installed, install must have failed!!"
+  echo "salt_install = #{salt_install}"
+  echo "salt_url = #{salt_url}"
+  echo "bootstrap_options = #{bootstrap_options}"
+  echo "salt_version = #{salt_version}"
+  echo "salt_apt_repo = #{salt_apt_repo}"
+  echo "salt_apt_repo_key = #{salt_apt_repo_key}"
+  echo "salt_ppa = #{salt_ppa}"
+  exit 2
+elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
+then
+  echo "You asked for #{salt_version} and you have ${SALT_VERSION} installed, sweet!"
+elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
+then
+  echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
+else
+  echo "You asked for #{salt_version} and you have got ${SALT_VERSION} installed, dunno how to fix that, sorry!"
+  exit 2
+fi
+
+#{install_chef}
+
+'
+INSTALL
+%>
