@@ -33,6 +33,7 @@ describe Kitchen::Provisioner::SaltSolo do
   let(:pillars) { nil }
   let(:grains) { nil }
   let(:formula) { 'test_formula' }
+  let(:vendor_path) { nil }
 
   let(:logged_output)   { StringIO.new }
   let(:logger)          { Logger.new(logged_output) }
@@ -50,7 +51,8 @@ describe Kitchen::Provisioner::SaltSolo do
       dependencies: dependencies,
       state_collection: state_collection,
       state_top_from_file: state_top_from_file,
-      :'pillars-from-files' => pillars_from_files
+      :'pillars-from-files' => pillars_from_files,
+      vendor_path: vendor_path
     }
   end
 
@@ -88,7 +90,8 @@ describe Kitchen::Provisioner::SaltSolo do
       :dependencies,
       :pillars,
       :grains,
-      :salt_version
+      :salt_version,
+      :vendor_path
     ].each do |opt|
       describe opt do
         subject { provisioner[opt] }
@@ -215,11 +218,10 @@ describe Kitchen::Provisioner::SaltSolo do
     end
 
     describe 'sandbox_path files' do
-      before { provisioner.create_sandbox }
-
       let(:sandbox_files) { Dir[File.join(sandbox_path, "**", "*")] }
 
       subject do
+        provisioner.create_sandbox
         sandbox_files.collect do |f|
           if File.file?(f)
             Pathname.new(f).relative_path_from(sandbox_path)
@@ -228,6 +230,28 @@ describe Kitchen::Provisioner::SaltSolo do
       end
 
       it { is_expected.to contain_exactly 'etc/salt/minion', 'srv/salt/top.sls' }
+
+      context 'with vendor path' do
+        context 'using missing path' do
+          let(:vendor_path) { "path/to/nowhere/that/should/exist" }
+
+          it { expect { subject }.to raise_error(Kitchen::UserError) }
+        end
+
+        context 'using absolute path' do
+          let(:vendor_path) { File.expand_path('../../fixtures/vendor-path', File.dirname(__FILE__)) }
+
+          it { is_expected.to include "srv/salt/bar/init.sls" }
+          it { is_expected.to include "srv/salt/foo/init.sls" }
+        end
+
+        context 'using relative path' do
+          let(:vendor_path) { 'spec/fixtures/vendor-path' }
+
+          it { is_expected.to include "srv/salt/bar/init.sls" }
+          it { is_expected.to include "srv/salt/foo/init.sls" }
+        end
+      end
 
       context 'with state collection specified' do
         let(:state_collection) { true }

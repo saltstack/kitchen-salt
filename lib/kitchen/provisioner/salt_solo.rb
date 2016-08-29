@@ -190,14 +190,8 @@ module Kitchen
 
           unless config[:vendor_path].nil?
             if Pathname.new(config[:vendor_path]).exist?
-              deps = if Pathname.new(config[:vendor_path]).absolute?
-                Dir["#{config[:vendor_path]}/*"]
-              else
-                Dir["#{config[:kitchen_root]}/#{config[:vendor_path]}/*"]
-              end
-
-              deps.each do |d|
-                prepare_formula "#{config[:kitchen_root]}/#{config[:vendor_path]}", File.basename(d)
+              Dir[File.join(config[:vendor_path], '*')].each do |d|
+                prepare_formula config[:vendor_path], File.basename(d)
               end
             else
               # :vendor_path was set, but not valid
