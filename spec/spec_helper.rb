@@ -19,17 +19,18 @@
 # Add lib dir to Ruby's LOAD_PATH so we can easily require things in there
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 
-require "codeclimate-test-reporter"
+require 'codeclimate-test-reporter'
 SimpleCov.start do
-  formatter SimpleCov::Formatter::MultiFormatter.new([
-    SimpleCov::Formatter::HTMLFormatter,
-    CodeClimate::TestReporter::Formatter
-  ])
+  formatter SimpleCov::Formatter::MultiFormatter.new(
+    [
+      SimpleCov::Formatter::HTMLFormatter,
+      CodeClimate::TestReporter::Formatter
+    ]
+  )
 end
 
 require 'pry'
 require 'rspec'
-
 
 RSpec.configure do |config|
   config.tty = true

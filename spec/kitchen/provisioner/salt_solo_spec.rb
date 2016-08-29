@@ -25,7 +25,7 @@ require 'kitchen/provisioner/salt_solo'
 describe Kitchen::Provisioner::SaltSolo do
   let(:salt_run_highstate) { true }
   let(:state_top_from_file) { false }
-  let(:salt_version) { "latest" }
+  let(:salt_version) { 'latest' }
   let(:pillars_from_files) { nil }
   let(:state_collection) { false }
   let(:data_path) { nil }
@@ -39,7 +39,7 @@ describe Kitchen::Provisioner::SaltSolo do
   let(:logged_output)   { StringIO.new }
   let(:logger)          { Logger.new(logged_output) }
   let(:platform) do
-    platform = instance_double(Kitchen::Platform, :os_type => nil)
+    instance_double(Kitchen::Platform, os_type: nil)
   end
 
   let(:config) do
@@ -59,15 +59,15 @@ describe Kitchen::Provisioner::SaltSolo do
   end
 
   let(:suite) do
-    instance_double("Kitchen::Suite", :name => "fries")
+    instance_double('Kitchen::Suite', name: 'fries')
   end
 
   let(:instance) do
-    instance_double("Kitchen::Instance",
-      :name => "coolbeans",
-      :logger => logger,
-      :suite => suite,
-      :platform => platform)
+    instance_double('Kitchen::Instance',
+                    name: 'coolbeans',
+                    logger: logger,
+                    suite: suite,
+                    platform: platform)
   end
 
   let(:provisioner) do
@@ -77,12 +77,12 @@ describe Kitchen::Provisioner::SaltSolo do
   around(:each) do |example|
     Dir.mktmpdir do |dir|
       @tmpdir = dir
-      FileUtils.mkdir(File.join(@tmpdir, "test_formula"))
+      FileUtils.mkdir(File.join(@tmpdir, 'test_formula'))
       example.run
     end
   end
 
-  describe "configuration defaults" do
+  describe 'configuration defaults' do
     [
       :pillars_from_files,
       :state_top_from_file,
@@ -103,91 +103,91 @@ describe Kitchen::Provisioner::SaltSolo do
     end
   end
 
-  describe "#init_command" do
+  describe '#init_command' do
     subject { provisioner.init_command }
 
-    it "should give a sane command" do
+    it 'should give a sane command' do
       is_expected.to match(/mkdir/)
     end
   end
 
-  describe "#run_command" do
+  describe '#run_command' do
     subject { provisioner.run_command }
     let(:config) do
       { salt_version: salt_version }
     end
 
-    context "without salt version specified" do
+    context 'without salt version specified' do
       let(:config) do
         {}
       end
 
-      it "should give a sane run_command" do
+      it 'should give a sane run_command' do
         is_expected.to match(/salt-call/)
       end
 
-      it "should not include extra logic to detect failures" do
-        is_expected.not_to match("/tmp/salt-call-output")
+      it 'should not include extra logic to detect failures' do
+        is_expected.not_to match('/tmp/salt-call-output')
       end
     end
 
     context "with salt version 'latest'" do
       let(:salt_version) { 'latest' }
 
-      it "should give a sane run_command" do
+      it 'should give a sane run_command' do
         is_expected.to match(/salt-call/)
       end
 
-      it "should not include extra logic to detect failures" do
-        is_expected.not_to match("/tmp/salt-call-output")
+      it 'should not include extra logic to detect failures' do
+        is_expected.not_to match('/tmp/salt-call-output')
       end
     end
 
-    context "with salt version 2016.03.1" do
+    context 'with salt version 2016.03.1' do
       let(:salt_version) { '2016.03.1' }
 
-      it "should give a sane run_command" do
+      it 'should give a sane run_command' do
         is_expected.to match(/salt-call/)
       end
 
-      it "should not include extra logic to detect failures" do
-        is_expected.not_to match("/tmp/salt-call-output")
+      it 'should not include extra logic to detect failures' do
+        is_expected.not_to match('/tmp/salt-call-output')
       end
     end
 
-    context "with salt version 0.17.5" do
+    context 'with salt version 0.17.5' do
       let(:salt_version) { '0.17.5' }
 
-      it "should give a sane run_command" do
+      it 'should give a sane run_command' do
         is_expected.to match(/salt-call/)
       end
 
-      it "should include extra logic to detect failures" do
-        is_expected.to match("/tmp/salt-call-output")
+      it 'should include extra logic to detect failures' do
+        is_expected.to match('/tmp/salt-call-output')
       end
     end
 
-    context "with log-level" do
+    context 'with log-level' do
       let(:config) do
         { log_level: 'debug' }
       end
 
-      it "should include log level option" do
-        is_expected.to match("--log-level")
+      it 'should include log level option' do
+        is_expected.to match('--log-level')
       end
     end
   end
 
-  describe "#install_command" do
+  describe '#install_command' do
     subject { provisioner.install_command }
 
     it 'should include the shell helpers' do
       is_expected.to match Kitchen::Util.shell_helpers
     end
 
-    it { is_expected.to match "http://bootstrap.saltstack.org" }
+    it { is_expected.to match 'http://bootstrap.saltstack.org' }
 
-    context "with salt version 2016.03.1" do
+    context 'with salt version 2016.03.1' do
       let(:salt_version) { '2016.03.1' }
       let(:config) do
         { salt_version: salt_version }
@@ -197,7 +197,7 @@ describe Kitchen::Provisioner::SaltSolo do
     end
   end
 
-  describe "#create_sandbox" do
+  describe '#create_sandbox' do
     let(:sandbox_path) { Pathname.new(provisioner.sandbox_path) }
 
     it { expect { provisioner.create_sandbox }.not_to raise_exception }
@@ -206,62 +206,70 @@ describe Kitchen::Provisioner::SaltSolo do
       let(:state_top_from_file) { true }
 
       around do |example|
-        File.open(File.join(@tmpdir, "top.sls"), 'w') do |f|
-          f.write("# test state_top_from_file")
+        File.open(File.join(@tmpdir, 'top.sls'), 'w') do |f|
+          f.write('# test state_top_from_file')
         end
         Dir.pwd.tap do |wd|
-          Dir.chdir(@tmpdir); example.run; Dir.chdir(wd)
+          Dir.chdir(@tmpdir)
+          example.run
+          Dir.chdir(wd)
         end
       end
 
-      it "should use the file" do
+      it 'should use the file' do
         provisioner.create_sandbox
-        expect(File.read(File.join(sandbox_path, "srv/salt/top.sls"))).to match("state_top_from_file")
+        top_contents = File.read(File.join(sandbox_path, 'srv/salt/top.sls'))
+        expect(top_contents).to match('state_top_from_file')
       end
     end
 
     describe 'sandbox_path files' do
-      let(:sandbox_files) { Dir[File.join(sandbox_path, "**", "*")] }
+      let(:sandbox_files) { Dir[File.join(sandbox_path, '**', '*')] }
 
       subject do
         provisioner.create_sandbox
         sandbox_files.collect do |f|
-          if File.file?(f)
-            Pathname.new(f).relative_path_from(sandbox_path)
-          end
+          Pathname.new(f).relative_path_from(sandbox_path) if File.file?(f)
         end.compact.collect(&:to_s)
       end
 
-      it { is_expected.to contain_exactly 'etc/salt/minion', 'srv/salt/top.sls' }
+      it do
+        is_expected.to contain_exactly 'etc/salt/minion', 'srv/salt/top.sls'
+      end
 
       context 'with vendor path' do
         context 'using missing path' do
-          let(:vendor_path) { "path/to/nowhere/that/should/exist" }
+          let(:vendor_path) { 'path/to/nowhere/that/should/exist' }
 
           it { expect { subject }.to raise_error(Kitchen::UserError) }
         end
 
         context 'using absolute path' do
-          let(:vendor_path) { File.expand_path('../../fixtures/vendor-path', File.dirname(__FILE__)) }
+          let(:vendor_path) do
+            File.expand_path('./../../../fixtures/vendor-path', __FILE__)
+          end
 
-          it { is_expected.to include "srv/salt/bar/init.sls" }
-          it { is_expected.to include "srv/salt/foo/init.sls" }
+          it { is_expected.to include 'srv/salt/bar/init.sls' }
+          it { is_expected.to include 'srv/salt/foo/init.sls' }
         end
 
         context 'using relative path' do
           let(:vendor_path) { 'spec/fixtures/vendor-path' }
 
-          it { is_expected.to include "srv/salt/bar/init.sls" }
-          it { is_expected.to include "srv/salt/foo/init.sls" }
+          it { is_expected.to include 'srv/salt/bar/init.sls' }
+          it { is_expected.to include 'srv/salt/foo/init.sls' }
         end
       end
 
       context 'with symlink file' do
+        let(:fixture_file) { File.join(@tmpdir, 'test_formula', 'init.sls') }
+        let(:link_file) { File.join(@tmpdir, 'test_formula', 'link.sls') }
+
         before do
-          File.open(File.join(@tmpdir, "test_formula", "init.sls"), 'w') do |f|
-            f.write("# test")
+          File.open(fixture_file, 'w') do |f|
+            f.write('# test')
           end
-          FileUtils.ln_s File.join(@tmpdir, "test_formula", "init.sls"), File.join(@tmpdir, "test_formula", "link.sls")
+          FileUtils.ln_s fixture_file, link_file
         end
 
         it { is_expected.to include 'srv/salt/test_formula/link.sls' }
@@ -271,7 +279,8 @@ describe Kitchen::Provisioner::SaltSolo do
         let(:formula) { 'foo' }
 
         before do
-          FileUtils.ln_s File.expand_path('spec/fixtures/formula-foo/foo'), @tmpdir
+          source = File.expand_path('spec/fixtures/formula-foo/foo')
+          FileUtils.ln_s source, @tmpdir
         end
 
         it 'has the control when no filters are present' do
@@ -281,8 +290,8 @@ describe Kitchen::Provisioner::SaltSolo do
 
       context 'with filter' do
         before do
-          File.open(File.join(@tmpdir, "test_formula", "init.sls"), 'w') do |f|
-            f.write("# test")
+          File.open(File.join(@tmpdir, 'test_formula', 'init.sls'), 'w') do |f|
+            f.write('# test')
           end
         end
 
@@ -305,8 +314,8 @@ describe Kitchen::Provisioner::SaltSolo do
         let(:state_collection) { true }
 
         before do
-          File.open(File.join(@tmpdir, "test_formula", "init.sls"), 'w') do |f|
-            f.write("# test")
+          File.open(File.join(@tmpdir, 'test_formula', 'init.sls'), 'w') do |f|
+            f.write('# test')
           end
         end
 
@@ -327,15 +336,16 @@ describe Kitchen::Provisioner::SaltSolo do
         context 'with collection_name and formula_name' do
           let(:collection_name) { 'test_formula' }
           let(:formula) { 'test_formula' }
-
-          it { is_expected.to include 'srv/salt/test_formula/test_formula/init.sls' }
+          let(:fixture_file) { 'srv/salt/test_formula/test_formula/init.sls' }
+          it { is_expected.to include fixture_file }
         end
 
         context 'without collection_name and with formula_name' do
           let(:collection_name) { nil }
           let(:formula) { 'test_formula' }
+          let(:fixture_file) { 'srv/salt/test_formula/test_formula/init.sls' }
 
-          it { is_expected.to include 'srv/salt/test_formula/test_formula/init.sls' }
+          it { is_expected.to include fixture_file }
         end
       end
 
@@ -363,7 +373,7 @@ describe Kitchen::Provisioner::SaltSolo do
         end
         let(:pillars) do
           {
-            :'top.sls' => { base: {'*' => ['test_pillar']} }
+            :'top.sls' => { base: { '*' => ['test_pillar'] } }
           }
         end
         it { is_expected.to include 'srv/pillar/top.sls' }
@@ -386,6 +396,28 @@ describe Kitchen::Provisioner::SaltSolo do
         let(:data_path) { 'spec/fixtures/data-path' }
 
         it { is_expected.to include 'data/foo.txt' }
+      end
+    end
+  end
+
+  describe 'unsymbolize' do
+    [
+      [
+        { a: 1 },
+        { 'a' => 1 }
+      ],
+      [
+        { a: { b: 1 } },
+        { 'a' => { 'b' => 1 } }
+      ],
+      [
+        { a: [{ b: 1 }] },
+        { 'a' => [{ 'b' => 1 }] }
+      ]
+    ].each do |test_case|
+      describe test_case[0] do
+        subject { provisioner.send(:unsymbolize, test_case[0]) }
+        it { is_expected.to eq test_case[1] }
       end
     end
   end

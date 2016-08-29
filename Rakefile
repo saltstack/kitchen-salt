@@ -21,4 +21,4 @@ namespace :integration do
   end
 end
 
-task :default => :test
+task default: :test
