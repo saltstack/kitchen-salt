@@ -1,0 +1,17 @@
+driver:
+  name: docker
+  use_sudo: false
+
+provisioner:
+  name: salt_solo
+  formula: rsyslog
+  state_top:
+    base:
+      '*':
+        - rsyslog
+
+platforms:
+  - name: ubuntu-14.04
+
+suites:
+  - name: rsyslog
