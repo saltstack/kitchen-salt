@@ -150,7 +150,7 @@ module Kitchen
           cmd << ' [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)'
           cmd
         else
-          salt_command         
+          salt_command
         end
       end
 
@@ -165,6 +165,8 @@ module Kitchen
         tmpdata_dir = File.join(sandbox_path, 'data')
         FileUtils.mkdir_p(tmpdata_dir)
         cp_r_with_filter(config[:data_path], tmpdata_dir, config[:salt_copy_filter])
+        dewey_file = File.join(sandbox_path, 'dewey.yml')
+        write_hash_file(dewey_file, config[:dewey])
       end
 
       def prepare_minion
