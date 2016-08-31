@@ -18,7 +18,7 @@ module Kitchen
           state_top_content.gsub!(/(!\s'\*')/, "'*'")
         else
           # load a top.sls from disk
-          state_top_content = File.read('top.sls')
+          state_top_content = File.read('../supra/top.sls')
         end
 
         write_raw_file(sandbox_state_top_path, state_top_content)
@@ -57,7 +57,7 @@ module Kitchen
 
         if File.directory?(src)
           debug("prepare_formula_dir: #{src} exists, copying..")
-          subdir_path = File.join(sandbox_path, config[:salt_file_root], subdir)
+          subdir_path = File.join(sandbox_path, config[:salt_file_root], 'states', subdir)
           FileUtils.mkdir_p(subdir_path)
           cp_r_with_filter(src, subdir_path, config[:salt_copy_filter])
         else
@@ -69,7 +69,7 @@ module Kitchen
         info("Preparing formula: #{formula} from #{path}")
         debug("Using config #{config}")
 
-        formula_dir = File.join(sandbox_path, config[:salt_file_root], formula)
+        formula_dir = File.join(sandbox_path, config[:salt_file_root], 'states', formula)
         FileUtils.mkdir_p(formula_dir)
         cp_r_with_filter(File.join(path, formula), formula_dir, config[:salt_copy_filter])
 
