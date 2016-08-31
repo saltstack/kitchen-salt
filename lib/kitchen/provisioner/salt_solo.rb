@@ -150,7 +150,7 @@ module Kitchen
           cmd << ' [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)'
           cmd
         else
-          salt_command         
+          salt_command
         end
       end
 
@@ -171,14 +171,25 @@ module Kitchen
         info('Preparing salt-minion')
 
         minion_template = File.expand_path("./../minion.erb", __FILE__)
-
         minion_config_content = ERB.new(File.read(minion_template)).result(binding)
+
+        ploprc_template = File.expand_path("./../ploprc.erb", __FILE__)
+        ploprc_content = ERB.new(File.read(ploprc_template)).result(binding)
 
         # create the temporary path for the salt-minion config file
         debug("sandbox is #{sandbox_path}")
-        sandbox_minion_config_path = File.join(sandbox_path, config[:salt_minion_config])
 
+        sandbox_minion_config_path = File.join(sandbox_path, config[:salt_minion_config])
         write_raw_file(sandbox_minion_config_path, minion_config_content)
+
+        ploprc_path = File.join(sandbox_path, config[:salt_config], 'ploprc')
+        write_raw_file(ploprc_path, ploprc_content)
+
+        dewey_file = File.join(sandbox_path, config[:salt_config], 'dewey.yml')
+        write_hash_file(dewey_file, config[:dewey])
+
+        secrets_file = File.join(sandbox_path, config[:salt_config], 'secrets.yml')
+        write_hash_file(secrets_file, config[:secrets])
       end
 
       def prepare_grains
@@ -193,6 +204,7 @@ module Kitchen
         debug("sandbox_grains_path: #{sandbox_grains_path}")
 
         write_hash_file(sandbox_grains_path, config[:grains])
+
       end
     end
   end
