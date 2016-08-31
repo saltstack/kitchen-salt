@@ -165,8 +165,6 @@ module Kitchen
         tmpdata_dir = File.join(sandbox_path, 'data')
         FileUtils.mkdir_p(tmpdata_dir)
         cp_r_with_filter(config[:data_path], tmpdata_dir, config[:salt_copy_filter])
-        dewey_file = File.join(sandbox_path, 'dewey.yml')
-        write_hash_file(dewey_file, config[:dewey])
       end
 
       def prepare_minion
@@ -176,11 +174,23 @@ module Kitchen
 
         minion_config_content = ERB.new(File.read(minion_template)).result(binding)
 
+        ploprc_template = File.expand_path("./../ploprc.erb", __FILE__)
+        ploprc_content = ERB.new(File.read(ploprc_template)).result(binding)
+
         # create the temporary path for the salt-minion config file
         debug("sandbox is #{sandbox_path}")
         sandbox_minion_config_path = File.join(sandbox_path, config[:salt_minion_config])
 
         write_raw_file(sandbox_minion_config_path, minion_config_content)
+        ploprc_path = File.join(sandbox_path, 'ploprc')
+        write_raw_file(ploprc_path, ploprc_content)
+
+        dewey_file = File.join(sandbox_path, 'dewey.yml')
+        write_hash_file(dewey_file, config[:dewey])
+
+        secrets_file = File.join(sandbox_path, 'secrets.yml')
+        write_hash_file(secrets_file, config[:secrets])
+
       end
 
       def prepare_grains
@@ -195,6 +205,7 @@ module Kitchen
         debug("sandbox_grains_path: #{sandbox_grains_path}")
 
         write_hash_file(sandbox_grains_path, config[:grains])
+
       end
     end
   end
