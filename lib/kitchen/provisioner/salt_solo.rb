@@ -35,6 +35,7 @@ module Kitchen
       include Kitchen::Salt::States
 
       DEFAULT_CONFIG = {
+        dry_run: false,
         salt_version: 'latest',
         salt_install: 'bootstrap',
         salt_bootstrap_url: 'http://bootstrap.saltstack.org',
@@ -121,6 +122,7 @@ module Kitchen
         salt_version = config[:salt_version]
         cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
+        cmd << " test=#{config[:dry_run]}" if config[:dry_run]
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd += ' --retcode-passthrough'
