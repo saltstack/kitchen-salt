@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.description   = 'salt provisioner for test-kitchen '\
                     'so that you can test all the things'
 
-  s.files         = `git ls-files app lib`.split('\n')
+  s.files         = `git ls-files lib`.split("\n")
   s.platform      = Gem::Platform::RUBY
   s.require_paths = ['lib']
   s.rubyforge_project = '[none]'
