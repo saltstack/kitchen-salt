@@ -120,7 +120,26 @@ module Kitchen
 
       def salt_command
         salt_version = config[:salt_version]
-        cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
+
+        env = "env"
+
+        if config[:http_proxy]
+          set_env = true
+          env << " http_proxy=#{config[:http_proxy]}"
+        end
+
+        if config[:https_proxy]
+          set_env = true
+          env << " https_proxy=#{config[:https_proxy]}"
+        end
+
+        if set_env
+          cmd = sudo("#{env} salt-call")
+        else
+          cmd = sudo("salt-call")
+        end
+
+        cmd << " --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate"
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
