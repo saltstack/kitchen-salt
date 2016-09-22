@@ -8,17 +8,19 @@ module Kitchen
 
         sandbox_state_top_path = File.join(sandbox_path, config[:salt_state_top])
 
-        if config[:state_top_from_file] == false
-          # use the top.sls embedded in .kitchen.yml
+        if config[:minion_alt] == false
+          if config[:state_top_from_file] == false
+            # use the top.sls embedded in .kitchen.yml
 
-          # we get a hash with all the keys converted to symbols, salt doesn't like this
-          # to convert all the keys back to strings again
-          state_top_content = unsymbolize(config[:state_top]).to_yaml
-          # .to_yaml will produce ! '*' for a key, Salt doesn't like this either
-          state_top_content.gsub!(/(!\s'\*')/, "'*'")
-        else
-          # load a top.sls from disk
-          state_top_content = File.read('top.sls')
+            # we get a hash with all the keys converted to symbols, salt doesn't like this
+            # to convert all the keys back to strings again
+            state_top_content = unsymbolize(config[:state_top]).to_yaml
+            # .to_yaml will produce ! '*' for a key, Salt doesn't like this either
+            state_top_content.gsub!(/(!\s'\*')/, "'*'")
+          else
+            # load a top.sls from disk
+            state_top_content = File.read('top.sls')
+          end
         end
 
         write_raw_file(sandbox_state_top_path, state_top_content)
