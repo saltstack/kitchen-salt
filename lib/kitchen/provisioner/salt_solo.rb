@@ -46,7 +46,7 @@ module Kitchen
         chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
         salt_config: '/etc/salt',
         minion_alt: false,
-        minion_alt_file: '/etc/salt/minion',
+        minion_alt_file: 'minion',
         salt_minion_config: '/etc/salt/minion',
         salt_sync: true,
         salt_env: 'base',
@@ -192,7 +192,7 @@ module Kitchen
         info('Preparing salt-minion')
 
         if config[:minion_alt] == true
-          minion_template = File.expand_path(config[:minion_alt_file], __FILE__)
+          minion_template = "#{config[:kitchen_root]}/#{config[:minion_alt_file]}"
         else
           minion_template = File.expand_path("./../minion.erb", __FILE__)
         end
