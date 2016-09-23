@@ -48,6 +48,7 @@ module Kitchen
         minion_alt: false,
         minion_alt_file: '/etc/salt/minion',
         salt_minion_config: '/etc/salt/minion',
+        salt_sync: true,
         salt_env: 'base',
         salt_file_root: '/srv/salt',
         salt_pillar_root: '/srv/pillar',
@@ -120,6 +121,17 @@ module Kitchen
         "#{sudo('rm')} -rf #{config[:root_path]} ; mkdir -p #{config[:root_path]}"
       end
 
+      def salt_sync_all
+        salt_version = config[:salt_version]
+        cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local saltutil.sync_all")
+        cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
+        if salt_version > RETCODE_VERSION || salt_version == 'latest'
+          # hope for the best and hope it works eventually
+          cmd += ' --retcode-passthrough'
+        end
+        cmd
+      end
+
       def salt_command
         salt_version = config[:salt_version]
         cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
@@ -128,6 +140,11 @@ module Kitchen
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd += ' --retcode-passthrough'
+        end
+        if config[:salt_sync] == true
+          sync = salt_sync_all
+          sync += " && "
+          cmd.prepend(sync)
         end
         cmd
       end
