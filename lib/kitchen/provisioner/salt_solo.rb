@@ -46,7 +46,7 @@ module Kitchen
         chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
         salt_config: '/etc/salt',
         minion_alt: false,
-        minion_alt_file: 'minion',
+        minion_alt_file: 'minion.erb',
         salt_minion_config: '/etc/salt/minion',
         salt_sync: true,
         salt_env: 'base',
