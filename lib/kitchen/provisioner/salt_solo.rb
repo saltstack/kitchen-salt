@@ -59,7 +59,8 @@ module Kitchen
         require_chef: true,
         dependencies: [],
         vendor_path: nil,
-        omnibus_cachier: false
+        omnibus_cachier: false,
+        local_salt_root: nil
       }
 
       # salt-call version that supports the undocumented --retcode-passthrough command

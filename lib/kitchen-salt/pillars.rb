@@ -11,8 +11,9 @@ module Kitchen
         debug("Pillars Hash: #{pillars}")
 
         if pillars.nil? && pillars_from_files.nil?
-          if config[:is_file_root]
-            Dir[File.join(config[:kitchen_root], 'pillar', '*')].each do |filename|
+          if not config[:local_salt_root].nil?
+            Dir[File.join(config[:local_salt_root], 'pillar', '*')].each do |filename|
+              puts filename
               copy_pillar(File.basename(filename), filename)
             end
             return
