@@ -12,10 +12,9 @@ module Kitchen
 
         if pillars.nil? && pillars_from_files.nil?
           if not config[:local_salt_root].nil?
-            Dir[File.join(config[:local_salt_root], 'pillar', '*')].each do |filename|
-              puts filename
-              copy_pillar(File.basename(filename), filename)
-            end
+            pillars_location = File.join(config[:local_salt_root], 'pillar')
+            sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root])
+            cp_r_with_filter(pillars_location, sandbox_pillar_path, config[:salt_copy_filter])
             return
           end
           return
