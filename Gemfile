@@ -4,7 +4,6 @@ gemspec
 gem 'codeclimate-test-reporter', group: :test, require: nil
 gem 'rake'
 gem 'berkshelf', '~> 4.0'
-
 gem 'test-kitchen', '~> 1.2'
 gem 'kitchen-inspec'
 gem 'kitchen-sync'
