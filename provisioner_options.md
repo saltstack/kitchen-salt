@@ -3,6 +3,7 @@
 
 key | default value | Notes
 ----|---------------|--------
+additional_minion_config | | additional options to add to the minion config file
 dry_run | false | Setting this to True makes the highstate to run with flag test=True (Ideal for testing states syntax)
 formula | | name of the formula, used to derive the path we need to copy to the guest
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
@@ -290,3 +291,13 @@ For example, the following suite will define grains on the guest:
 
 ### [vendor_path](id:vendor_path)
 
+### [additional_minion_config](id:additional_minion_config)
+The additional_)minion_config option allows you to specify additional options to set in the minion's config file.
+
+For example, the following suite would add the proxy_host and proxy_port to the minion config file used during the converge:
+
+      - name: add-option-test
+        provisioner:
+	  additional_minion_config:
+	    proxy_host: proxy.mydomain.com
+	    proxy_port: 80
