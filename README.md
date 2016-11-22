@@ -12,7 +12,7 @@ The provider works by generating a salt-minion config, creating pillars based on
 This provider has been tested against the Ubuntu boxes running in vagrant/virtualbox & vagrant-lxc boxes on Ubuntu.
 
 ## Installation & Setup
-You'll need the test-kitchen & kitchen-salt gem's installed in your system, along with kitchen-vagrant or some ther suitable driver for test-kitchen.  Please see the [INTRODUCTION](https://github.com/simonmcc/kitchen-salt/blob/master/INTRODUCTION.md).
+You'll need the test-kitchen & kitchen-salt gem's installed in your system, along with kitchen-vagrant or some other suitable driver for test-kitchen.  Please see the [INTRODUCTION](https://github.com/simonmcc/kitchen-salt/blob/master/INTRODUCTION.md).
 
 ## Provisioner Options 
 More details on all the configuration optins are in [provisioner_options.md](https://github.com/simonmcc/kitchen-salt/blob/master/provisioner_options.md)
