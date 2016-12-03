@@ -8,6 +8,9 @@ salt_version = config[:salt_version]
 if (Test-Path c:\\salt\\salt-call.bat) {
   $installed_version = $(c:\\salt\\salt-call.bat --version).split(' ')[1] 
 }
+if (-Not $(Test-Path c:\\temp)) {
+  New-Item -Path c:\\temp -itemtype directory
+}
 if (-Not $installed_version -And "#{salt_install}" -eq "bootstrap") {
   (New-Object net.webclient).DownloadFile("#{salt_url}", "c:\\temp\\salt_bootstrap.ps1")
   #{sudo('powershell')} c:\\temp\\salt_bootstrap.ps1 #{bootstrap_options}
