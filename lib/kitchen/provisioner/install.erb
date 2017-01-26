@@ -28,7 +28,7 @@ then
   fi
 
   echo "-----> Configuring apt repo for salt #{salt_version}"
-  echo "deb #{salt_apt_repo}/salt-#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
+  echo "deb #{salt_apt_repo}/#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
 
   do_download #{salt_apt_repo_key} /tmp/repo.key
   #{sudo('apt-key')} add /tmp/repo.key
