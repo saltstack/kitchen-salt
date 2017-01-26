@@ -45,7 +45,10 @@ module Kitchen
         salt_ppa: 'ppa:saltstack/salt',
         chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
         salt_config: '/etc/salt',
+        minion_alt: false,
+        minion_alt_file: 'minion.erb',
         salt_minion_config: '/etc/salt/minion',
+        salt_sync: true,
         salt_env: 'base',
         salt_file_root: '/srv/salt',
         salt_pillar_root: '/srv/pillar',
@@ -118,6 +121,17 @@ module Kitchen
         "#{sudo('rm')} -rf #{config[:root_path]} ; mkdir -p #{config[:root_path]}"
       end
 
+      def salt_sync_all
+        salt_version = config[:salt_version]
+        cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local saltutil.sync_all")
+        cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
+        if salt_version > RETCODE_VERSION || salt_version == 'latest'
+          # hope for the best and hope it works eventually
+          cmd += ' --retcode-passthrough'
+        end
+        cmd
+      end
+
       def salt_command
         salt_version = config[:salt_version]
         cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
@@ -126,6 +140,11 @@ module Kitchen
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd += ' --retcode-passthrough'
+        end
+        if config[:salt_sync] == true
+          sync = salt_sync_all
+          sync += " && "
+          cmd.prepend(sync)
         end
         cmd
       end
@@ -172,9 +191,17 @@ module Kitchen
       def prepare_minion
         info('Preparing salt-minion')
 
-        minion_template = File.expand_path("./../minion.erb", __FILE__)
+        if config[:minion_alt] == true
+          minion_template = "#{config[:kitchen_root]}/#{config[:minion_alt_file]}"
+        else
+          minion_template = File.expand_path("./../minion.erb", __FILE__)
+        end
 
-        minion_config_content = ERB.new(File.read(minion_template)).result(binding)
+        if File.extname(minion_template) == ".erb"
+          minion_config_content = ERB.new(File.read(minion_template)).result(binding)
+        else
+          minion_config_content = File.read(minion_template)
+        end
 
         # create the temporary path for the salt-minion config file
         debug("sandbox is #{sandbox_path}")
