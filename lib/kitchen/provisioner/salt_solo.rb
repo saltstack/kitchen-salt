@@ -46,6 +46,7 @@ module Kitchen
         chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
         salt_config: '/etc/salt',
         salt_minion_config: '/etc/salt/minion',
+        salt_minion_id: nil,
         salt_env: 'base',
         salt_file_root: '/srv/salt',
         salt_pillar_root: '/srv/pillar',
@@ -122,6 +123,7 @@ module Kitchen
         salt_version = config[:salt_version]
         cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
+        cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
@@ -152,7 +154,7 @@ module Kitchen
           cmd << ' [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)'
           cmd
         else
-          salt_command         
+          salt_command
         end
       end
 
