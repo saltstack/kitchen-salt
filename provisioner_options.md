@@ -10,8 +10,8 @@ salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt" 
 salt_bootstrap_url | "https://bootstrap.saltstack.org" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
 salt_version | "0.16.2"| desired version, only affects apt installs
-salt_apt_repo | "http://apt.mccartney.ie"| apt repo
-salt_apt_repo_key| "http://apt.mccartney.ie/KEY"| apt repo key
+salt_apt_repo | "https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest"| apt repo. For more information check [SaltStack Package Repo](https://repo.saltstack.com/).
+salt_apt_repo_key| "https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub"| apt repo key. For more information check [SaltStack Package Repo](https://repo.saltstack.com/).
 salt_ppa | "ppa:saltstack/salt" | Official Ubuntu SaltStack PPA
 chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS. However required is only a ruby, under assets/install.sh is an alternative (Chef free) bootstrap script prom PR#42. Example no-"chef_bootstrap url": https://raw.githubusercontent.com/simonmcc/kitchen-salt/assets/install.sh
 require_chef | true | Install chef ( needed by busser to run tests, if no verification driver is specified in kitchen yml)
