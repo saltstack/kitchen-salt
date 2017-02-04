@@ -22,7 +22,7 @@ install_file() {
       echo "installing with apt..."
       apt-get install -y $packages
       ;;
-    "archlinux")
+    "arch")
       echo "installing with pacman..."
       packages="ruby"
       pacman -Sy --noconfirm $packages
@@ -70,7 +70,7 @@ elif test -f "/etc/redhat-release"; then
     platform="redhat"
   fi
 elif test -f "/etc/arch-release"; then
-    platform="archlinux"
+    platform="arch"
 elif test -f "/etc/system-release"; then
   platform=`sed 's/^\(.\+\) release.\+/\1/' /etc/system-release | tr '[A-Z]' '[a-z]'`
   if test "$platform" = "amazon linux ami"; then
