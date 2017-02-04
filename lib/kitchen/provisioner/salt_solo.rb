@@ -38,7 +38,7 @@ module Kitchen
         dry_run: false,
         salt_version: 'latest',
         salt_install: 'bootstrap',
-        salt_bootstrap_url: 'http://bootstrap.saltstack.org',
+        salt_bootstrap_url: 'https://bootstrap.saltstack.org',
         salt_bootstrap_options: '',
         salt_apt_repo: 'http://apt.mccartney.ie',
         salt_apt_repo_key: 'http://apt.mccartney.ie/KEY',
