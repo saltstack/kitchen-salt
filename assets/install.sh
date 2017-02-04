@@ -25,6 +25,7 @@ install_file() {
     "alpine")
       echo "installing with apk..."
       apk add $packages
+      ;;
     "osx")
       echo "installing with brew..."
       brew install $packages
