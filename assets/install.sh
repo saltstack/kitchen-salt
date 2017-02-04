@@ -22,6 +22,9 @@ install_file() {
       echo "installing with apt..."
       apt-get install -y $packages
       ;;
+    "alpine")
+      echo "installing with apk..."
+      apk add $packages
     "osx")
       echo "installing with brew..."
       brew install $packages
@@ -68,6 +71,8 @@ elif test -f "/etc/system-release"; then
   if test "$platform" = "amazon linux ami"; then
     platform="redhat"
   fi
+elif test -f "etc/alpine-release"; then
+  platform="alpine"
 # Apple OS X
 elif test -f "/usr/bin/sw_vers"; then
   platform="mac_os_x"
