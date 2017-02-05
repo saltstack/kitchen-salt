@@ -73,7 +73,7 @@ The provisioner can be configured globally or per suite, global settings act as 
                   beaver:
                     transport: tcp
 
-in this example, the default suite will install salt via the bootstrap method, meaning that it will get the latest package available for the platform via the [bootstrap shell script](http://bootstrap.saltstack.org). We then define another suite called `default_0162`, this has the provisioner install salt-0.16.2 via apt-get (this defaults to a mini repo of mine, which you can override, my repo only contains 0.16.2)
+in this example, the default suite will install salt via the bootstrap method, meaning that it will get the latest package available for the platform via the [bootstrap shell script](https://bootstrap.saltstack.org). We then define another suite called `default_0162`, this has the provisioner install salt-0.16.2 via apt-get (this defaults to a mini repo of mine, which you can override, my repo only contains 0.16.2)
 
 ### [formula](id:formula)
 When running in normal mode, this must be set to the name of the formula your testing, this name is used to derive the name of the directory that should copied down to the guest.
