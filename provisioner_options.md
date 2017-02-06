@@ -6,6 +6,7 @@ key | default value | Notes
 dry_run | false | Setting this to True makes the highstate to run with flag test=True (Ideal for testing states syntax)
 formula | | name of the formula, used to derive the path we need to copy to the guest
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
+log_level | | set salt logging level when running commands (e.g. specifying `debug` is equivalent of `-l debug`)
 salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt" or "ppa"
 salt_bootstrap_url | "http://bootstrap.saltstack.org" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
