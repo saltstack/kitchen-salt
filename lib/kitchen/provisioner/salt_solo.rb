@@ -46,6 +46,7 @@ module Kitchen
         chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
         salt_config: '/etc/salt',
         salt_minion_config: '/etc/salt/minion',
+        salt_minion_config_template: nil,
         salt_minion_id: nil,
         salt_env: 'base',
         salt_file_root: '/srv/salt',
@@ -174,9 +175,17 @@ module Kitchen
       def prepare_minion
         info('Preparing salt-minion')
 
-        minion_template = File.expand_path("./../minion.erb", __FILE__)
+        if config[:salt_minion_config_template]
+          minion_template = File.expand_path(config[:salt_minion_config_template], Kitchen::Config.new.kitchen_root)
+        else
+          minion_template = File.expand_path("./../minion.erb", __FILE__)
+        end
 
-        minion_config_content = ERB.new(File.read(minion_template)).result(binding)
+        if File.extname(minion_template) == ".erb"
+          minion_config_content = ERB.new(File.read(minion_template)).result(binding)
+        else
+          minion_config_content = File.read(minion_template)
+        end
 
         # create the temporary path for the salt-minion config file
         debug("sandbox is #{sandbox_path}")
