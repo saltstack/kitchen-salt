@@ -8,18 +8,20 @@ formula | | name of the formula, used to derive the path we need to copy to the 
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
 log_level | | set salt logging level when running commands (e.g. specifying `debug` is equivalent of `-l debug`)
 salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt" or "ppa"
-salt_bootstrap_url | "http://bootstrap.saltstack.org" | location of bootstrap script
+salt_bootstrap_url | "https://bootstrap.saltstack.org" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
-salt_version | "0.16.2"| desired version, only affects apt installs
-salt_apt_repo | "http://apt.mccartney.ie"| apt repo
-salt_apt_repo_key| "http://apt.mccartney.ie/KEY"| apt repo key
+salt_version | "latest"| desired version, only affects apt installs
+salt_apt_repo | "https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest"| apt repo. For more information check [SaltStack Package Repo](https://repo.saltstack.com/)
+salt_apt_repo_key| "https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub"| apt repo key. For more information check [SaltStack Package Repo](https://repo.saltstack.com/)
 salt_ppa | "ppa:saltstack/salt" | Official Ubuntu SaltStack PPA
+bootstrap_url| "https://raw.githubusercontent.com/simonmcc/kitchen-salt/master/assets/install.sh"| A bootstrap script used to provide Ruby (`ruby` and `ruby-dev`) required for the serverspec test runner on the guest OS. If this script is unable to setup Ruby, it will fallback to using Chef bootstrap installer (set via `chef_bootstrap_url`)
 chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS. However required is only a ruby, under assets/install.sh is an alternative (Chef free) bootstrap script prom PR#42. Example no-"chef_bootstrap url": https://raw.githubusercontent.com/simonmcc/kitchen-salt/assets/install.sh
 require_chef | true | Install chef ( needed by busser to run tests, if no verification driver is specified in kitchen yml)
 salt_config| "/etc/salt"|
 [salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
 salt_minion_config| "/etc/salt/minion"|
 salt_minion_config_template| nil | a local file used to customize minion config. The default one is provided by kitchen-salt (`lib/kitchen/provisioner/minion.erb`)
+salt_minion_id| | Customize Salt minion_id (by default Salt uses machine hostname)
 salt_env| "base"| environment to use in minion config file
 salt_file_root| "/srv/salt"|
 salt_pillar_root| "/srv/pillar"|
@@ -36,7 +38,7 @@ state_collection | false | treat this directory as a salt state collection and n
 [vendor_path](#vendor_path) |""| path (absolute or relative) to a collection of formula reuired to be copied to the guest
 
 
-##Configuring Provisioner Options
+## Configuring Provisioner Options
 The provisioner can be configured globally or per suite, global settings act as defaults for all suites, you can then customise per suite, for example:
 
     ---
@@ -59,9 +61,9 @@ The provisioner can be configured globally or per suite, global settings act as 
     suites:
       - name: default
 
-      - name: default_0162
+      - name: default_2016112
         provisioner:
-          salt_version: 0.16.2
+          salt_version: 2016.11.2
           salt_install: apt
 
           - name: tcp-output
@@ -75,7 +77,7 @@ The provisioner can be configured globally or per suite, global settings act as 
                   beaver:
                     transport: tcp
 
-in this example, the default suite will install salt via the bootstrap method, meaning that it will get the latest package available for the platform via the [bootstrap shell script](http://bootstrap.saltstack.org). We then define another suite called `default_0162`, this has the provisioner install salt-0.16.2 via apt-get (this defaults to a mini repo of mine, which you can override, my repo only contains 0.16.2)
+in this example, the default suite will install salt via the bootstrap method, meaning that it will get the latest package available for the platform via the [bootstrap shell script](https://bootstrap.saltstack.org). We then define another suite called `default_2016112`, this has the provisioner install salt-2016.11.2 via apt-get (this defaults to using Ubuntu repository, which you can override by setting `salt_apt_repo` and `salt_apt_key` based on information provided in [SaltStack Package Repository page](https://repo.saltstack.com/).
 
 ### [formula](id:formula)
 When running in normal mode, this must be set to the name of the formula your testing, this name is used to derive the name of the directory that should copied down to the guest.
