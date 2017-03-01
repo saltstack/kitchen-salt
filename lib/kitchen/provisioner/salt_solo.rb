@@ -38,11 +38,12 @@ module Kitchen
         dry_run: false,
         salt_version: 'latest',
         salt_install: 'bootstrap',
-        salt_bootstrap_url: 'http://bootstrap.saltstack.org',
+        salt_bootstrap_url: 'https://bootstrap.saltstack.org',
         salt_bootstrap_options: '',
-        salt_apt_repo: 'http://apt.mccartney.ie',
-        salt_apt_repo_key: 'http://apt.mccartney.ie/KEY',
+        salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest',
+        salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub',
         salt_ppa: 'ppa:saltstack/salt',
+        bootstrap_url: 'https://raw.githubusercontent.com/simonmcc/kitchen-salt/master/assets/install.sh',
         chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
         salt_config: '/etc/salt',
         salt_minion_config: '/etc/salt/minion',
@@ -90,10 +91,20 @@ module Kitchen
         return unless config[:require_chef]
         chef_url = config[:chef_bootstrap_url]
         omnibus_download_dir = config[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
+        bootstrap_url = config[:bootstrap_url]
+        bootstrap_download_dir = '/tmp'
         <<-INSTALL
-          if [ ! -d "/opt/chef" ]
+          echo "-----> Trying to install ruby(-dev) using assets.sh from kitchen-salt"
+            mkdir -p #{bootstrap_download_dir}
+            if [ ! -x #{bootstrap_download_dir}/install.sh ]
+            then
+              do_download #{bootstrap_url} #{bootstrap_download_dir}/install.sh
+            fi
+            #{sudo('sh')} #{bootstrap_download_dir}/install.sh -d #{bootstrap_download_dir}
+          if [ $? -ne 0 ] || [ ! -d "/opt/chef" ]
           then
-            echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
+            echo "Failed install ruby(-dev) using assets.sh from kitchen-salt"
+            echo "-----> Fallback to Chef Bootstrap script (for busser/serverspec ruby support)"
             mkdir -p #{omnibus_download_dir}
             if [ ! -x #{omnibus_download_dir}/install.sh ]
             then
