@@ -14,6 +14,7 @@ salt_version | "0.16.2"| desired version, only affects apt installs
 salt_apt_repo | "http://apt.mccartney.ie"| apt repo
 salt_apt_repo_key| "http://apt.mccartney.ie/KEY"| apt repo key
 salt_ppa | "ppa:saltstack/salt" | Official Ubuntu SaltStack PPA
+bootstrap_url| "https://raw.githubusercontent.com/simonmcc/kitchen-salt/master/assets/install.sh"| A bootstrap script used to provide Ruby (`ruby` and `ruby-dev`) required for the serverspec test runner on the guest OS. If this script is unable to setup Ruby, it will fallback to using Chef bootstrap installer (set via `chef_bootstrap_url`)
 chef_bootstrap_url| "https://www.getchef.com/chef/install.sh"| the chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS. However required is only a ruby, under assets/install.sh is an alternative (Chef free) bootstrap script prom PR#42. Example no-"chef_bootstrap url": https://raw.githubusercontent.com/simonmcc/kitchen-salt/assets/install.sh
 require_chef | true | Install chef ( needed by busser to run tests, if no verification driver is specified in kitchen yml)
 salt_config| "/etc/salt"|
