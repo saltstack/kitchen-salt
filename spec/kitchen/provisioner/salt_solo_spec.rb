@@ -185,7 +185,7 @@ describe Kitchen::Provisioner::SaltSolo do
       is_expected.to include Kitchen::Util.shell_helpers.to_s
     end
 
-    it { is_expected.to include 'http://bootstrap.saltstack.org' }
+    it { is_expected.to include 'https://bootstrap.saltstack.org' }
 
     context 'with salt version 2016.03.1' do
       let(:salt_version) { '2016.03.1' }
