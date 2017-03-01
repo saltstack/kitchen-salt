@@ -20,6 +20,7 @@ require_chef | true | Install chef ( needed by busser to run tests, if no verifi
 salt_config| "/etc/salt"|
 [salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
 salt_minion_config| "/etc/salt/minion"|
+salt_minion_id| | Customize Salt minion_id (by default Salt uses machine hostname)
 salt_env| "base"| environment to use in minion config file
 salt_file_root| "/srv/salt"|
 salt_pillar_root| "/srv/pillar"|
@@ -36,7 +37,7 @@ state_collection | false | treat this directory as a salt state collection and n
 [vendor_path](#vendor_path) |""| path (absolute or relative) to a collection of formula reuired to be copied to the guest
 
 
-##Configuring Provisioner Options
+## Configuring Provisioner Options
 The provisioner can be configured globally or per suite, global settings act as defaults for all suites, you can then customise per suite, for example:
 
     ---
