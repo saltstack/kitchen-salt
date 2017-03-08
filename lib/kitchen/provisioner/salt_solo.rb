@@ -51,6 +51,7 @@ module Kitchen
         salt_env: 'base',
         salt_file_root: '/srv/salt',
         salt_pillar_root: '/srv/pillar',
+        salt_spm_root: '/srv/spm',
         salt_state_top: '/srv/salt/top.sls',
         state_collection: false,
         state_top: {},
@@ -61,6 +62,7 @@ module Kitchen
         require_chef: true,
         dependencies: [],
         vendor_path: nil,
+        vendor_repo: {},
         omnibus_cachier: false
       }
 
@@ -84,7 +86,9 @@ module Kitchen
 
         install_template = File.expand_path("./../install.erb", __FILE__)
 
-        ERB.new(File.read(install_template)).result(binding)
+        erb = ERB.new(File.read(install_template)).result(binding)
+        debug("Install Command:" + erb.to_s)
+        erb
       end
 
       def install_chef
@@ -105,13 +109,13 @@ module Kitchen
           then
             echo "Failed install ruby(-dev) using assets.sh from kitchen-salt"
             echo "-----> Fallback to Chef Bootstrap script (for busser/serverspec ruby support)"
-            mkdir -p #{omnibus_download_dir}
+            mkdir -p "#{omnibus_download_dir}"
             if [ ! -x #{omnibus_download_dir}/install.sh ]
             then
               do_download #{chef_url} #{omnibus_download_dir}/install.sh
             fi
             #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
-          fi
+          fi;
         INSTALL
       end
 
@@ -123,16 +127,27 @@ module Kitchen
         prepare_grains
         prepare_states
         prepare_state_top
+        # upload scripts, cached formulas, and setup system repositories
+        prepare_dependencies
       end
 
       def init_command
         debug("Initialising Driver #{name} by cleaning #{config[:root_path]}")
-        "#{sudo('rm')} -rf #{config[:root_path]} ; mkdir -p #{config[:root_path]}"
+        cmd = "mkdir -p '#{config[:root_path]}';"
+        cmd += <<-INSTALL
+          #{config[:init_environment]}
+        INSTALL
+        cmd
       end
 
       def salt_command
         salt_version = config[:salt_version]
-        cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
+
+        # install/update dependencies
+        cmd =  sudo("chmod +x #{config[:root_path]}/*.sh;")
+        cmd << sudo("#{config[:root_path]}/dependencies.sh;")
+
+        cmd << sudo("salt-call --state-output=changes --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
@@ -208,6 +223,38 @@ module Kitchen
         debug("sandbox_grains_path: #{sandbox_grains_path}")
 
         write_hash_file(sandbox_grains_path, config[:grains])
+      end
+
+      def prepare_dependencies
+        # upload scripts
+        sandbox_scripts_path = File.join(sandbox_path, config[:salt_config], 'scripts')
+        info("Preparing scripts into #{config[:salt_config]}/scripts")
+
+        # PLACEHOLDER, git formulas might be fetched locally to temp and uploaded
+
+        # setup spm
+        spm_repos = config[:vendor_repo].select{|x| x[:type]=='spm'}.each{|x| x[:url]}.map {|x| x[:url] }
+        spm_repos.each do |url|
+          id=url.gsub(/[htp:\/.]/,'')
+          spmreposd = File.join(sandbox_path, 'etc', 'salt', 'spm.repos.d')
+          repo_spec = File.join(spmreposd, 'spm.repo')
+          FileUtils.mkdir_p(spmreposd)
+          repo_content = '
+            #{id}:
+              url: #{url}
+
+          '
+          write_raw_file(repo_spec, repo_content)
+        end
+
+        # upload scripts
+        %w(formula-fetch.sh repository-setup.sh).each do |script|
+          write_raw_file(File.join(sandbox_path, script), File.read(File.expand_path("../#{script}", __FILE__)))
+        end
+        dependencies_script = File.expand_path("./../dependencies.erb", __FILE__)
+        dependencies_content = ERB.new(File.read(dependencies_script)).result(binding)
+        write_raw_file(File.join(sandbox_path, 'dependencies.sh'), dependencies_content)
+
       end
     end
   end

@@ -35,6 +35,8 @@ state_collection | false | treat this directory as a salt state collection and n
 [grains](#grains) | | a hash to be re-written as /etc/salt/grains on the guest
 [dependencies](#dependencies) | [] | a list of hashes specifying dependencies formulas to be copied into the VM. e.g. [{ :path => 'deps/icinga-formula', :name => 'icinga' }]
 [vendor_path](#vendor_path) |""| path (absolute or relative) to a collection of formula reuired to be copied to the guest
+[vendor_repo](#vendor_repo) |""| Setup DEB, RPM, SPM repository with hosted formulas
+[init_environment](#init_environment) |""| commands to run to prior salt-call run
 
 
 ## Configuring Provisioner Options
@@ -291,5 +293,50 @@ For example, the following suite will define grains on the guest:
 
 ### [dependencies](id:dependencies)
 
+Specify formula dependencies:
+
+  provisioner:
+    dependencies:
+      - name: foo
+        path: ../formulas/foo
+      - name: linux
+        repo: apt
+        package: salt-formula-linux
+      - name: nginx
+        repo: git
+        source: https://github.com/salt-formulas/salt-formula-nginx.git
+
+
 ### [vendor_path](id:vendor_path)
+
+Path to your local formulas:
+
+  provisioner:
+    vendor_path: ./srv/env/dev/_formulas
+
+
+### [vendor_repo](id:vendor_repo)
+
+In order to configure APT, YUM, SPM repositories for kitchen run.
+Example:
+
+  provisioner:
+    vendor_repo:
+      - type: apt
+        url: http://apt.tcpcloud.eu/nightly
+        key_url: http://apt.tcpcloud.eu/public.gpg
+        components: main tcp-salt
+
+
+### [init_environment](id:init_environment)
+
+In order to execute additional commands before salt-call run.
+Example, setup reclass:
+
+  provisioner:
+    init_environment: |
+      mkdir -p $SALT_ROOT/reclass/classes
+      ln -fs /usr/share/salt-formulas/reclass/* $SALT_ROOT/reclass/
+      find /usr/share/salt-formulas/env/_formulas -name metadata -type d | xargs -I'{}' \
+        ln -fs {}/service $SALT_ROOT/reclass/classes/
 
