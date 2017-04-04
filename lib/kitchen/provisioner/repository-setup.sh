@@ -18,7 +18,7 @@ function apt_repo_add {
 }
 
 # detect if file is being sourced
-[[ "$0" != "$BASH_SOURCE" ]] || {
+[[ "$0" != "${BASH_SOURCE[@]}" ]] || {
     # if executed, run implicit function
     #apt_repo_add "${@}"
     echo 'Usage: apt_repo_add "custom id" "arch" "repo url" "components" "distribution" "repo gpg key"';
