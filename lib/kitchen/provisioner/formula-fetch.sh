@@ -18,7 +18,8 @@
 function fetchDependencies() {
     METADATA="$1";
     grep -E "^dependencies:" "$METADATA" >/dev/null || return 0
-    (python - "$METADATA" | while read dep; do fetchGitFormula "$dep"; done) <<-DEPS
+    # shellcheck disable=SC2086
+    (python - "$METADATA" | while read -r dep; do fetchGitFormula $dep; done) <<-DEPS 
 		import sys,yaml
 		for dep in yaml.load(open(sys.argv[1], "ro"))["dependencies"]:
 		  print("{source} {name}").format(**dep)
@@ -74,7 +75,7 @@ function linkFormulas() {
 }
 
 # detect if file is being sourced
-[[ "$0" != "$BASH_SOURCE" ]] || {
+[[ "$0" != "${BASH_SOURCE[@]}" ]] || {
     # if executed, run implicit function
     fetchGitFormula "${@}"
 }
