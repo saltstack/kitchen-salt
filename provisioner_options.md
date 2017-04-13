@@ -7,7 +7,7 @@ dry_run | false | Setting this to True makes the highstate to run with flag test
 formula | | name of the formula, used to derive the path we need to copy to the guest
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
 log_level | | set salt logging level when running commands (e.g. specifying `debug` is equivalent of `-l debug`)
-salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt" or "ppa"
+salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt", "distrib" or "ppa"
 salt_bootstrap_url | "https://bootstrap.saltstack.org" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
 salt_version | "latest"| desired version, only affects apt installs
@@ -132,6 +132,14 @@ With a .kitchen.yml like this you can now test the completed collection:
 In this example, the apache state could use functionality from the php state etc.  You're not just restricted to a single formula.
 
 ### [salt_install](id:salt_install)
+
+Choose your method to install SaltStack :
+
+* **bootstrap :** install SaltStack from bootstrap script (see: [salt_bootstrap_url](id:salt_bootstrap_url))
+* **apt :** install SaltStack from specified repository (see: [salt_apt_repo](id:salt_apt_repo))
+* **ppa :** install SaltStack from ppa repository (see: [salt_ppa](id:salt_ppa))
+* **distrib :** install SaltStack from distribution repositories
+
 ### [salt_bootstrap_options](id:salt_bootstrap_options)
 Options to pass to the salt bootstrap installer.  For example, you could choose to install salt from the develop branch like this:
 
@@ -163,7 +171,7 @@ Version of salt to install, via the git bootstrap method, unless ```salt_install
 
 ### [salt_apt_repo](id:salt_apt_repo)
 ### [salt_apt_repo_key](id:salt_apt_repo_key)
-### [ salt_ppa](id:salt_ppa)
+### [salt_ppa](id:salt_ppa)
 Adds the supplied PPA. The default being the Official SaltStack PPA. Useful when the release (e.g. vivid) does not have support via the standard boostrap script or apt repo.
 
 ### [chef_bootstrap_url](id:chef_bootstrap_url)
