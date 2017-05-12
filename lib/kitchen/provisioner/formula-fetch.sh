@@ -65,8 +65,14 @@ function linkFormulas() {
   SALT_ENV=${2:-/usr/share/salt-formulas/env}
 
   # form git, development versions
-  find "$SALT_ENV"/_formulas -maxdepth 1 -mindepth 1 -type d -print0| xargs -0 -n1 basename | xargs -I{} \
-    ln -fs "$SALT_ENV"/_formulas/{}/{} "$SALT_ROOT"/{};
+  GIT_FORMULA_LIST=$(find "$SALT_ENV"/_formulas -maxdepth 1 -mindepth 1 -type d)
+  for formula in $GIT_FORMULA_LIST
+  do
+    name=$(basename "$formula")
+    ln -fs "$formula/$name" "$SALT_ROOT/$name"
+    find "$formula" -maxdepth 1 -mindepth 1 -type d |grep -E "_(modules|states|grains|renderers|returners)" | xargs -I{} \
+      basename {}| xargs -I{} cp -rs "$formula"/{} "$SALT_ROOT"/
+  done
 
   # form pkgs
   find "$SALT_ENV" -path "*_formulas*" -prune -o -name "*" -maxdepth 1 -mindepth 1 -type d -print0| xargs -0 -n1 basename | xargs -I{} \
