@@ -8,6 +8,7 @@ def install_dependencies
     test ! -e "$(dirname $0)/repository-setup.sh" || . "$(dirname $0)/repository-setup.sh"
 
     export SALT_ROOT="#{config[:root_path]}/#{config[:salt_file_root]}";
+    mkdir -p "/usr/share/salt-formulas";
     mkdir -p "${SALT_ROOT}";
   INSTALL
 
