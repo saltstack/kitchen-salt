@@ -20,6 +20,7 @@ require_chef | true | Install chef ( needed by busser to run tests, if no verifi
 salt_config| "/etc/salt"|
 [salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
 salt_minion_config| "/etc/salt/minion"|
+salt_minion_config_template| nil | a local file used to customize minion config. The default one is provided by kitchen-salt (`lib/kitchen/provisioner/minion.erb`)
 salt_minion_id| | Customize Salt minion_id (by default Salt uses machine hostname)
 salt_env| "base"| environment to use in minion config file
 salt_file_root| "/srv/salt"|
