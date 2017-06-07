@@ -9,3 +9,5 @@ file_roots:
 pillar_roots:
  <%= config[:salt_env] %>:
    - <%= File.join(config[:root_path], config[:salt_pillar_root]) %>
+
+<%= config[:additional_minion_config].nil? ? '' : (unsymbolize(config[:additional_minion_config]).to_yaml).sub(/---/, '') %>
