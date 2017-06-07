@@ -40,6 +40,10 @@ then
   echo "-----> Installing salt-minion (#{salt_version})"
   #{sudo('apt-get')} install -y python-support
   #{sudo('apt-get')} install -y salt-minion salt-common
+elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "distrib" ]
+then
+  #{sudo('apt-get')} update
+  #{sudo('apt-get')} install -y salt-minion
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
 then
   #{sudo('apt-add-repository')} -y #{salt_ppa}
