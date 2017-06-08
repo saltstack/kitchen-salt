@@ -1,7 +1,18 @@
 language: ruby
 
+services:
+  - docker
+
+addons:
+  apt:
+    packages:
+    - curl
+    - subversion
+    - git
+    - shellcheck
+    - tree
+
 rvm:
-  - 2.1.8
   - 2.2.4
   - ruby-head
 
@@ -14,28 +25,31 @@ sudo: true
 bundler_args: --without='vagrant'
 
 install:
+  # DEPRECATED
   # init/start docker in travis
-  - source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
+  #- source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
+  #
   # clone & setup ci for test formula
-  - export FORMULA=salt-formula-postfix
+  - export FORMULA=salt-formula-git
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - bundle install --without='vagrant'
-  - git clone https://github.com/tcpcloud/$FORMULA.git --branch master --single-branch ../$FORMULA
+  - git clone https://github.com/salt-formulas/$FORMULA.git --branch master --single-branch ../$FORMULA
   - cd ../$FORMULA
-  - for f in Rakefile .kitchen.docker.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
-  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
+  - for f in Rakefile .kitchen.salt.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
+  - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list
 
 script:
   # Run unit tests
   - cd $TRAVIS_BUILD_DIR && bundle exec rspec
+  # Check shell scripts
+  - shellcheck lib/kitchen/provisioner/*.sh*
   # Run test-kitchen with docker driver:
-  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test server-ubuntu-1404
-  #- KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen test server-centos-1404
-  #- travis_retry bundle exec rake integration:docker
+  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single-ubuntu-1404 -ldebug
+
+after_failure:
+  - cat .kitchen/logs/client-single-ubuntu-1404.log
 
 after_script:
-  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen list
-  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen destroy all
-  - KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen diagnose --all
-
-after_failure: cat docker_daemon.log
+  - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list
+  - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen destroy all
+  - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen diagnose --all

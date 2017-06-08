@@ -1,0 +1,99 @@
+<%=
+
+def install_dependencies
+  script = ''
+
+  script += <<-INSTALL
+    test ! -e "$(dirname $0)/formula-fetch.sh" || . "$(dirname $0)/formula-fetch.sh"
+    test ! -e "$(dirname $0)/repository-setup.sh" || . "$(dirname $0)/repository-setup.sh"
+
+    export SALT_ROOT="#{config[:root_path]}/#{config[:salt_file_root]}";
+    mkdir -p "${SALT_ROOT}";
+  INSTALL
+
+
+  # setup apt
+  config[:vendor_repo].select{|x| x[:type]=='apt'}.each do |repo|
+    id  =repo[:url].gsub(/[htp:\/.]/,'')
+    arch=repo[:arch] || '[arch=amd64]'
+    rurl=repo[:url]
+    comp=repo[:components] || 'main'
+    dist=repo[:distribution] || '$DISTRIB_CODENAME'
+    rkey=repo[:key_url]
+    script += <<-INSTALL
+      apt_repo_add "#{id}" "#{arch}" "#{rurl}" "#{comp}" "#{dist}" "#{rkey}";
+    INSTALL
+  end
+
+  # setup ppa
+  config[:vendor_repo].select{|x| x[:type]=='ppa'}.each do |repo|
+    script += <<-INSTALL
+        #{sudo('add-apt-repository')} "ppa:#{repo[:name]}" -y;
+    INSTALL
+  end
+
+  # TODO, setup yum repo
+
+  # update resources
+  config[:vendor_repo].map{|x| x[:type]}.uniq.each do |type|
+    case type
+    when 'apt'
+      script += <<-INSTALL
+        #{sudo('apt-get')} update -q;
+        sleep 10;
+      INSTALL
+    when 'yum'
+      script += <<-INSTALL
+        #{sudo('yum')} update;
+        sleep 10;
+      INSTALL
+    when 'spm'
+      script += <<-INSTALL
+        #{sudo('spm')} update_repo;
+      INSTALL
+    end
+  end
+
+  # install formulas
+  config[:dependencies].select{|dependency| dependency.has_key?(:repo)}.each do |formula|
+    #unless config[:vendor_repo].has_key?(formula[:repo])
+    #  raise UserError, "kitchen-salt: Invalid dependency formula :repo, no such vendor_repo '#{formula[:repo]}' specified."
+    #end
+    case formula[:repo]
+    when 'git'
+      script += <<-INSTALL
+        fetchGitFormula #{formula[:source]} "#{formula[:name]}" "#{formula[:branch] || 'master'}"
+      INSTALL
+    when 'spm'
+      # TODO: SPM should know the sandbox_path is /tmp/kitchen/etc
+      script += <<-INSTALL
+        #{sudo('spm')} install #{formula[:package]||formula[:name]};
+      INSTALL
+    when 'yum'
+      script += <<-INSTALL
+        #{sudo('yum')} install -y #{formula[:package]||formula[:name]};
+      INSTALL
+    when 'apt'
+      script += <<-INSTALL
+        #{sudo('apt-get')} install -y #{formula[:package]||formula[:name]};
+      INSTALL
+    end
+  end
+  script += <<-INSTALL
+    linkFormulas "$SALT_ROOT"
+    #{sudo('chown')} kitchen.kitchen -R /usr/share/salt-formulas;
+    #{sudo('chown')} kitchen.kitchen -R "$SALT_ROOT";
+    ls -la "$SALT_ROOT";
+  INSTALL
+  return script
+end
+
+
+<<-INSTALL
+#!/bin/bash
+
+echo "Install External Dependencies";
+#{install_dependencies}
+
+INSTALL
+%>

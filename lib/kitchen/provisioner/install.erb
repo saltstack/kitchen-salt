@@ -1,3 +1,4 @@
+
 <%=
 salt_install = config[:salt_install]
 salt_url = config[:salt_bootstrap_url]
@@ -13,6 +14,7 @@ sh -c '
 
 # what version of salt is installed?
 SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+set +x
 
 
 if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
@@ -21,10 +23,10 @@ then
   #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
 then
-  if [ -z "`which lsb_release`" ]; then
+  if [ ! $(command -v lsb_release &>/dev/null) ]; then
     . /etc/lsb-release
   else
-    DISTRIB_CODENAME=`lsb_release -s -c`
+    DISTRIB_CODENAME=$(lsb_release -s -c)
   fi
 
   echo "-----> Configuring apt repo for salt #{salt_version}"
@@ -37,14 +39,16 @@ then
   sleep 10
   echo "-----> Installing salt-minion (#{salt_version})"
   #{sudo('apt-get')} install -y python-support
-  #{sudo('apt-get')} install -y salt-minion
-  #{sudo('apt-get')} install -y salt-common
+  #{sudo('apt-get')} install -y salt-minion salt-common
+elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "distrib" ]
+then
+  #{sudo('apt-get')} update
   #{sudo('apt-get')} install -y salt-minion
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
 then
   #{sudo('apt-add-repository')} -y #{salt_ppa}
   #{sudo('apt-get')} update
-  #{sudo('apt-get')} install -y salt-minion
+  #{sudo('apt-get')} install -y salt-minion salt-common
 fi
 
 # check again, now that an install of some form should have happened
@@ -73,7 +77,6 @@ else
 fi
 
 #{install_chef}
-
 '
 INSTALL
 %>

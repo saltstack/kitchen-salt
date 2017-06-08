@@ -7,7 +7,7 @@ dry_run | false | Setting this to True makes the highstate to run with flag test
 formula | | name of the formula, used to derive the path we need to copy to the guest
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
 log_level | | set salt logging level when running commands (e.g. specifying `debug` is equivalent of `-l debug`)
-salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt" or "ppa"
+salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt", "distrib" or "ppa"
 salt_bootstrap_url | "https://bootstrap.saltstack.com" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
 salt_version | "latest"| desired version, only affects apt installs
@@ -20,6 +20,7 @@ require_chef | true | Install chef ( needed by busser to run tests, if no verifi
 salt_config| "/etc/salt"|
 [salt_copy_filter](#salt_copy_filter) | [] | List of filenames to be excluded when copying states, formula & pillar data down to guest instances.
 salt_minion_config| "/etc/salt/minion"|
+salt_minion_config_template| nil | a local file used to customize minion config. The default one is provided by kitchen-salt (`lib/kitchen/provisioner/minion.erb`)
 salt_minion_id| | Customize Salt minion_id (by default Salt uses machine hostname)
 salt_env| "base"| environment to use in minion config file
 salt_file_root| "/srv/salt"|
@@ -35,6 +36,8 @@ state_collection | false | treat this directory as a salt state collection and n
 [grains](#grains) | | a hash to be re-written as /etc/salt/grains on the guest
 [dependencies](#dependencies) | [] | a list of hashes specifying dependencies formulas to be copied into the VM. e.g. [{ :path => 'deps/icinga-formula', :name => 'icinga' }]
 [vendor_path](#vendor_path) |""| path (absolute or relative) to a collection of formula reuired to be copied to the guest
+[vendor_repo](#vendor_repo) |""| Setup DEB, RPM, SPM repository with hosted formulas
+[init_environment](#init_environment) |""| commands to run to prior salt-call run
 
 
 ## Configuring Provisioner Options
@@ -129,6 +132,14 @@ With a .kitchen.yml like this you can now test the completed collection:
 In this example, the apache state could use functionality from the php state etc.  You're not just restricted to a single formula.
 
 ### [salt_install](id:salt_install)
+
+Choose your method to install SaltStack :
+
+* **bootstrap :** install SaltStack from bootstrap script (see: [salt_bootstrap_url](id:salt_bootstrap_url))
+* **apt :** install SaltStack from specified repository (see: [salt_apt_repo](id:salt_apt_repo))
+* **ppa :** install SaltStack from ppa repository (see: [salt_ppa](id:salt_ppa))
+* **distrib :** install SaltStack from distribution repositories
+
 ### [salt_bootstrap_options](id:salt_bootstrap_options)
 Options to pass to the salt bootstrap installer.  For example, you could choose to install salt from the develop branch like this:
 
@@ -160,7 +171,7 @@ Version of salt to install, via the git bootstrap method, unless ```salt_install
 
 ### [salt_apt_repo](id:salt_apt_repo)
 ### [salt_apt_repo_key](id:salt_apt_repo_key)
-### [ salt_ppa](id:salt_ppa)
+### [salt_ppa](id:salt_ppa)
 Adds the supplied PPA. The default being the Official SaltStack PPA. Useful when the release (e.g. vivid) does not have support via the standard boostrap script or apt repo.
 
 ### [chef_bootstrap_url](id:chef_bootstrap_url)
@@ -291,5 +302,50 @@ For example, the following suite will define grains on the guest:
 
 ### [dependencies](id:dependencies)
 
+Specify formula dependencies:
+
+  provisioner:
+    dependencies:
+      - name: foo
+        path: ../formulas/foo
+      - name: linux
+        repo: apt
+        package: salt-formula-linux
+      - name: nginx
+        repo: git
+        source: https://github.com/salt-formulas/salt-formula-nginx.git
+
+
 ### [vendor_path](id:vendor_path)
+
+Path to your local formulas:
+
+  provisioner:
+    vendor_path: ./srv/env/dev/_formulas
+
+
+### [vendor_repo](id:vendor_repo)
+
+In order to configure APT, YUM, SPM repositories for kitchen run.
+Example:
+
+  provisioner:
+    vendor_repo:
+      - type: apt
+        url: http://apt.tcpcloud.eu/nightly
+        key_url: http://apt.tcpcloud.eu/public.gpg
+        components: main tcp-salt
+
+
+### [init_environment](id:init_environment)
+
+In order to execute additional commands before salt-call run.
+Example, setup reclass:
+
+  provisioner:
+    init_environment: |
+      mkdir -p $SALT_ROOT/reclass/classes
+      ln -fs /usr/share/salt-formulas/reclass/* $SALT_ROOT/reclass/
+      find /usr/share/salt-formulas/env/_formulas -name metadata -type d | xargs -I'{}' \
+        ln -fs {}/service $SALT_ROOT/reclass/classes/
 
