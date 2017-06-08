@@ -8,7 +8,7 @@ formula | | name of the formula, used to derive the path we need to copy to the 
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
 log_level | | set salt logging level when running commands (e.g. specifying `debug` is equivalent of `-l debug`)
 salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt", "distrib" or "ppa"
-salt_bootstrap_url | "https://bootstrap.saltstack.org" | location of bootstrap script
+salt_bootstrap_url | "https://bootstrap.saltstack.com" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
 salt_version | "latest"| desired version, only affects apt installs
 salt_apt_repo | "https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest"| apt repo. For more information check [SaltStack Package Repo](https://repo.saltstack.com/)
