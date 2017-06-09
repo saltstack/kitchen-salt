@@ -37,9 +37,6 @@ module Kitchen
           prepare_vendor_states
         end
 
-        config[:dependencies].each do |formula|
-          prepare_formula formula[:path], formula[:name]
-        end
       end
 
       def prepare_vendor_states

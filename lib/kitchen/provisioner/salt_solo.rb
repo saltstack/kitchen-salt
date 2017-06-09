@@ -38,17 +38,21 @@ module Kitchen
         dry_run: false,
         salt_version: 'latest',
         salt_install: 'bootstrap',
-        salt_bootstrap_url: 'http://bootstrap.saltstack.org',
+        salt_bootstrap_url: 'https://bootstrap.saltstack.org',
         salt_bootstrap_options: '',
-        salt_apt_repo: 'http://apt.mccartney.ie',
-        salt_apt_repo_key: 'http://apt.mccartney.ie/KEY',
+        salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest',
+        salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub',
         salt_ppa: 'ppa:saltstack/salt',
+        bootstrap_url: 'https://raw.githubusercontent.com/simonmcc/kitchen-salt/master/assets/install.sh',
         chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
         salt_config: '/etc/salt',
         salt_minion_config: '/etc/salt/minion',
+        salt_minion_config_template: nil,
+        salt_minion_id: nil,
         salt_env: 'base',
         salt_file_root: '/srv/salt',
         salt_pillar_root: '/srv/pillar',
+        salt_spm_root: '/srv/spm',
         salt_state_top: '/srv/salt/top.sls',
         state_collection: false,
         state_top: {},
@@ -59,6 +63,7 @@ module Kitchen
         require_chef: true,
         dependencies: [],
         vendor_path: nil,
+        vendor_repo: {},
         omnibus_cachier: false,
         local_salt_root: nil
       }
@@ -83,24 +88,36 @@ module Kitchen
 
         install_template = File.expand_path("./../install.erb", __FILE__)
 
-        ERB.new(File.read(install_template)).result(binding)
+        erb = ERB.new(File.read(install_template)).result(binding)
+        debug("Install Command:" + erb.to_s)
+        erb
       end
 
       def install_chef
         return unless config[:require_chef]
         chef_url = config[:chef_bootstrap_url]
         omnibus_download_dir = config[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
+        bootstrap_url = config[:bootstrap_url]
+        bootstrap_download_dir = '/tmp'
         <<-INSTALL
-          if [ ! -d "/opt/chef" ]
+          echo "-----> Trying to install ruby(-dev) using assets.sh from kitchen-salt"
+            mkdir -p #{bootstrap_download_dir}
+            if [ ! -x #{bootstrap_download_dir}/install.sh ]
+            then
+              do_download #{bootstrap_url} #{bootstrap_download_dir}/install.sh
+            fi
+            #{sudo('sh')} #{bootstrap_download_dir}/install.sh -d #{bootstrap_download_dir}
+          if [ $? -ne 0 ] || [ ! -d "/opt/chef" ]
           then
-            echo "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
-            mkdir -p #{omnibus_download_dir}
+            echo "Failed install ruby(-dev) using assets.sh from kitchen-salt"
+            echo "-----> Fallback to Chef Bootstrap script (for busser/serverspec ruby support)"
+            mkdir -p "#{omnibus_download_dir}"
             if [ ! -x #{omnibus_download_dir}/install.sh ]
             then
               do_download #{chef_url} #{omnibus_download_dir}/install.sh
             fi
             #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
-          fi
+          fi;
         INSTALL
       end
 
@@ -112,17 +129,29 @@ module Kitchen
         prepare_grains
         prepare_states
         prepare_state_top
+        # upload scripts, cached formulas, and setup system repositories
+        prepare_dependencies
       end
 
       def init_command
         debug("Initialising Driver #{name} by cleaning #{config[:root_path]}")
-        "#{sudo('rm')} -rf #{config[:root_path]} ; mkdir -p #{config[:root_path]}"
+        cmd = "mkdir -p '#{config[:root_path]}';"
+        cmd += <<-INSTALL
+          #{config[:init_environment]}
+        INSTALL
+        cmd
       end
 
       def salt_command
         salt_version = config[:salt_version]
-        cmd = sudo("salt-call --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
+
+        # install/update dependencies
+        cmd =  sudo("chmod +x #{config[:root_path]}/*.sh;")
+        cmd << sudo("#{config[:root_path]}/dependencies.sh;")
+
+        cmd << sudo("salt-call --state-output=changes --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
+        cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
@@ -153,7 +182,7 @@ module Kitchen
           cmd << ' [ ${SC} -ne 0 ] && exit ${SC} ; [ ${EC} -eq 0 ] && exit 1 ; [ ${EC} -eq 1 ] && exit 0)'
           cmd
         else
-          salt_command         
+          salt_command
         end
       end
 
@@ -173,9 +202,17 @@ module Kitchen
       def prepare_minion
         info('Preparing salt-minion')
 
-        minion_template = File.expand_path("./../minion.erb", __FILE__)
+        if config[:salt_minion_config_template]
+          minion_template = File.expand_path(config[:salt_minion_config_template], Kitchen::Config.new.kitchen_root)
+        else
+          minion_template = File.expand_path("./../minion.erb", __FILE__)
+        end
 
-        minion_config_content = ERB.new(File.read(minion_template)).result(binding)
+        if File.extname(minion_template) == ".erb"
+          minion_config_content = ERB.new(File.read(minion_template)).result(binding)
+        else
+          minion_config_content = File.read(minion_template)
+        end
 
         # create the temporary path for the salt-minion config file
         debug("sandbox is #{sandbox_path}")
@@ -196,6 +233,38 @@ module Kitchen
         debug("sandbox_grains_path: #{sandbox_grains_path}")
 
         write_hash_file(sandbox_grains_path, config[:grains])
+      end
+
+      def prepare_dependencies
+        # upload scripts
+        sandbox_scripts_path = File.join(sandbox_path, config[:salt_config], 'scripts')
+        info("Preparing scripts into #{config[:salt_config]}/scripts")
+
+        # PLACEHOLDER, git formulas might be fetched locally to temp and uploaded
+
+        # setup spm
+        spm_repos = config[:vendor_repo].select{|x| x[:type]=='spm'}.each{|x| x[:url]}.map {|x| x[:url] }
+        spm_repos.each do |url|
+          id=url.gsub(/[htp:\/.]/,'')
+          spmreposd = File.join(sandbox_path, 'etc', 'salt', 'spm.repos.d')
+          repo_spec = File.join(spmreposd, 'spm.repo')
+          FileUtils.mkdir_p(spmreposd)
+          repo_content = '
+            #{id}:
+              url: #{url}
+
+          '
+          write_raw_file(repo_spec, repo_content)
+        end
+
+        # upload scripts
+        %w(formula-fetch.sh repository-setup.sh).each do |script|
+          write_raw_file(File.join(sandbox_path, script), File.read(File.expand_path("../#{script}", __FILE__)))
+        end
+        dependencies_script = File.expand_path("./../dependencies.erb", __FILE__)
+        dependencies_content = ERB.new(File.read(dependencies_script)).result(binding)
+        write_raw_file(File.join(sandbox_path, 'dependencies.sh'), dependencies_content)
+
       end
     end
   end

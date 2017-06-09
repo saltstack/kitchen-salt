@@ -1,0 +1,53 @@
+---
+driver:
+  name: docker
+  hostname: kitchen-salt.ci.local
+  use_sudo: true
+
+provisioner:
+  name: salt_solo
+  salt_install: bootstrap
+  salt_bootstrap_url: https://bootstrap.saltstack.com
+  salt_bootstrap_options: -p git -p curl
+  salt_version: latest
+  require_chef: false
+  #data_path: spec/fixtures/data-path
+  #vendor_path: ./spec/fixtures/vendor-path
+  #log_level: debug
+  vendor_repo:
+    - type: apt
+      url: http://apt-mk.mirantis.com/trusty
+      key_url: http://apt-mk.mirantis.com/public.gpg
+      components: salt
+      distribution: nightly
+    - type: ppa
+      name: neovim-ppa/unstable
+    - type: spm
+      url: https://spm.hubblestack.io/2016.7.1
+  dependencies:
+    #- name: foo
+    #  path: spec/fixtures/formula-foo
+    - name: linux
+      repo: apt
+      package: salt-formula-linux
+    # Test Dependencies
+    # git formula, formula with dependencies
+    - name: nginx
+      repo: git
+      source: https://github.com/salt-formulas/salt-formula-nginx.git
+    - name: postfix
+      repo: git
+      source: https://github.com/salt-formulas/salt-formula-postfix
+    - name: hubblestack_nova
+      repo: spm
+      #package: hubblestack_nova-2016.7.1-1
+      package: https://spm.hubblestack.io/2016.7.1/hubblestack_nova-2016.7.1-1.spm
+    #- name: salt
+    #  repo: apt
+    #  package: salt-formula-salt
+  grains:
+    noservices: True
+
+platforms:
+  - name: ubuntu-14.04
+  #- name: saltstack/ubuntu-14.04-minimal

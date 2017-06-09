@@ -14,7 +14,7 @@ namespace :integration do
   task :docker do
     require 'kitchen'
     Kitchen.logger = Kitchen.default_file_logger
-    @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.docker.yml')
+    @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.salt.yml')
     Kitchen::Config.new(loader: @loader).instances.each do |instance|
       instance.test(:always)
     end
