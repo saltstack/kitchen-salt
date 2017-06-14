@@ -27,6 +27,7 @@ describe Kitchen::Provisioner::SaltSolo do
   let(:state_top_from_file) { false }
   let(:salt_version) { 'latest' }
   let(:pillars_from_files) { nil }
+  let(:is_file_root) { false }
   let(:state_collection) { false }
   let(:data_path) { nil }
   let(:dependencies) { [] }
@@ -35,6 +36,7 @@ describe Kitchen::Provisioner::SaltSolo do
   let(:formula) { 'test_formula' }
   let(:vendor_path) { nil }
   let(:salt_copy_filter) { [] }
+  let(:local_salt_root) { nil }
 
   let(:logged_output)   { StringIO.new }
   let(:logger)          { Logger.new(logged_output) }
@@ -54,7 +56,8 @@ describe Kitchen::Provisioner::SaltSolo do
       state_top_from_file: state_top_from_file,
       :'pillars-from-files' => pillars_from_files,
       vendor_path: vendor_path,
-      salt_copy_filter: salt_copy_filter
+      salt_copy_filter: salt_copy_filter,
+      local_salt_root: local_salt_root
     }
   end
 
@@ -77,7 +80,11 @@ describe Kitchen::Provisioner::SaltSolo do
   around(:each) do |example|
     Dir.mktmpdir do |dir|
       @tmpdir = dir
-      FileUtils.mkdir(File.join(@tmpdir, 'test_formula'))
+      if not config[:local_salt_root].nil?
+        FileUtils.copy_entry(config[:local_salt_root], @tmpdir)
+      else
+        FileUtils.mkdir(File.join(@tmpdir, 'test_formula'))
+      end
       example.run
     end
   end
@@ -303,6 +310,50 @@ describe Kitchen::Provisioner::SaltSolo do
       context 'with grains specified' do
         let(:grains) { { foo: 'bar' } }
         it { is_expected.to include 'etc/salt/grains' }
+      end
+
+      context 'local_salt_root transfers pillars and states' do
+        let(:config) do
+          {
+            local_salt_root: 'spec/fixtures/local-salt-root-test',
+            formula: nil
+          }
+        end
+        it { is_expected.to include 'srv/pillar/local_salt_root_pillar.sls' }
+        it { is_expected.to include 'srv/salt/local_salt_root_test/init.sls'}
+      end
+
+      context 'local_salt_root with pillars specified' do
+        let(:config) do
+          {
+            local_salt_root: 'spec/fixtures/local-salt-root-test',
+            formula: nil,
+            pillars: {
+              :'foo.sls' => {foo: 'foo'}
+            }
+          }
+        end
+        it { is_expected.to include 'srv/pillar/foo.sls' }
+        it { is_expected.not_to include 'srv/pillar/local_salt_root_pillar.sls' }
+      end
+
+      context 'local_salt_root with pillars from files specified' do
+        let(:config) do
+          {
+            local_salt_root: 'spec/fixtures/local-salt-root-test',
+            formula: nil,
+            :'pillars-from-files' => {
+              :'test_pillar.sls' => 'spec/fixtures/test_pillar.sls'
+            },
+            pillars: {
+              :'top.sls' => { base: { '*' => ['test_pillar'] } }
+            }
+          }
+        end
+
+        it { is_expected.to include 'srv/pillar/top.sls' }
+        it { is_expected.to include 'srv/pillar/test_pillar.sls' }
+        it { is_expected.not_to include 'srv/pillar/local_salt_root_pillar.sls' }
       end
 
       context 'with pillars specified' do

@@ -18,14 +18,19 @@ module Kitchen
           state_top_content.gsub!(/(!\s'\*')/, "'*'")
         else
           # load a top.sls from disk
-          state_top_content = File.read('top.sls')
+          if config[:local_salt_root].nil?
+            top_file = 'top.sls'
+          else
+            top_file = File.join(config[:local_salt_root], 'salt/top.sls')
+          end
+          state_top_content = File.read(top_file)
         end
 
         write_raw_file(sandbox_state_top_path, state_top_content)
       end
 
       def prepare_states
-        if config[:state_collection] || config[:is_file_root]
+        if config[:state_collection] || config[:is_file_root] || !config[:local_salt_root].nil?
           prepare_state_collection
         else
           prepare_formula config[:kitchen_root], config[:formula]
@@ -88,9 +93,14 @@ module Kitchen
           collection_name = formula
         end
 
+        if config[:local_salt_root].nil?
+          states_location = config[:kitchen_root]
+        else
+          states_location = File.join(config[:local_salt_root], 'salt')
+        end
         collection_dir = File.join(sandbox_path, config[:salt_file_root], collection_name)
         FileUtils.mkdir_p(collection_dir)
-        cp_r_with_filter(config[:kitchen_root], collection_dir, config[:salt_copy_filter])
+        cp_r_with_filter(states_location, collection_dir, config[:salt_copy_filter])
       end
     end
   end

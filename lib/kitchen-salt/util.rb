@@ -42,7 +42,7 @@ module Kitchen
               debug("Found #{source} in #{filter}, pruning it from the Find")
               Find.prune
             end
-            FileUtils.mkdir target unless File.exist? target
+            FileUtils.mkdir_p target unless File.exist? target
 
             FileUtils.cp_r "#{source}/.", target if File.symlink? source
           elsif filtered

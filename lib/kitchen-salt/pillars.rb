@@ -5,11 +5,20 @@ module Kitchen
 
       def prepare_pillars
         info("Preparing pillars into #{config[:salt_pillar_root]}")
+
         pillars = config[:pillars]
         pillars_from_files = config[:'pillars-from-files']
         debug("Pillars Hash: #{pillars}")
 
-        return if pillars.nil? && pillars_from_files.nil?
+        if pillars.nil? && pillars_from_files.nil?
+          if not config[:local_salt_root].nil?
+            pillars_location = File.join(config[:local_salt_root], 'pillar')
+            sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root])
+            cp_r_with_filter(pillars_location, sandbox_pillar_path, config[:salt_copy_filter])
+            return
+          end
+          return
+        end
 
         # we get a hash with all the keys converted to symbols, salt doesn't like this
         # to convert all the keys back to strings again
@@ -42,17 +51,21 @@ module Kitchen
         end
       end
 
+      def copy_pillar(key, srcfile)
+        debug("Copying external pillar: #{key}, #{srcfile}")
+        # generate the filename
+        sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
+        # create the directory where the pillar file will go
+        FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
+        # copy the file across
+        FileUtils.copy srcfile, sandbox_pillar_path
+      end
+
       def prepare_pillars_from_files(pillars)
         external_pillars = unsymbolize(pillars)
         debug("external_pillars (unsymbolize): #{external_pillars}")
         external_pillars.each do |key, srcfile|
-          debug("Copying external pillar: #{key}, #{srcfile}")
-          # generate the filename
-          sandbox_pillar_path = File.join(sandbox_path, config[:salt_pillar_root], key)
-          # create the directory where the pillar file will go
-          FileUtils.mkdir_p(File.dirname(sandbox_pillar_path))
-          # copy the file across
-          FileUtils.copy srcfile, sandbox_pillar_path
+          copy_pillar(key, srcfile)
         end
       end
     end
