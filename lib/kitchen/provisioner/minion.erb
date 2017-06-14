@@ -4,9 +4,10 @@ file_client: local
 
 file_roots:
  <%= config[:salt_env] %>:
-   - <%= File.join(config[:root_path], config[:salt_file_root]) %>
-   - <%= File.join(config[:root_path], config[:salt_file_root], 'spm') %>
+
+   - <%= File.join(config[:root_path], (windows_os? ? config[:salt_file_root].gsub('/', '\\') : config[:salt_file_root])) %>
+   - <%= File.join(config[:root_path], (windows_os? ? config[:salt_file_root].gsub('/', '\\') : config[:salt_file_root]), 'spm') %>
 
 pillar_roots:
  <%= config[:salt_env] %>:
-   - <%= File.join(config[:root_path], config[:salt_pillar_root]) %>
+   - <%= File.join(config[:root_path], (windows_os? ? config[:salt_pillar_root].gsub('/', '\\') : config[:salt_pillar_root])) %>

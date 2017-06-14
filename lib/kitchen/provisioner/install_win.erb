@@ -1,0 +1,32 @@
+<%=
+salt_install = config[:salt_install]
+salt_url = config[:salt_bootstrap_url]
+bootstrap_options = config[:salt_bootstrap_options]
+salt_version = config[:salt_version]
+
+<<-POWERSHELL
+if (Test-Path c:\\salt\\salt-call.bat) {
+  $installed_version = $(c:\\salt\\salt-call.bat --version).split(' ')[1] 
+}
+if (-Not $(Test-Path c:\\temp)) {
+  New-Item -Path c:\\temp -itemtype directory
+}
+if (-Not $installed_version -And "#{salt_install}" -eq "bootstrap") {
+  (New-Object net.webclient).DownloadFile("#{salt_url}", "c:\\temp\\salt_bootstrap.ps1")
+  #{sudo('powershell')} c:\\temp\\salt_bootstrap.ps1 #{bootstrap_options}
+}
+$installed_version = $(c:\\salt\\salt-call.bat --version).split(' ')[1] 
+if (-Not $installed_version) {
+  write-host "No salt-minion installed, install must have failed!!"
+  write-host "salt_install = #{salt_install}"
+  write-host "salt_url = #{salt_url}"
+  write-host "bootstrap_options = #{bootstrap_options}"
+} elseif ($installed_version -And "#{salt_install}" -eq "bootstrap") {
+  write-host "You asked for bootstrap install and you have got $installed_version, hope that's ok!"
+} else {
+  write-host "You asked for #{salt_version} and you have got $installed_version installed, dunno ho to fix that, sorry!"
+  exit 2
+}
+#{install_chef}
+POWERSHELL
+%>

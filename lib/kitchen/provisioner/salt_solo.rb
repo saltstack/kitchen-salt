@@ -86,7 +86,11 @@ module Kitchen
           config[:salt_bootstrap_options] = "-P git v#{salt_version}"
         end
 
-        install_template = File.expand_path("./../install.erb", __FILE__)
+        if windows_os?
+          install_template = File.expand_path("./../install_win.erb", __FILE__)
+        else
+          install_template = File.expand_path("./../install.erb", __FILE__)
+        end
 
         erb = ERB.new(File.read(install_template)).result(binding)
         debug("Install Command:" + erb.to_s)
@@ -96,29 +100,39 @@ module Kitchen
       def install_chef
         return unless config[:require_chef]
         chef_url = config[:chef_bootstrap_url]
-        omnibus_download_dir = config[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
-        bootstrap_url = config[:bootstrap_url]
-        bootstrap_download_dir = '/tmp'
-        <<-INSTALL
-          echo "-----> Trying to install ruby(-dev) using assets.sh from kitchen-salt"
-            mkdir -p #{bootstrap_download_dir}
-            if [ ! -x #{bootstrap_download_dir}/install.sh ]
-            then
-              do_download #{bootstrap_url} #{bootstrap_download_dir}/install.sh
-            fi
-            #{sudo('sh')} #{bootstrap_download_dir}/install.sh -d #{bootstrap_download_dir}
-          if [ $? -ne 0 ] || [ ! -d "/opt/chef" ]
-          then
-            echo "Failed install ruby(-dev) using assets.sh from kitchen-salt"
-            echo "-----> Fallback to Chef Bootstrap script (for busser/serverspec ruby support)"
-            mkdir -p "#{omnibus_download_dir}"
-            if [ ! -x #{omnibus_download_dir}/install.sh ]
-            then
-              do_download #{chef_url} #{omnibus_download_dir}/install.sh
-            fi
-            #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
-          fi;
-        INSTALL
+        if windows_os?
+          <<-POWERSHELL
+            if (-Not $(test-path c:\\opscode\\chef) { 
+              if (-Not $(Test-Path c:\\temp)) {
+                New-Item -Path c:\\temp -itemtype directory
+              }
+              (New-Object net.webclient).DownloadFile("#{chef_url}", "c:\\temp\\chef_bootstrap.ps1")
+              write-host "-----> Installing Chef Omnibus (for busser/serverspec ruby support)" 
+              #{sudo('powershell')} c:\\temp\\chef_bootstrap.ps1
+            }
+          POWERSHELL
+        else
+            omnibus_download_dir = config[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
+            bootstrap_url = config[:bootstrap_url]
+            bootstrap_download_dir = '/tmp'
+            <<-INSTALL
+              echo "-----> Trying to install ruby(-dev) using assets.sh from kitchen-salt"
+                mkdir -p #{bootstrap_download_dir}
+                if [ ! -x #{bootstrap_download_dir}/install.sh ]
+                then
+                  do_download #{bootstrap_url} #{bootstrap_download_dir}/install.sh
+                fi
+                #{sudo('sh')} #{bootstrap_download_dir}/install.sh -d #{bootstrap_download_dir}
+              if [ $? -ne 0 ] || [ ! -d "/opt/chef" ]
+              then
+                echo "Failed install ruby(-dev) using assets.sh from kitchen-salt"
+                echo "-----> Fallback to Chef Bootstrap script (for busser/serverspec ruby support)"
+                mkdir -p "#{omnibus_download_dir}"
+                if [ ! -x #{omnibus_download_dir}/install.sh ]
+                    #{sudo('sh')} #{omnibus_download_dir}/install.sh -d #{omnibus_download_dir}
+                fi;
+          INSTALL
+        end
       end
 
       def create_sandbox
@@ -134,8 +148,12 @@ module Kitchen
       end
 
       def init_command
-        debug("Initialising Driver #{name} by cleaning #{config[:root_path]}")
-        cmd = "mkdir -p '#{config[:root_path]}';"
+        debug("Initialising Driver #{name}")
+        if windows_os?
+          cmd = "mkdir -Path ""#{config[:root_path]}"""
+        else
+          cmd = "mkdir -p '#{config[:root_path]}';"
+        end
         cmd += <<-INSTALL
           #{config[:init_environment]}
         INSTALL
@@ -145,17 +163,28 @@ module Kitchen
       def salt_command
         salt_version = config[:salt_version]
 
-        # install/update dependencies
-        cmd =  sudo("chmod +x #{config[:root_path]}/*.sh;")
-        cmd << sudo("#{config[:root_path]}/dependencies.sh;")
-
-        cmd << sudo("salt-call --state-output=changes --config-dir=#{File.join(config[:root_path], config[:salt_config])} --local state.highstate")
+        cmd = ""
+        if windows_os?
+          salt_call = "c:\\salt\\salt-call.bat"
+          salt_config_path = config[:salt_config].gsub('/', '\\')
+          cmd << "(get-content #{File.join(config[:root_path], salt_config_path, 'minion').gsub('/', '\\')}).replace(\"`$env`:TEMP\", $env:TEMP) | set-content #{File.join(config[:root_path], salt_config_path, 'minion').gsub('/', '\\')} ;"
+        else
+          # install/update dependencies
+          cmd << sudo("chmod +x #{config[:root_path]}/*.sh;")
+          cmd << sudo("#{config[:root_path]}/dependencies.sh;")
+          salt_config_path = config[:salt_config]
+          salt_call = "salt-call"
+        end
+        cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{File.join(config[:root_path], salt_config_path)} --local state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
-          cmd += ' --retcode-passthrough'
+          cmd << ' --retcode-passthrough'
+        end
+        if windows_os?
+          cmd << ' ; exit $LASTEXITCODE'
         end
         cmd
       end
