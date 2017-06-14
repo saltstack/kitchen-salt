@@ -148,15 +148,15 @@ module Kitchen
       end
 
       def init_command
-        debug("Initialising Driver #{name} by cleaning #{config[:root_path]}")
+        debug("Initialising Driver #{name}")
         if windows_os?
-          cmd = "rm ""#{config[:root_path]}"" -Recurse -Force; mkdir -Path ""#{config[:root_path]}"
+          cmd = "mkdir -Path ""#{config[:root_path]}"""
         else
           cmd = "mkdir -p '#{config[:root_path]}';"
         end
-          cmd += <<-INSTALL
-            #{config[:init_environment]}
-          INSTALL
+        cmd += <<-INSTALL
+          #{config[:init_environment]}
+        INSTALL
         cmd
       end
 
