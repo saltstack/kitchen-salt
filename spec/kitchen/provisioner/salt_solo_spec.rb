@@ -125,7 +125,7 @@ describe Kitchen::Provisioner::SaltSolo do
       end
    
       it 'should use powershell' do
-        is_expected.to match(/mkdir -Path/)
+        is_expected.to match(/mkdir -Force -Path/)
       end
     end
   end
