@@ -41,7 +41,7 @@ describe Kitchen::Provisioner::SaltSolo do
   let(:logged_output)   { StringIO.new }
   let(:logger)          { Logger.new(logged_output) }
   let(:platform) do
-    instance_double(Kitchen::Platform, os_type: nil)
+    instance_double(Kitchen::Platform, os_type: 'unix')
   end
 
   let(:config) do
@@ -113,8 +113,20 @@ describe Kitchen::Provisioner::SaltSolo do
   describe '#init_command' do
     subject { provisioner.init_command }
 
-    it 'should give a sane command' do
-      is_expected.to match(/mkdir/)
+    context 'when unix' do
+      it 'should give a sane command' do
+        is_expected.to match(/mkdir/)
+      end
+    end
+
+    context 'when windows' do
+      let(:platform) do
+        instance_double(Kitchen::Platform, os_type: 'windows')
+      end
+   
+      it 'should use powershell' do
+        is_expected.to match(/mkdir -Force -Path/)
+      end
     end
   end
 
@@ -129,8 +141,20 @@ describe Kitchen::Provisioner::SaltSolo do
         {}
       end
 
-      it 'should give a sane run_command' do
-        is_expected.to match(/salt-call/)
+      context 'when unix' do
+        it 'should give a sane run_command' do
+          is_expected.to match(/salt-call/)
+        end
+      end
+
+      context 'when windows' do
+        let(:platform) do
+          instance_double(Kitchen::Platform, os_type: 'windows')
+        end
+
+        it 'should use salt-call.bat' do
+          is_expected.to match(/c:\\salt\\salt-call.bat /)
+        end
       end
 
       it 'should not include extra logic to detect failures' do
@@ -193,6 +217,22 @@ describe Kitchen::Provisioner::SaltSolo do
     end
 
     it { is_expected.to include 'https://bootstrap.saltstack.org' }
+
+    context "when unix" do
+      it "should use apt-get" do
+        expect(provisioner.install_command).to match(/apt-get/)
+      end
+    end
+
+    context "when windows" do
+      let(:platform) do
+        instance_double(Kitchen::Platform, os_type: 'windows')
+      end
+
+      it "should use powershell" do
+        expect(provisioner.install_command).to match(/powershell/)
+      end
+    end
 
     context 'with salt version 2016.03.1' do
       let(:salt_version) { '2016.03.1' }
