@@ -216,7 +216,7 @@ describe Kitchen::Provisioner::SaltSolo do
       is_expected.to include Kitchen::Util.shell_helpers.to_s
     end
 
-    it { is_expected.to include 'https://bootstrap.saltstack.org' }
+    it { is_expected.to include 'https://bootstrap.saltstack.com' }
 
     context "when unix" do
       it "should use apt-get" do
