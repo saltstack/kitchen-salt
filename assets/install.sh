@@ -55,8 +55,8 @@ install_file() {
 
   # make links to binaries
   mkdir -p /opt/chef/embedded/bin/
-  [[ ! -e /opt/chef/embedded/bin/gem ]] && ln -s `which gem` /opt/chef/embedded/bin/
-  [[ ! -e /opt/chef/embedded/bin/ruby ]] && ln -s `which ruby` /opt/chef/embedded/bin/
+  [ ! -e /opt/chef/embedded/bin/gem ] && ln -s `which gem` /opt/chef/embedded/bin/
+  [ ! -e /opt/chef/embedded/bin/ruby ] && ln -s `which ruby` /opt/chef/embedded/bin/
 }
 
 if test -f "/etc/debian_version"; then

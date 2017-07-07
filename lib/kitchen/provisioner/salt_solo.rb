@@ -38,7 +38,7 @@ module Kitchen
         dry_run: false,
         salt_version: 'latest',
         salt_install: 'bootstrap',
-        salt_bootstrap_url: 'https://bootstrap.saltstack.org',
+        salt_bootstrap_url: 'https://bootstrap.saltstack.com',
         salt_bootstrap_options: '',
         salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest',
         salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub',

@@ -304,24 +304,24 @@ For example, the following suite will define grains on the guest:
 
 Specify formula dependencies:
 
-  provisioner:
-    dependencies:
-      - name: foo
-        path: ../formulas/foo
-      - name: linux
-        repo: apt
-        package: salt-formula-linux
-      - name: nginx
-        repo: git
-        source: https://github.com/salt-formulas/salt-formula-nginx.git
+    provisioner:
+      dependencies:
+        - name: foo
+          path: ../formulas/foo
+        - name: linux
+          repo: apt
+          package: salt-formula-linux
+        - name: nginx
+          repo: git
+          source: https://github.com/salt-formulas/salt-formula-nginx.git
 
 
 ### [vendor_path](id:vendor_path)
 
 Path to your local formulas:
 
-  provisioner:
-    vendor_path: ./srv/env/dev/_formulas
+    provisioner:
+      vendor_path: ./srv/env/dev/_formulas
 
 
 ### [vendor_repo](id:vendor_repo)
@@ -329,12 +329,12 @@ Path to your local formulas:
 In order to configure APT, YUM, SPM repositories for kitchen run.
 Example:
 
-  provisioner:
-    vendor_repo:
-      - type: apt
-        url: http://apt.tcpcloud.eu/nightly
-        key_url: http://apt.tcpcloud.eu/public.gpg
-        components: main tcp-salt
+    provisioner:
+      vendor_repo:
+        - type: apt
+          url: http://apt.tcpcloud.eu/nightly
+          key_url: http://apt.tcpcloud.eu/public.gpg
+          components: main tcp-salt
 
 
 ### [init_environment](id:init_environment)
@@ -342,10 +342,10 @@ Example:
 In order to execute additional commands before salt-call run.
 Example, setup reclass:
 
-  provisioner:
-    init_environment: |
-      mkdir -p $SALT_ROOT/reclass/classes
-      ln -fs /usr/share/salt-formulas/reclass/* $SALT_ROOT/reclass/
-      find /usr/share/salt-formulas/env/_formulas -name metadata -type d | xargs -I'{}' \
-        ln -fs {}/service $SALT_ROOT/reclass/classes/
+    provisioner:
+      init_environment: |
+        mkdir -p $SALT_ROOT/reclass/classes
+        ln -fs /usr/share/salt-formulas/reclass/* $SALT_ROOT/reclass/
+        find /usr/share/salt-formulas/env/_formulas -name metadata -type d | xargs -I'{}' \
+          ln -fs {}/service $SALT_ROOT/reclass/classes/
 
