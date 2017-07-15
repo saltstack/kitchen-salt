@@ -25,8 +25,8 @@ provisioner:
     - type: spm
       url: https://spm.hubblestack.io/2016.7.1
   dependencies:
-    #- name: foo
-    #  path: spec/fixtures/formula-foo
+    - name: foo
+      path: spec/fixtures/formula-foo
     - name: linux
       repo: apt
       package: salt-formula-linux
