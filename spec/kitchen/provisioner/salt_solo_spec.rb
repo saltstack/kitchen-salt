@@ -281,7 +281,7 @@ describe Kitchen::Provisioner::SaltSolo do
       end
 
       it do
-        is_expected.to contain_exactly 'etc/salt/minion', 'srv/salt/top.sls', 'dependencies.sh', 'formula-fetch.sh', 'repository-setup.sh'
+        is_expected.to contain_exactly 'etc/salt/minion', 'etc/salt/spm', 'srv/salt/top.sls', 'dependencies.sh', 'formula-fetch.sh', 'repository-setup.sh'
       end
 
       context 'with vendor path' do
