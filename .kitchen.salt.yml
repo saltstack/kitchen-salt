@@ -26,7 +26,7 @@ provisioner:
       url: https://spm.hubblestack.io/2016.7.1
   dependencies:
     - name: foo
-      path: spec/fixtures/formula-foo
+      path: ./formula-foo
     - name: linux
       repo: apt
       package: salt-formula-linux
@@ -41,6 +41,7 @@ provisioner:
     - name: hubblestack_nova
       repo: spm
       #package: hubblestack_nova-2016.7.1-1
+      #repository should provide meta information
       package: https://spm.hubblestack.io/2016.7.1/hubblestack_nova-2016.7.1-1.spm
     #- name: salt
     #  repo: apt
