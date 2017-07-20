@@ -54,6 +54,14 @@ fi
 # check again, now that an install of some form should have happened
 SALT_VERSION=`salt-call --version | cut -d " " -f 2`
 
+# extract short format of Salt version
+if [ ! -z "${SALT_VERSION}" ]
+then
+  YEAR=$(echo "$SALT_VERSION" | cut -d "." -f1)
+  MONTH=$(echo "$SALT_VERSION" | cut -d "." -f2)
+  SALT_VERSION="${YEAR}.${MONTH}"
+fi
+
 if [ -z "${SALT_VERSION}" ]
 then
   echo "No salt-minion installed, install must have failed!!"
