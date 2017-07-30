@@ -7,7 +7,7 @@ dry_run | false | Setting this to True makes the highstate to run with flag test
 formula | | name of the formula, used to derive the path we need to copy to the guest
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
 log_level | | set salt logging level when running commands (e.g. specifying `debug` is equivalent of `-l debug`)
-salt_install| "bootstrap" | Method by which to install salt, "bootstrap", "apt", "distrib" or "ppa"
+[salt_install](#salt_install) | "bootstrap" | Method by which to install salt, "bootstrap", "apt", "distrib", "ppa", or "yum"
 salt_bootstrap_url | "https://bootstrap.saltstack.com" | location of bootstrap script
 [salt_bootstrap_options](#salt_bootstrap_options) | | optional options passed to the salt bootstrap script
 salt_version | "latest"| desired version, only affects apt installs
@@ -139,6 +139,7 @@ Choose your method to install SaltStack :
 * **apt :** install SaltStack from specified repository (see: [salt_apt_repo](id:salt_apt_repo))
 * **ppa :** install SaltStack from ppa repository (see: [salt_ppa](id:salt_ppa))
 * **distrib :** install SaltStack from distribution repositories
+* **yum :** install SaltStack from yum repository for RHEL based systems
 
 ### [salt_bootstrap_options](id:salt_bootstrap_options)
 Options to pass to the salt bootstrap installer.  For example, you could choose to install salt from the develop branch like this:
@@ -167,7 +168,9 @@ You can supply a list of paths or files to skip by setting an array in the provi
 
 
 ### [salt_version](id:salt_version)
-Version of salt to install, via the git bootstrap method, unless ```salt_install``` is set to ```apt```, in which case the version number is used to generate the package name requested via apt
+Version of salt to install. If [`salt_install`](#salt_install) is set to
+anything other than `'bootstrap'` (default) then this value will be
+injected into the configuration specific to that installation method.
 
 ### [salt_apt_repo](id:salt_apt_repo)
 ### [salt_apt_repo_key](id:salt_apt_repo_key)
