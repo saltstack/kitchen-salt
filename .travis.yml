@@ -35,6 +35,7 @@ install:
   - bundle install --without='vagrant'
   - git clone https://github.com/salt-formulas/$FORMULA.git --branch master --single-branch ../$FORMULA
   - cd ../$FORMULA
+  - sed -i 's/require_chef:\ false/require_chef:\ true/g' .kitchen.yml
   - for f in Rakefile .kitchen.salt.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
   - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list
 
@@ -44,7 +45,7 @@ script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
   # Run test-kitchen with docker driver:
-  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single-ubuntu-1404 -ldebug
+  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single-ubuntu-1604 -ldebug
 
 after_failure:
   - cat .kitchen/logs/client-single-ubuntu-1404.log
