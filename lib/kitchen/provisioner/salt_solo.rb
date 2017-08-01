@@ -274,17 +274,21 @@ module Kitchen
         # PLACEHOLDER, git formulas might be fetched locally to temp and uploaded
 
         # setup spm
+        spm_template = File.expand_path("./../spm.erb", __FILE__)
+        spm_config_content = ERB.new(File.read(spm_template)).result(binding)
+        sandbox_spm_config_path = File.join(sandbox_path, config[:salt_config], 'spm')
+        write_raw_file(sandbox_spm_config_path, spm_config_content)
+
         spm_repos = config[:vendor_repo].select{|x| x[:type]=='spm'}.each{|x| x[:url]}.map {|x| x[:url] }
         spm_repos.each do |url|
           id=url.gsub(/[htp:\/.]/,'')
           spmreposd = File.join(sandbox_path, 'etc', 'salt', 'spm.repos.d')
           repo_spec = File.join(spmreposd, 'spm.repo')
           FileUtils.mkdir_p(spmreposd)
-          repo_content = '
-            #{id}:
-              url: #{url}
-
-          '
+          repo_content = "
+#{id}:
+  url: #{url}
+"
           write_raw_file(repo_spec, repo_content)
         end
 

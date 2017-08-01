@@ -8,7 +8,10 @@ def install_dependencies
     test ! -e "$(dirname $0)/repository-setup.sh" || . "$(dirname $0)/repository-setup.sh"
 
     export SALT_ROOT="#{config[:root_path]}/#{config[:salt_file_root]}";
+    export SALT_SHARE_DIR='/usr/share/salt-formulas'
+
     mkdir -p "${SALT_ROOT}";
+    mkdir -p "${SALT_SHARE_DIR}";
   INSTALL
 
 
@@ -55,34 +58,38 @@ def install_dependencies
   end
 
   # install formulas
-  config[:dependencies].select{|dependency| dependency.has_key?(:repo)}.each do |formula|
+  config[:dependencies].each do |formula|
     #unless config[:vendor_repo].has_key?(formula[:repo])
     #  raise UserError, "kitchen-salt: Invalid dependency formula :repo, no such vendor_repo '#{formula[:repo]}' specified."
     #end
-    case formula[:repo]
-    when 'git'
-      script += <<-INSTALL
-        fetchGitFormula #{formula[:source]} "#{formula[:name]}" "#{formula[:branch] || 'master'}"
-      INSTALL
-    when 'spm'
-      # TODO: SPM should know the sandbox_path is /tmp/kitchen/etc
-      script += <<-INSTALL
-        #{sudo('spm')} install #{formula[:package]||formula[:name]};
-      INSTALL
-    when 'yum'
-      script += <<-INSTALL
-        #{sudo('yum')} install -y #{formula[:package]||formula[:name]};
-      INSTALL
-    when 'apt'
-      script += <<-INSTALL
-        #{sudo('apt-get')} install -y #{formula[:package]||formula[:name]};
-      INSTALL
+    if formula.key?(:repo)
+      case formula[:repo]
+      when 'git'
+        script += <<-INSTALL
+          fetchGitFormula #{formula[:source]} "#{formula[:name]}" "#{formula[:branch] || 'master'}"
+        INSTALL
+      when 'spm'
+        # TODO: SPM should know the sandbox_path is /tmp/kitchen/etc
+        script += <<-INSTALL
+          #{sudo('spm')} install #{formula[:package]||formula[:name]};
+        INSTALL
+      when 'yum'
+        script += <<-INSTALL
+          #{sudo('yum')} install -y #{formula[:package]||formula[:name]};
+        INSTALL
+      when 'apt'
+        script += <<-INSTALL
+          #{sudo('apt-get')} install -y #{formula[:package]||formula[:name]};
+        INSTALL
+      end
+    elsif formula.key?(:path)
+      prepare_formula formula[:path], formula[:name]
     end
   end
   script += <<-INSTALL
     linkFormulas "$SALT_ROOT"
-    #{sudo('chown')} kitchen.kitchen -R /usr/share/salt-formulas;
-    #{sudo('chown')} kitchen.kitchen -R "$SALT_ROOT";
+    #{sudo('chown')} kitchen.kitchen -R "${SALT_SHARE_DIR}";
+    #{sudo('chown')} kitchen.kitchen -R "${SALT_ROOT}";
     ls -la "$SALT_ROOT";
   INSTALL
   return script

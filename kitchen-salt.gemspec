@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.version       = Kitchen::Salt::VERSION
   s.authors       = ['Simon McCartney']
   s.email         = ['simon@mccartney.ie']
-  s.homepage      = 'https://github.com//kitchen-salt'
+  s.homepage      = 'https://github.com/saltstack/kitchen-salt'
   s.summary       = 'salt provisioner for test-kitchen'
   s.licenses      = 'Apache-2.0'
   s.description   = 'salt provisioner for test-kitchen '\
