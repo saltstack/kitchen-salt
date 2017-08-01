@@ -35,6 +35,7 @@ install:
   - bundle install --without='vagrant'
   - git clone https://github.com/salt-formulas/$FORMULA.git --branch master --single-branch ../$FORMULA
   - cd ../$FORMULA
+  - cp -R ../kitchen-salt/spec/fixtures/formula-foo .
   - for f in Rakefile .kitchen.salt.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
   - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list
 

@@ -13,7 +13,8 @@ sh -c '
 #{Util.shell_helpers}
 
 # what version of salt is installed?
-SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+command -v salt-call >/dev/null 2>&1 && SALT_VERSION=$(salt-call --version|cut -d " " -f 2)
+command -v locale-gen >/dev/null 2>&1 && #{sudo('locale-gen')} en_US.UTF-8
 set +x
 
 
@@ -52,7 +53,7 @@ then
 fi
 
 # check again, now that an install of some form should have happened
-SALT_VERSION=`salt-call --version | cut -d " " -f 2`
+command -v salt-call >/dev/null 2>&1 && SALT_VERSION=$(salt-call --version|cut -d " " -f 2)
 
 if [ -z "${SALT_VERSION}" ]
 then
