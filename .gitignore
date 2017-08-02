@@ -27,3 +27,12 @@ doc/
 # Other
 *.DS_Store
 .kitchen/
+
+### IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/
+/out/
+.idea_modules/
+atlassian-ide-plugin.xml
