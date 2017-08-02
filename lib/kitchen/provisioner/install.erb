@@ -50,6 +50,27 @@ then
   #{sudo('apt-add-repository')} -y #{salt_ppa}
   #{sudo('apt-get')} update
   #{sudo('apt-get')} install -y salt-minion salt-common
+elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "yum" ]
+then
+  if [ -z "#{salt_version}" ]
+  then
+    echo "-----> Installing yum repo for salt latest"
+    #{sudo('yum')} install https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm
+  else
+    echo "-----> Installing yum repo for salt #{salt_version}"
+    #{sudo('rpm')} --import 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/#{salt_version}/SALTSTACK-GPG-KEY.pub'
+    #{sudo('tee')} /etc/yum.repos.d/saltstack.repo <<EOL
+[saltstack-repo]
+name=SaltStack repo for RHEL/CentOS $releasever
+baseurl=#{Shellwords.escape("https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/#{salt_version}")}
+enabled=1
+gpgcheck=1
+gpgkey=#{Shellwords.escape("https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/#{salt_version}/SALTSTACK-GPG-KEY.pub")}
+EOL
+  fi
+  #{sudo('yum')} clean expire-cache
+  echo "-----> Installing salt-minion (#{salt_version})"
+  #{sudo('yum')} install -y salt-minion salt-common
 fi
 
 # check again, now that an install of some form should have happened
