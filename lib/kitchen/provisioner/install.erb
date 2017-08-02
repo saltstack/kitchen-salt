@@ -53,10 +53,10 @@ then
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "yum" ]
   if [ -z "#{salt_version}" ]
   then
-    echo "-----> Installing ppa repo for salt latest"
+    echo "-----> Installing yum repo for salt latest"
     #{sudo('yum')} install https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm
   else
-    echo "-----> Installing ppa repo for salt #{salt_version}"
+    echo "-----> Installing yum repo for salt #{salt_version}"
     #{sudo('rpm')} --import 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/#{salt_version}/SALTSTACK-GPG-KEY.pub'
     #{sudo('tee')} /etc/yum.repos.d/saltstack.repo <<EOL
 [saltstack-repo]
