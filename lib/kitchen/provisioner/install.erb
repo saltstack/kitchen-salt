@@ -78,13 +78,13 @@ EOL
 fi
 
 # check again, now that an install of some form should have happened
-command -v salt-call >/dev/null 2>&1 && SALT_VERSION=$(salt-call --version|cut -d " " -f 2)
+command -v salt-call >/dev/null 2>&1 && FULL_SALT_VERSION=$(salt-call --version|cut -d " " -f 2)
 
 # extract short format of Salt version
-if [ ! -z "${SALT_VERSION}" ]
+if [ ! -z "${FULL_SALT_VERSION}" ]
 then
-  YEAR=$(echo "$SALT_VERSION" | cut -d "." -f1)
-  MONTH=$(echo "$SALT_VERSION" | cut -d "." -f2)
+  YEAR=$(echo "$FULL_SALT_VERSION" | cut -d "." -f1)
+  MONTH=$(echo "$FULL_SALT_VERSION" | cut -d "." -f2)
   SALT_VERSION="${YEAR}.${MONTH}"
 fi
 
@@ -103,9 +103,9 @@ then
   echo "salt_yum_repo_key = #{salt_yum_repo_key}"
   echo "salt_yum_repo_latest = #{salt_yum_repo_latest}"
   exit 2
-elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
+elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" -o "#{salt_version}" = "${FULL_SALT_VERSION}" ]
 then
-  echo "You asked for #{salt_version} and you have ${SALT_VERSION} installed, sweet!"
+  echo "You asked for #{salt_version} and you have ${FULL_SALT_VERSION} installed, sweet!"
 elif [ ! -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
 then
   echo "You asked for bootstrap install and you have got ${SALT_VERSION}, hope thats ok!"
