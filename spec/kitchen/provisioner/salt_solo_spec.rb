@@ -37,6 +37,11 @@ describe Kitchen::Provisioner::SaltSolo do
   let(:vendor_path) { nil }
   let(:salt_copy_filter) { [] }
   let(:local_salt_root) { nil }
+  let(:salt_install) { 'bootstrap' }
+  let(:salt_yum_rpm_key) { 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub'}
+  let(:salt_yum_repo ) { 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s' }
+  let(:salt_yum_repo_key ) { 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub' }
+  let(:salt_yum_repo_latest) { 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm' }
 
   let(:logged_output)   { StringIO.new }
   let(:logger)          { Logger.new(logged_output) }
@@ -101,7 +106,12 @@ describe Kitchen::Provisioner::SaltSolo do
       :grains,
       :salt_version,
       :vendor_path,
-      :salt_copy_filter
+      :salt_copy_filter,
+      :salt_install,
+      :salt_yum_rpm_key,
+      :salt_yum_repo,
+      :salt_yum_repo_key,
+      :salt_yum_repo_latest
     ].each do |opt|
       describe opt do
         subject { provisioner[opt] }
@@ -123,7 +133,7 @@ describe Kitchen::Provisioner::SaltSolo do
       let(:platform) do
         instance_double(Kitchen::Platform, os_type: 'windows')
       end
-   
+
       it 'should use powershell' do
         is_expected.to match(/mkdir -Force -Path/)
       end
@@ -234,6 +244,7 @@ describe Kitchen::Provisioner::SaltSolo do
       end
     end
 
+
     context 'with salt version 2016.03.1' do
       let(:salt_version) { '2016.03.1' }
       let(:config) do
@@ -241,6 +252,34 @@ describe Kitchen::Provisioner::SaltSolo do
       end
 
       it { is_expected.to include "-P git v#{salt_version}" }
+      context 'with custom yum settings' do
+
+        let (:salt_yum_repo_latest) {
+          'https://repo.saltstack.com/yum/amazon/salt-amzn-repo-latest-2.amzn1.noarch.rpm' }
+        let (:salt_yum_repo) {
+          'https://repo.saltstack.com/yum/amazon/latest/$basearch/archive/%s'
+        }
+        let (:salt_yum_repo_key) {
+          'https://repo.saltstack.com/yum/amazon/latest/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub'
+        }
+        let (:salt_yum_rpm_key) {
+            'https://repo.saltstack.com/yum/amazon/latest/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub'
+        }
+        let(:config) do
+          {
+            salt_version: salt_version,
+            salt_yum_rpm_key: salt_yum_rpm_key,
+            salt_yum_repo_latest: salt_yum_repo_latest,
+            salt_yum_repo: salt_yum_repo,
+            salt_yum_repo_key: salt_yum_repo_key
+
+          }
+        end
+        it { is_expected.to include salt_yum_repo_latest }
+        it { is_expected.to include salt_yum_repo % [salt_version] }
+        it { is_expected.to include salt_yum_rpm_key % [salt_version] }
+        it { is_expected.to include salt_yum_repo_key % [salt_version] }
+      end
     end
   end
 

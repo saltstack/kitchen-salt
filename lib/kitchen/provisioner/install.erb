@@ -7,6 +7,10 @@ salt_version = config[:salt_version]
 salt_apt_repo = config[:salt_apt_repo]
 salt_apt_repo_key = config[:salt_apt_repo_key]
 salt_ppa = config[:salt_ppa]
+salt_yum_rpm_key = config[:salt_yum_rpm_key] % [salt_version]
+salt_yum_repo = config[:salt_yum_repo] % [salt_version]
+salt_yum_repo_key = config[:salt_yum_repo_key] % [salt_version]
+salt_yum_repo_latest = config[:salt_yum_repo_latest]
 
 <<-INSTALL
 sh -c '
@@ -55,17 +59,17 @@ then
   if [ -z "#{salt_version}" ]
   then
     echo "-----> Installing yum repo for salt latest"
-    #{sudo('yum')} install https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm
+    #{sudo('yum')} install #{salt_yum_repo_latest}
   else
     echo "-----> Installing yum repo for salt #{salt_version}"
-    #{sudo('rpm')} --import 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/#{salt_version}/SALTSTACK-GPG-KEY.pub'
+    #{sudo('rpm')} --import '#{salt_yum_rpm_key}'
     #{sudo('tee')} /etc/yum.repos.d/saltstack.repo <<EOL
 [saltstack-repo]
 name=SaltStack repo for RHEL/CentOS $releasever
-baseurl=#{Shellwords.escape("https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/#{salt_version}")}
+baseurl=#{Shellwords.escape(salt_yum_repo)}
 enabled=1
 gpgcheck=1
-gpgkey=#{Shellwords.escape("https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/#{salt_version}/SALTSTACK-GPG-KEY.pub")}
+gpgkey=#{Shellwords.escape(salt_yum_repo_key)}
 EOL
   fi
   #{sudo('yum')} clean expire-cache
@@ -94,6 +98,10 @@ then
   echo "salt_apt_repo = #{salt_apt_repo}"
   echo "salt_apt_repo_key = #{salt_apt_repo_key}"
   echo "salt_ppa = #{salt_ppa}"
+  echo "salt_yum_rpm_key = #{salt_yum_rpm_key}"
+  echo "salt_yum_repo = #{salt_yum_repo}"
+  echo "salt_yum_repo_key = #{salt_yum_repo_key}"
+  echo "salt_yum_repo_latest = #{salt_yum_repo_latest}"
   exit 2
 elif [ "${SALT_VERSION}" = "#{salt_version}" -o "#{salt_version}" = "latest" ]
 then
