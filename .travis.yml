@@ -46,10 +46,10 @@ script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
   # Run test-kitchen with docker driver:
-  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single-ubuntu-1404 -ldebug
+  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single-ubuntu -ldebug
 
 after_failure:
-  - cat .kitchen/logs/client-single-ubuntu-1404.log
+  - cat .kitchen/logs/client-single-ubuntu-*.log
 
 after_script:
   - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list

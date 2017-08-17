@@ -51,4 +51,4 @@ provisioner:
 
 platforms:
   - name: ubuntu-14.04
-  #- name: saltstack/ubuntu-14.04-minimal
+  - name: ubuntu-16.04
