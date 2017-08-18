@@ -40,6 +40,15 @@ provisioner:
     - name: hubblestack_nova
       repo: spm
       package: https://spm.hubblestack.io/2016.7.1/hubblestack_nova-2016.7.1-1.spm
+  state_top:
+    base:
+      "*":
+        - git
+  pillars:
+    top.sls:
+      base:
+        "*":
+          - git
   grains:
     noservices: True
 
