@@ -24,13 +24,16 @@ provisioner:
       url: https://spm.hubblestack.io/2016.7.1
   dependencies:
     - name: foo
-      path: ./formula-foo
-    - name: linux
-      repo: apt
-      package: salt-formula-linux
+      path: ./spec/fixtures/formula-foo
     - name: nginx
+      repo: apt
+      package: salt-formula-nginx
+    - name: linux
       repo: git
-      source: https://github.com/salt-formulas/salt-formula-nginx.git
+      source: https://github.com/salt-formulas/salt-formula-linux.git
+    - name: git
+      repo: git
+      source: https://github.com/salt-formulas/salt-formula-git.git
     - name: postfix
       repo: git
       source: https://github.com/salt-formulas/salt-formula-postfix
