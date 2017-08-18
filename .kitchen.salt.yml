@@ -17,8 +17,8 @@ provisioner:
       key_url: http://apt-mk.mirantis.com/public.gpg
       components: salt
       distribution: nightly
-    - type: ppa
-      name: neovim-ppa/unstable
+    #- type: ppa
+    #  name: neovim-ppa/unstable
     - type: spm
       url: https://spm.hubblestack.io/2016.7.1
   dependencies:
@@ -42,6 +42,8 @@ provisioner:
 platforms:
   - name: ubuntu-14.04
   - name: ubuntu-16.04
+  - name: debian-8
+  - name: debian-9
   - name: centos-7
     provisoner:
       vendor_repo:
