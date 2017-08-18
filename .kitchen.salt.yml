@@ -10,6 +10,8 @@ provisioner:
   salt_bootstrap_url: https://bootstrap.saltstack.com
   salt_bootstrap_options: -X -p git -p curl -p sudo
   salt_version: latest
+  init_environment: |
+    sudo mkdir -p /var/cache/salt/master
   vendor_repo:
     - type: apt
       url: http://apt-mk.mirantis.com/trusty
