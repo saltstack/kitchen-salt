@@ -30,6 +30,10 @@ then
     DISTRIB_CODENAME=$(lsb_release -s -c)
   fi
 
+  echo "-----> Install apt-transport-https"
+  #{sudo('apt-get')} update
+  #{sudo('apt-get')} install -y apt-transport-https gnupg
+
   echo "-----> Configuring apt repo for salt #{salt_version}"
   echo "deb #{salt_apt_repo}/#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
 
@@ -40,16 +44,18 @@ then
   sleep 10
   echo "-----> Installing salt-minion (#{salt_version})"
   #{sudo('apt-get')} install -y python-support
-  #{sudo('apt-get')} install -y salt-minion salt-common
+  #{sudo('apt-get')} install -y salt-minion salt-common salt-master
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "distrib" ]
 then
   #{sudo('apt-get')} update
-  #{sudo('apt-get')} install -y salt-minion
+  #{sudo('apt-get')} install -y python-support
+  #{sudo('apt-get')} install -y salt-minion salt-master
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
 then
   #{sudo('apt-add-repository')} -y #{salt_ppa}
   #{sudo('apt-get')} update
-  #{sudo('apt-get')} install -y salt-minion salt-common
+  #{sudo('apt-get')} install -y python-support
+  #{sudo('apt-get')} install -y salt-minion salt-common salt-master
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "yum" ]
 then
   if [ -z "#{salt_version}" ]
@@ -70,7 +76,7 @@ EOL
   fi
   #{sudo('yum')} clean expire-cache
   echo "-----> Installing salt-minion (#{salt_version})"
-  #{sudo('yum')} install -y salt-minion salt-common
+  #{sudo('yum')} install -y salt-minion salt-common salt-master
 fi
 
 # check again, now that an install of some form should have happened
