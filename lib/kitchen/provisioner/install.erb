@@ -40,16 +40,16 @@ then
   sleep 10
   echo "-----> Installing salt-minion (#{salt_version})"
   #{sudo('apt-get')} install -y python-support
-  #{sudo('apt-get')} install -y salt-minion salt-common
+  #{sudo('apt-get')} install -y salt-minion salt-common salt-spm
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "distrib" ]
 then
   #{sudo('apt-get')} update
-  #{sudo('apt-get')} install -y salt-minion
+  #{sudo('apt-get')} install -y salt-minion salt-spm
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "ppa" ]
 then
   #{sudo('apt-add-repository')} -y #{salt_ppa}
   #{sudo('apt-get')} update
-  #{sudo('apt-get')} install -y salt-minion salt-common
+  #{sudo('apt-get')} install -y salt-minion salt-common salt-spm
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "yum" ]
 then
   if [ -z "#{salt_version}" ]
@@ -70,7 +70,7 @@ EOL
   fi
   #{sudo('yum')} clean expire-cache
   echo "-----> Installing salt-minion (#{salt_version})"
-  #{sudo('yum')} install -y salt-minion salt-common
+  #{sudo('yum')} install -y salt-minion salt-common salt-spm
 fi
 
 # check again, now that an install of some form should have happened
