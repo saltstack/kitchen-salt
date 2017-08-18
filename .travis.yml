@@ -14,6 +14,7 @@ addons:
 
 rvm:
   - 2.2.4
+  - ruby
   - ruby-head
 
 matrix:
@@ -21,6 +22,7 @@ matrix:
     - rvm: ruby-head
 
 sudo: true
+dist: trusty
 
 bundler_args: --without='vagrant'
 
@@ -45,10 +47,10 @@ script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
   # Run test-kitchen with docker driver:
-  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single-ubuntu-1404 -ldebug
+  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single -ldebug
 
 after_failure:
-  - cat .kitchen/logs/client-single-ubuntu-1404.log
+  - cat .kitchen/logs/client-single-*.log
 
 after_script:
   - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list
