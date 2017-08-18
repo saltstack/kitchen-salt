@@ -30,6 +30,10 @@ then
     DISTRIB_CODENAME=$(lsb_release -s -c)
   fi
 
+  echo "-----> Install apt-transport-https"
+  #{sudo('apt-get')} update
+  #{sudo('apt-get')} install -y apt-transport-https
+
   echo "-----> Configuring apt repo for salt #{salt_version}"
   echo "deb #{salt_apt_repo}/#{salt_version} ${DISTRIB_CODENAME} main" | #{sudo('tee')} /etc/apt/sources.list.d/salt-#{salt_version}.list
 

@@ -50,7 +50,7 @@ script:
   - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single -ldebug
 
 after_failure:
-  - cat .kitchen/logs/client-single-*.log
+  - tail -c +0 .kitchen/logs/client-single-*.log
 
 after_script:
   - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list
