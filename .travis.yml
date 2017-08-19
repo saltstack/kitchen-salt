@@ -33,6 +33,8 @@ install:
 script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
+  # Setup for tests
+  - bundle exec kitchen create all -l warn -c 10
   # Run test-kitchen with docker driver:
   - bundle exec kitchen test
 
