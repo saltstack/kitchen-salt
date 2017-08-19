@@ -65,7 +65,11 @@ module Kitchen
         vendor_path: nil,
         vendor_repo: {},
         omnibus_cachier: false,
-        local_salt_root: nil
+        local_salt_root: nil,
+        salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
+        salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s',
+        salt_yum_repo_key: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub',
+        salt_yum_repo_latest: 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm'
       }
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -102,12 +106,12 @@ module Kitchen
         chef_url = config[:chef_bootstrap_url]
         if windows_os?
           <<-POWERSHELL
-            if (-Not $(test-path c:\\opscode\\chef) { 
+            if (-Not $(test-path c:\\opscode\\chef) {
               if (-Not $(Test-Path c:\\temp)) {
                 New-Item -Path c:\\temp -itemtype directory
               }
               (New-Object net.webclient).DownloadFile("#{chef_url}", "c:\\temp\\chef_bootstrap.ps1")
-              write-host "-----> Installing Chef Omnibus (for busser/serverspec ruby support)" 
+              write-host "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
               #{sudo('powershell')} c:\\temp\\chef_bootstrap.ps1
             }
           POWERSHELL

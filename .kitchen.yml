@@ -113,14 +113,14 @@ suites:
     excludes:
       - centos-7
       - centos-6
-#  - name: client-single-yum
-#    provisioner:
-#      salt_install: yum
-#      init_environment: |
-#        sudo mkdir -p /var/cache/salt/master
-#        sudo yum install -y git
-#    excludes:
-#      - ubuntu-14.04
-#      - ubuntu-16.04
-#      - debian-8
-#      - debian-9
+  - name: client-single-yum
+    provisioner:
+      salt_install: yum
+      init_environment: |
+        sudo mkdir -p /var/cache/salt/master
+        sudo yum install -y git
+    excludes:
+      - ubuntu-14.04
+      - ubuntu-16.04
+      - debian-8
+      - debian-9
