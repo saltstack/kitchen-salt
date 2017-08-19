@@ -106,14 +106,14 @@ platforms:
       salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/6/x86_64/latest/SALTSTACK-GPG-KEY.pub'
 
 suites:
-  - name: client-single-bootstrap
-  - name: client-single-apt
+  - name: bootstrap
+  - name: apt
     provisioner:
       salt_install: apt
     excludes:
       - centos-7
       - centos-6
-  - name: client-single-yum
+  - name: yum
     provisioner:
       salt_install: yum
       init_environment: |
@@ -128,4 +128,4 @@ suites:
 verifier:
   name: shell
   remote_exec: false
-  command: testinfra -vvv --connection=docker --hosts=root@$KITCHEN_CONTAINER_ID tests/$KITCHEN_SUITE
+  command: testinfra -vvv tests/integration/$KITCHEN_SUITE

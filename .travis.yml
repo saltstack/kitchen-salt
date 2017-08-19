@@ -34,7 +34,7 @@ script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
   # Run test-kitchen with docker driver:
-  - bundle exec kitchen test client-single
+  - bundle exec kitchen test
 
 after_script:
   - bundle exec kitchen list
