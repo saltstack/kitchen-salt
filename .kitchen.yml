@@ -10,7 +10,7 @@ provisioner:
   salt_version: latest
   salt_bootstrap_url: https://bootstrap.saltstack.com
   salt_bootstrap_options: -X -p git -p curl -p sudo
-  formula: kitchen-salt
+  formula: tests
   init_environment: |
     sudo mkdir -p /var/cache/salt/master
   vendor_repo:
@@ -25,7 +25,7 @@ provisioner:
       url: https://spm.hubblestack.io/2016.7.1
   dependencies:
     - name: foo
-      path: ./spec/fixtures/formula-foo
+      path: ./tests/formula-foo
     - name: nginx
       repo: apt
       package: salt-formula-nginx
@@ -44,7 +44,7 @@ provisioner:
   state_top:
     base:
       "*":
-        - kitchen-salt.sudo
+        - tests.sudo
         - git
   pillars:
     top.sls:
@@ -124,3 +124,8 @@ suites:
       - ubuntu-16.04
       - debian-8
       - debian-9
+
+verifier:
+  name: shell
+  remote_exec: false
+  command: testinfra -vvv --connection=docker --hosts=root@$KITCHEN_CONTAINER_ID tests/$KITCHEN_SUITE

@@ -31,8 +31,6 @@ install:
   - bundle exec kitchen list
 
 script:
-  # Run unit tests
-  - bundle exec rspec
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
   # Run test-kitchen with docker driver:
