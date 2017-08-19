@@ -40,7 +40,7 @@ module Kitchen
         salt_install: 'bootstrap',
         salt_bootstrap_url: 'https://bootstrap.saltstack.com',
         salt_bootstrap_options: '',
-        salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest',
+        salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/',
         salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub',
         salt_ppa: 'ppa:saltstack/salt',
         bootstrap_url: 'https://raw.githubusercontent.com/saltstack/kitchen-salt/master/assets/install.sh',

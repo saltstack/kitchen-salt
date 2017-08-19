@@ -7,9 +7,9 @@ driver:
 provisioner:
   name: salt_solo
   salt_install: bootstrap
+  salt_version: latest
   salt_bootstrap_url: https://bootstrap.saltstack.com
   salt_bootstrap_options: -X -p git -p curl -p sudo
-  salt_version: latest
   formula: kitchen-salt
   init_environment: |
     sudo mkdir -p /var/cache/salt/master
@@ -83,8 +83,6 @@ platforms:
       salt_bootstrap_options: -X -p git -p curl -p sudo -p software-properties-common
   - name: ubuntu-16.04
     provisioner:
-      salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/'
-      salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub'
       init_environment: |
         sudo mkdir -p /var/cache/salt/master
         sudo apt-get update
@@ -99,7 +97,13 @@ platforms:
       salt_apt_repo: 'https://repo.saltstack.com/apt/debian/9/amd64/'
       salt_apt_repo_key: 'https://repo.saltstack.com/apt/debian/9/amd64/latest/SALTSTACK-GPG-KEY.pub'
   - name: centos-7
+    provisioner:
+      salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
+      salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/latest/SALTSTACK-GPG-KEY.pub'
   - name: centos-6
+    provisioner:
+      salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
+      salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/6/x86_64/latest/SALTSTACK-GPG-KEY.pub'
 
 suites:
   - name: client-single-bootstrap
@@ -109,11 +113,14 @@ suites:
     excludes:
       - centos-7
       - centos-6
-# - name: client-single-yum
-#   provisioner:
-#     salt_install: yum
-#   excludes:
-#     - ubuntu-14.04
-#     - ubuntu-16.04
-#     - debian-8
-#     - debian-9
+#  - name: client-single-yum
+#    provisioner:
+#      salt_install: yum
+#      init_environment: |
+#        sudo mkdir -p /var/cache/salt/master
+#        sudo yum install -y git
+#    excludes:
+#      - ubuntu-14.04
+#      - ubuntu-16.04
+#      - debian-8
+#      - debian-9
