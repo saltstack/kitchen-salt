@@ -13,7 +13,7 @@ addons:
     - tree
 
 rvm:
-  - 2.2.4
+  - 2.3.4
   - ruby
   - ruby-head
 
@@ -27,32 +27,18 @@ dist: trusty
 bundler_args: --without='vagrant'
 
 install:
-  # DEPRECATED
-  # init/start docker in travis
-  #- source <(curl -sL https://raw.githubusercontent.com/zuazo/kitchen-in-travis/master/scripts/start_docker.sh)
-  #
-  # clone & setup ci for test formula
-  - export FORMULA=salt-formula-git
-  - export BUNDLE_GEMFILE=$PWD/Gemfile
   - bundle install --without='vagrant'
-  - git clone https://github.com/salt-formulas/$FORMULA.git --branch master --single-branch ../$FORMULA
-  - cd ../$FORMULA
-  - cp -R ../kitchen-salt/spec/fixtures/formula-foo .
-  - for f in Rakefile .kitchen.salt.yml; do test -e $f || cp ../kitchen-salt/$f . ;done
-  - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list
+  - bundle exec kitchen list
 
 script:
   # Run unit tests
-  - cd $TRAVIS_BUILD_DIR && bundle exec rspec
+  - bundle exec rspec
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
   # Run test-kitchen with docker driver:
-  - cd ../$FORMULA && KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen test client-single -ldebug
-
-after_failure:
-  - cat .kitchen/logs/client-single-*.log
+  - bundle exec kitchen test client-single
 
 after_script:
-  - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen list
-  - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen destroy all
-  - KITCHEN_LOCAL_YAML=.kitchen.salt.yml bundle exec kitchen diagnose --all
+  - bundle exec kitchen list
+  - bundle exec kitchen destroy all
+  - bundle exec kitchen diagnose --all

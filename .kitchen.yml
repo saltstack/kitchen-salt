@@ -1,0 +1,126 @@
+---
+driver:
+  name: docker
+  hostname: kitchen-salt.ci.local
+  use_sudo: true
+
+provisioner:
+  name: salt_solo
+  salt_install: bootstrap
+  salt_version: latest
+  salt_bootstrap_url: https://bootstrap.saltstack.com
+  salt_bootstrap_options: -X -p git -p curl -p sudo
+  formula: kitchen-salt
+  init_environment: |
+    sudo mkdir -p /var/cache/salt/master
+  vendor_repo:
+    - type: apt
+      url: http://apt-mk.mirantis.com/trusty
+      key_url: http://apt-mk.mirantis.com/public.gpg
+      components: salt
+      distribution: nightly
+    - type: ppa
+      name: neovim-ppa/unstable
+    - type: spm
+      url: https://spm.hubblestack.io/2016.7.1
+  dependencies:
+    - name: foo
+      path: ./spec/fixtures/formula-foo
+    - name: nginx
+      repo: apt
+      package: salt-formula-nginx
+    - name: linux
+      repo: git
+      source: https://github.com/salt-formulas/salt-formula-linux.git
+    - name: git
+      repo: git
+      source: https://github.com/salt-formulas/salt-formula-git.git
+    - name: postfix
+      repo: git
+      source: https://github.com/salt-formulas/salt-formula-postfix
+    - name: hubblestack_nova
+      repo: spm
+      package: https://spm.hubblestack.io/2016.7.1/hubblestack_nova-2016.7.1-1.spm
+  state_top:
+    base:
+      "*":
+        - kitchen-salt.sudo
+        - git
+  pillars:
+    top.sls:
+      base:
+        "*":
+          - git
+    git.sls:
+      git:
+        client:
+          enabled: true
+          user:
+          - user:
+              name: jdoe
+              email: j@doe.com
+      linux:
+        system:
+          enabled: true
+          user:
+            jdoe:
+              enabled: true
+              sudo: true
+              full_name: John Doe
+              home: /home/jdoe
+  grains:
+    noservices: True
+
+platforms:
+  - name: ubuntu-14.04
+    provisioner:
+      salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/14.04/amd64/'
+      salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/14.04/amd64/latest/SALTSTACK-GPG-KEY.pub'
+      init_environment: |
+        sudo mkdir -p /var/cache/salt/master
+        sudo apt-get update
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
+      salt_bootstrap_options: -X -p git -p curl -p sudo -p software-properties-common
+  - name: ubuntu-16.04
+    provisioner:
+      init_environment: |
+        sudo mkdir -p /var/cache/salt/master
+        sudo apt-get update
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
+      salt_bootstrap_options: -X -p git -p curl -p sudo -p software-properties-common
+  - name: debian-8
+    provisioner:
+      salt_apt_repo: 'https://repo.saltstack.com/apt/debian/8/amd64/'
+      salt_apt_repo_key: 'https://repo.saltstack.com/apt/debian/8/amd64/latest/SALTSTACK-GPG-KEY.pub'
+  - name: debian-9
+    provisioner:
+      salt_apt_repo: 'https://repo.saltstack.com/apt/debian/9/amd64/'
+      salt_apt_repo_key: 'https://repo.saltstack.com/apt/debian/9/amd64/latest/SALTSTACK-GPG-KEY.pub'
+  - name: centos-7
+    provisioner:
+      salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
+      salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/latest/SALTSTACK-GPG-KEY.pub'
+  - name: centos-6
+    provisioner:
+      salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
+      salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/6/x86_64/latest/SALTSTACK-GPG-KEY.pub'
+
+suites:
+  - name: client-single-bootstrap
+  - name: client-single-apt
+    provisioner:
+      salt_install: apt
+    excludes:
+      - centos-7
+      - centos-6
+#  - name: client-single-yum
+#    provisioner:
+#      salt_install: yum
+#      init_environment: |
+#        sudo mkdir -p /var/cache/salt/master
+#        sudo yum install -y git
+#    excludes:
+#      - ubuntu-14.04
+#      - ubuntu-16.04
+#      - debian-8
+#      - debian-9
