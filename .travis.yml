@@ -23,13 +23,10 @@ env:
 
 sudo: true
 dist: trusty
-
 bundler_args: --without='vagrant'
 
-install:
+before_install:
   - pip install -r requirements.txt
-  - bundle install --without='vagrant'
-  - bundle exec kitchen list
 
 script:
   # Check shell scripts
@@ -42,4 +39,3 @@ script:
 after_script:
   - bundle exec kitchen list
   - bundle exec kitchen destroy all
-  - bundle exec kitchen diagnose --all
