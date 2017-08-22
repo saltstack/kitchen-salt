@@ -11,34 +11,31 @@ addons:
     - git
     - shellcheck
     - tree
+    - python-pip
 
 rvm:
-  - 2.3.4
   - ruby
-  - ruby-head
 
-matrix:
-  allow_failures:
-    - rvm: ruby-head
+env:
+  - SUITE=apt
+  - SUITE=yum
+  - SUITE=bootstrap
 
 sudo: true
 dist: trusty
-
 bundler_args: --without='vagrant'
 
-install:
-  - bundle install --without='vagrant'
-  - bundle exec kitchen list
+before_install:
+  - pip install -r requirements.txt
 
 script:
-  # Run unit tests
-  - bundle exec rspec
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
+  # Setup for tests
+  - bundle exec kitchen create $SUITE -l warn -c 6
   # Run test-kitchen with docker driver:
-  - bundle exec kitchen test client-single
+  - bundle exec kitchen verify $SUITE
 
 after_script:
   - bundle exec kitchen list
   - bundle exec kitchen destroy all
-  - bundle exec kitchen diagnose --all

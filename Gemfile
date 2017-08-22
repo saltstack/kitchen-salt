@@ -5,9 +5,7 @@ gem 'codeclimate-test-reporter', group: :test, require: nil
 gem 'rake'
 gem 'berkshelf'
 gem 'test-kitchen'
-gem 'kitchen-inspec'
 gem 'kitchen-sync'
-gem 'inspec'
 
 group :vagrant do
   gem 'vagrant-wrapper'
