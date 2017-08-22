@@ -2,7 +2,7 @@
 driver:
   name: docker
   hostname: kitchen-salt.ci.local
-  use_sudo: true
+  use_sudo: false
 
 provisioner:
   name: salt_solo
@@ -128,4 +128,4 @@ suites:
 verifier:
   name: shell
   remote_exec: false
-  command: testinfra -vvv tests/integration/$KITCHEN_SUITE
+  command: pytest -v --host="docker://kitchen@$KITCHEN_CONTAINER_ID"
