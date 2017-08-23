@@ -59,9 +59,6 @@ def install_dependencies
 
   # install formulas
   config[:dependencies].each do |formula|
-    #unless config[:vendor_repo].has_key?(formula[:repo])
-    #  raise UserError, "kitchen-salt: Invalid dependency formula :repo, no such vendor_repo '#{formula[:repo]}' specified."
-    #end
     if formula.key?(:repo)
       case formula[:repo]
       when 'git'
@@ -69,10 +66,16 @@ def install_dependencies
           fetchGitFormula #{formula[:source]} "#{formula[:name]}" "#{formula[:branch] || 'master'}"
         INSTALL
       when 'spm'
-        # TODO: SPM should know the sandbox_path is /tmp/kitchen/etc
-        script += <<-INSTALL
-          #{sudo('spm')} install #{formula[:package]||formula[:name]};
-        INSTALL
+        if formula[:package].nil?
+          script += <<-INSTALL
+          #{sudo('spm')} -c #{config[:root_path]}/etc/salt install -y #{formula[:name]};
+          INSTALL
+        else
+          script += <<-INSTALL
+            #{sudo('curl')} -O #{formula[:package]};
+            #{sudo('spm')} -c #{config[:root_path]}/etc/salt local install -y "$(basename #{formula[:package]})";
+          INSTALL
+        end
       when 'yum'
         script += <<-INSTALL
           #{sudo('yum')} install -y #{formula[:package]||formula[:name]};

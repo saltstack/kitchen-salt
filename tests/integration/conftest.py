@@ -3,7 +3,7 @@ import os
 import pytest
 import testinfra
 
-test_host = testinfra.get_host('docker://kitchen@{0}'.format(os.environ.get('KITCHEN_CONTAINER_ID')))
+test_host = testinfra.get_host('docker://root@{0}'.format(os.environ.get('KITCHEN_CONTAINER_ID')))
 
 @pytest.fixture
 def host():
