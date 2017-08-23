@@ -1,6 +1,7 @@
 spm_build_dir: <%= File.join(config[:root_path]) %>/build
 formula_path: <%= File.join(config[:root_path], (windows_os? ? config[:salt_spm_root].gsub('/', '\\') : config[:salt_spm_root])) %>/salt
 pillar_path: <%= File.join(config[:root_path], (windows_os? ? config[:salt_spm_root].gsub('/', '\\') : config[:salt_spm_root])) %>/pillar
+root_dir: <%= config[:root_path] %>
 spm_build_exclude:
 - .git
 - .svn
