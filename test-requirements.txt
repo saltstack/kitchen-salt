@@ -1,0 +1,2 @@
+git+git://github.com/gtmanfred/testinfra.git@winrm#egg=testinfra
+paramiko

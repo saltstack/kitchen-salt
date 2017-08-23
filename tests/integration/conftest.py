@@ -4,8 +4,13 @@ import pytest
 import testinfra
 
 if os.environ.get('KITCHEN_USERNAME') == 'vagrant':
-    test_host = testinfra.get_host('paramiko://{KITCHEN_USERNAME}@{KITCHEN_HOSTNAME}:{KITCHEN_PORT}'.format(**os.environ),
-                                   ssh_identity_file=os.environ.get('KITCHEN_SSH_KEY'))
+    if 'windows' in os.environ.get('KITCHEN_INSTANCE'):
+        test_host = testinfra.get_host('winrm://{KITCHEN_USERNAME}@{KITCHEN_HOSTNAME}:{KITCHEN_PORT}'.format(**os.environ),
+                                       password=os.environ.get('KITCHEN_PASSWORD'),
+                                       ssl=False)
+    else:
+        test_host = testinfra.get_host('paramiko://{KITCHEN_USERNAME}@{KITCHEN_HOSTNAME}:{KITCHEN_PORT}'.format(**os.environ),
+                                       ssh_identity_file=os.environ.get('KITCHEN_SSH_KEY'))
 else:
     test_host = testinfra.get_host('docker://{KITCHEN_USERNAME}@{KITCHEN_CONTAINER_ID}'.format(**os.environ))
 
@@ -15,5 +20,9 @@ def host():
 
 @pytest.fixture
 def salt():
-    test_host.run('sudo chown -R {0} /tmp/kitchen'.format(os.environ.get('KITCHEN_USERNAME')))
-    return functools.partial(test_host.salt, local=True, config='/tmp/kitchen/etc/salt')
+    if 'windows' in os.environ.get('KITCHEN_INSTANCE'):
+        tmpconf = r'c:\Users\vagrant\AppData\Local\Temp\kitchen\etc\salt'
+    else:
+        test_host.run('sudo chown -R {0} /tmp/kitchen'.format(os.environ.get('KITCHEN_USERNAME')))
+        tmpconf = '/tmp/kitchen/etc/salt'
+    return functools.partial(test_host.salt, local=True, config=tmpconf)
