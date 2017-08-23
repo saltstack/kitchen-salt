@@ -1,6 +1,6 @@
+local: true
 state_top: top.sls
-
-file_client: local
+root_dir: <%= config[:root_path] %>
 
 file_roots:
  <%= config[:salt_env] %>:

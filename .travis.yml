@@ -12,6 +12,7 @@ addons:
     - shellcheck
     - tree
     - python-pip
+    - vagrant
 
 rvm:
   - ruby
@@ -23,7 +24,6 @@ env:
 
 sudo: true
 dist: trusty
-bundler_args: --without='vagrant'
 
 before_install:
   - pip install -r requirements.txt
