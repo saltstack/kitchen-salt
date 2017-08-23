@@ -78,7 +78,7 @@ function linkFormulas() {
     fi
 
     # form pkgs
-    find "$SALT_ENV" -maxdepth 1 -mindepth 1 -path "*_formulas*" -prune -o -name "*" -type d -print0| xargs -I{} -0 -n1 basename --no-run-if-empty {} | xargs -I{} --no-run-if-empty \
+    find "$SALT_ENV" -maxdepth 1 -mindepth 1 -path "*_formulas*" -prune -o -name "*" -type d -print0| xargs -I{} -0 -n1 --no-run-if-empty basename {} | xargs -I{} --no-run-if-empty \
       ln -fs "$SALT_ENV"/{} "$SALT_ROOT"/{};
   fi
 

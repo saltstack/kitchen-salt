@@ -23,6 +23,7 @@ provisioner:
       name: neovim-ppa/unstable
     - type: spm
       url: https://spm.hubblestack.io/2016.7.1
+      name: hubblestack
   dependencies:
     - name: foo
       path: ./tests/formula-foo
@@ -40,7 +41,7 @@ provisioner:
       source: https://github.com/salt-formulas/salt-formula-postfix
     - name: hubblestack_nova
       repo: spm
-      package: https://spm.hubblestack.io/2016.7.1/hubblestack_nova-2016.7.1-1.spm
+      package: https://spm.hubblestack.io/nova/hubblestack_nova-2016.10.1-1.spm
   state_top:
     base:
       "*":
@@ -128,4 +129,4 @@ suites:
 verifier:
   name: shell
   remote_exec: false
-  command: pytest -v --host="docker://kitchen@$KITCHEN_CONTAINER_ID"
+  command: pytest -v --host="docker://kitchen@$KITCHEN_CONTAINER_ID" tests/integration/

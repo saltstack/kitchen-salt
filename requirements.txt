@@ -1,1 +1,1 @@
-testinfra
+git+git://github.com/gtmanfred/testinfra.git#egg=testinfra
