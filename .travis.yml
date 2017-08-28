@@ -7,26 +7,35 @@ addons:
   apt:
     packages:
     - curl
-    - subversion
     - git
     - shellcheck
-    - tree
     - python-pip
-    - vagrant
+    - virtualbox
 
 rvm:
   - ruby
 
 env:
-  - SUITE=apt
-  - SUITE=yum
-  - SUITE=bootstrap
+  matrix:
+    - SUITE=apt
+    - SUITE=yum
+    - SUITE=bootstrap
+    - SUITE=vagrant-windows
+    - SUITE=vagrant-freebsd
+
+matrix:
+  allow_failures:
+    - env: SUITE=vagrant-windows
+    - env: SUITE=vagrant-freebsd
 
 sudo: true
 dist: trusty
 
 before_install:
-  - pip install -r requirements.txt
+  - curl -O https://releases.hashicorp.com/vagrant/1.9.8/vagrant_1.9.8_x86_64.deb
+  - sudo dpkg -i ./vagrant_1.9.8_x86_64.deb
+  - vagrant plugin install vagrant-winrm
+  - pip install -r test-requirements.txt
 
 script:
   # Check shell scripts

@@ -156,7 +156,7 @@ module Kitchen
       def init_command
         debug("Initialising Driver #{name}")
         if windows_os?
-          cmd = "mkdir -Force -Path ""#{config[:root_path]}"""
+          cmd = "mkdir -Force -Path ""#{config[:root_path]}""\n"
         else
           cmd = "mkdir -p '#{config[:root_path]}';"
         end
