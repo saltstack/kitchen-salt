@@ -109,9 +109,54 @@ platforms:
     provisioner:
       salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
       salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/6/x86_64/latest/SALTSTACK-GPG-KEY.pub'
+<% if system('which vagrant &>/dev/null') %>
+  - name: windows-2012r2
+    driver:
+      box: opentable/win-2012r2-datacenter-amd64-nocm
+      communicator: winrm
+      name: vagrant
+    provisioner:
+      init_environment: |
+        Clear-Host
+        $AddedLocation ="c:\salt"
+        $Reg = "Registry::HKLM\System\CurrentControlSet\Control\Session Manager\Environment"
+        $OldPath = (Get-ItemProperty -Path "$Reg" -Name PATH).Path
+        $NewPath= $OldPath + ’;’ + $AddedLocation
+        Set-ItemProperty -Path "$Reg" -Name PATH –Value $NewPath
+      salt_bootstrap_url: https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1
+      salt_bootstrap_options: ''
+      state_top:
+        base:
+          "*":
+            - foo
+      dependencies:
+        - name: foo
+          path: ./tests/formula-foo
+        - name: hubblestack_nova
+          repo: spm
+          package: https://spm.hubblestack.io/nova/hubblestack_nova-2016.10.1-1.spm
+  - name: freebsd-11
+    driver:
+      box: bento/freebsd-11.0
+      name: vagrant
+    provisioner:
+      salt_bootstrap_options: -X -p git -p curl -p sudo -p bash -p py27-sqlite3
+      state_top:
+        base:
+          "*":
+            - tests.sudo
+      dependencies:
+        - name: foo
+          path: ./tests/formula-foo
+        - name: postfix
+          repo: git
+          source: https://github.com/salt-formulas/salt-formula-postfix
+        - name: hubblestack_nova
+          repo: spm
+          package: https://spm.hubblestack.io/nova/hubblestack_nova-2016.10.1-1.spm
+<% end %>
 
 suites:
-  - name: bootstrap
   - name: apt
     provisioner:
       salt_install: apt
@@ -129,6 +174,16 @@ suites:
     includes:
       - centos-6
       - centos-7
+  - name: bootstrap
+<% if system('which vagrant &>/dev/null') %>
+    excludes:
+      - freebsd-11
+      - windows-2012r2
+  - name: vagrant
+    includes:
+      - freebsd-11
+      - windows-2012r2
+<% end %>
 
 verifier:
   name: shell
