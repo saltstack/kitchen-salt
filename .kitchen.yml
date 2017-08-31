@@ -115,6 +115,7 @@ platforms:
       box: opentable/win-2012r2-datacenter-amd64-nocm
       communicator: winrm
       name: vagrant
+      gui: true
     provisioner:
       init_environment: |
         Clear-Host
