@@ -4,7 +4,7 @@ pipeline:
     commands:
       - apk update && apk add docker git ruby
       - gem install --no-ri --no-rdoc bundler
-      - bundle install --without=vagrant
+      - bundle install --without=vagrant --without=windows
       - bundle exec kitchen create ${SUITE} -l warn -c 6
       - bundle exec kitchen converge ${SUITE}
     volumes:
