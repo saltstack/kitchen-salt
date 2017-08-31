@@ -109,7 +109,7 @@ platforms:
     provisioner:
       salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
       salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/6/x86_64/latest/SALTSTACK-GPG-KEY.pub'
-<% if system('which vagrant &>/dev/null') %>
+<% if system('which vagrant &>/dev/null') != false %>
   - name: windows-2012r2
     driver:
       box: opentable/win-2012r2-datacenter-amd64-nocm
@@ -176,7 +176,7 @@ suites:
       - centos-6
       - centos-7
   - name: bootstrap
-<% if system('which vagrant &>/dev/null') %>
+<% if system('which vagrant &>/dev/null') != false %>
     excludes:
       - freebsd-11
       - windows-2012r2
