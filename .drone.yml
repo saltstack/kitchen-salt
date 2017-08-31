@@ -6,6 +6,8 @@ pipeline:
       - bundle install --with=docker
       - bundle exec kitchen create ${SUITE} -l warn -c 6
       - bundle exec kitchen converge ${SUITE}
+    environment:
+      - DOCKER_HOST=${DOCKER_HOST}
   verify:
     image: alpine
     commands:
@@ -13,6 +15,8 @@ pipeline:
       - bundle install --with=docker
       - python3 -m pip install -r test-requirements.txt
       - bundle exec kitchen verify ${SUITE}
+    environment:
+      - DOCKER_HOST=${DOCKER_HOST}
   clean:
     image: alpine
     commands:
@@ -21,6 +25,8 @@ pipeline:
       - bundle install --with=docker
       - bundle exec kitchen list
       - bundle exec kitchen destroy ${SUITE}
+    environment:
+      - DOCKER_HOST=${DOCKER_HOST}
 matrix:
   SUITE:
     - bootstrap
