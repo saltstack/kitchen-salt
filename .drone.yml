@@ -2,7 +2,7 @@ pipeline:
   build:
     image: alpine
     commands:
-      - apk --update add docker ruby
+      - apk --update add docker git ruby
       - gem install --no-ri --no-rdoc bundler
       - bundle install --without=vagrant --without=windows
       - bundle exec kitchen create ${SUITE} -l warn -c 6
