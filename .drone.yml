@@ -1,0 +1,24 @@
+pipeline:
+  build:
+    image: alpine
+    commands:
+      - apk --update add docker ruby
+      - gem install --no-ri --no-rdoc bundler
+      - bundle install --without=vagrant --without=windows
+      - bundle exec kitchen create ${SUITE} -l warn -c 6
+      - bundle exec kitchen converge ${SUITE}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  verify:
+    image: alpine
+    commands:
+      - apk --update add docker python3
+      - python3 -m pip install -r test-requirements.txt
+      - bundle exec kitchen verify ${SUITE}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+matrix:
+  SUITE:
+    - bootstrap
+    - apt
+    - yum

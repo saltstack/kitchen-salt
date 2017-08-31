@@ -1,9 +1,6 @@
 source 'https://rubygems.org'
 
 gemspec
-gem 'codeclimate-test-reporter', group: :test, require: nil
-gem 'rake'
-gem 'berkshelf'
 gem 'test-kitchen'
 gem 'kitchen-sync'
 
