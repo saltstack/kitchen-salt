@@ -30,7 +30,7 @@ before_install:
 script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
-  - ruby -e "puts system('which vagrant') == false"
+  - bundle exec gem list
   # Setup for tests
   - bundle exec kitchen create $SUITE -l warn -c 6
   # Run test-kitchen with docker driver:
