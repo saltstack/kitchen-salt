@@ -3,7 +3,7 @@ pipeline:
     image: alpine
     commands:
       - env
-      - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make
+      - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
       - bundle install --with=docker
       - bundle exec kitchen create ${SUITE} -l warn -c 6
       - bundle exec kitchen converge ${SUITE}
