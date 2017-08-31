@@ -3,7 +3,7 @@ pipeline:
     image: alpine
     commands:
       - apk update && apk add ruby docker
-      - gem install bundler
+      - gem install --no-ri --no-rdoc bundler
       - bundle install --without=vagrant
       - bundle exec kitchen create ${SUITE} -l warn -c 6
       - bundle exec kitchen converge ${SUITE}
