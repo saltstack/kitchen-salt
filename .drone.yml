@@ -2,9 +2,8 @@ pipeline:
   build:
     image: alpine
     environment:
-      - DOCKER=${DOCKER_HOST}
+      - DOCKER_HOST=$${DOCKER_HOST}
     commands:
-      - export DOCKER_HOST=${DOCKER_HOST}
       - env
       - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
       - bundle install --with=docker
@@ -12,16 +11,18 @@ pipeline:
       - bundle exec kitchen converge ${SUITE}
   verify:
     image: alpine
+    environment:
+      - DOCKER_HOST=$${DOCKER_HOST}
     commands:
-      - export DOCKER_HOST=${DOCKER_HOST}
       - apk --update add docker python3 git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
       - bundle install --with=docker
       - python3 -m pip install -r test-requirements.txt
       - bundle exec kitchen verify ${SUITE}
   clean:
     image: alpine
+    environment:
+      - DOCKER_HOST=$${DOCKER_HOST}
     commands:
-      - export DOCKER_HOST=${DOCKER_HOST}
       - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
       - bundle install --with=docker
       - bundle exec kitchen list
