@@ -1,0 +1,44 @@
+pipeline:
+  build_centos:
+    group: build
+    image: gtmanfred/kitchen-salt:latest
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - bundle install --with=docker --without windows vagrant
+      - bundle exec kitchen create centos -l warn -c 4
+      - bundle exec kitchen converge centos
+  build_debian:
+    group: build
+    image: gtmanfred/kitchen-salt:latest
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - bundle install --with=docker --without windows vagrant
+      - bundle exec kitchen create debian -l warn -c 4
+      - bundle exec kitchen converge debian
+  build_ubuntu:
+    group: build
+    image: gtmanfred/kitchen-salt:latest
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - bundle install --with=docker --without windows vagrant
+      - bundle exec kitchen create ubuntu -l warn -c 4
+      - bundle exec kitchen converge ubuntu
+  verify:
+    image: gtmanfred/kitchen-salt:latest
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - bundle install --with=docker --without windows vagrant
+      - python3 -m pip install -r test-requirements.txt
+      - bundle exec kitchen verify all
+  clean:
+    image: gtmanfred/kitchen-salt:latest
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - bundle install --with=docker --without windows vagrant
+      - bundle exec kitchen list
+      - bundle exec kitchen destroy all

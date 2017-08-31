@@ -40,6 +40,7 @@ def test_spm_depends(salt):
 
 
 def test_path_depends(salt):
-    formulas = {'foo',}
+    formulas = set(['foo',])
     dirs = salt('cp.list_master_dirs')
+    print(dirs)
     assert all([formula in dirs for formula in formulas])
