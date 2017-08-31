@@ -2,7 +2,7 @@ pipeline:
   build:
     image: alpine
     commands:
-      - apk update && apk add docker git ruby
+      - apk --update add docker ruby
       - gem install --no-ri --no-rdoc bundler
       - bundle install --without=vagrant --without=windows
       - bundle exec kitchen create ${SUITE} -l warn -c 6
@@ -12,7 +12,7 @@ pipeline:
   verify:
     image: alpine
     commands:
-      - apk update && apk add docker git python3
+      - apk --update add docker python3
       - python3 -m pip install -r test-requirements.txt
       - bundle exec kitchen verify ${SUITE}
     volumes:
