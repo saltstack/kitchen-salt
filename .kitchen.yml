@@ -14,6 +14,8 @@ provisioner:
   require_chef: false
   init_environment: |
     sudo mkdir -p /tmp/kitchen/var/cache/salt/master
+  salt_copy_filter:
+    - .filter_hidden
   vendor_repo:
     - type: apt
       url: http://apt-mk.mirantis.com/trusty

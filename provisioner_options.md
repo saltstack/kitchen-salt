@@ -156,7 +156,7 @@ Options to pass to the salt bootstrap installer.  For example, you could choose 
 Details on the various options available at the [salt-bootstrap](https://github.com/saltstack/salt-bootstrap/blob/develop/bootstrap-salt.sh#L180) documentation.
 
 ### [salt_copy_filter](id:salt_copy_filter)
-When kitchen copies states, formula & pillars down to the guests it creates to execute the states & run tests against, you can filter out paths that you don't want copied down.  The copy is conducted by ruby's FileUtils.cp method, so all hidden directories are skipped (e.g. ```.git```, ```.kitchen``` etc).
+When kitchen copies states, formula & pillars down to the guests it creates to execute the states & run tests against, you can filter out paths that you don't want copied down.
 
 You can supply a list of paths or files to skip by setting an array in the provisioner block:
 
@@ -167,9 +167,6 @@ You can supply a list of paths or files to skip by setting an array in the provi
           salt_copy_filter:
             - somefilenametoskip
             - adirectorythatshouldbeskipped
-
-
-
 
 ### [salt_version](id:salt_version)
 Version of salt to install. If [`salt_install`](#salt_install) is set to
