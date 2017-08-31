@@ -3,6 +3,7 @@ driver:
   name: docker
   hostname: kitchen-salt.ci.local
   use_sudo: false
+  socket: tcp://172.17.0.1:2375
 
 provisioner:
   name: salt_solo
