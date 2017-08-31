@@ -2,7 +2,6 @@ pipeline:
   build:
     image: alpine
     commands:
-      - env
       - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
       - bundle install --with=docker
       - bundle exec kitchen create ${SUITE} -l warn -c 6
@@ -10,9 +9,18 @@ pipeline:
   verify:
     image: alpine
     commands:
-      - apk --update add docker python3
+      - apk --update add docker python3 git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
+      - bundle install --with=docker
       - python3 -m pip install -r test-requirements.txt
       - bundle exec kitchen verify ${SUITE}
+  clean:
+    image: alpine
+    commands:
+      - env
+      - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
+      - bundle install --with=docker
+      - bundle exec kitchen list
+      - bundle exec kitchen destroy ${SUITE}
 matrix:
   SUITE:
     - bootstrap
