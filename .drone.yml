@@ -2,7 +2,7 @@ pipeline:
   build:
     image: alpine
     environment:
-      - DOCKER_HOST=$${DOCKER_HOST}
+      - DOCKER_HOST=tcp://172.17.0.1:2375
     commands:
       - env
       - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
@@ -12,7 +12,7 @@ pipeline:
   verify:
     image: alpine
     environment:
-      - DOCKER_HOST=$${DOCKER_HOST}
+      - DOCKER_HOST=tcp://172.17.0.1:2375
     commands:
       - apk --update add docker python3 git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
       - bundle install --with=docker
@@ -21,7 +21,7 @@ pipeline:
   clean:
     image: alpine
     environment:
-      - DOCKER_HOST=$${DOCKER_HOST}
+      - DOCKER_HOST=tcp://172.17.0.1:2375
     commands:
       - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
       - bundle install --with=docker
