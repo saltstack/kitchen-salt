@@ -189,4 +189,4 @@ suites:
 verifier:
   name: shell
   remote_exec: false
-  command: pytest -v --host="docker://kitchen@$KITCHEN_CONTAINER_ID" tests/integration/
+  command: pytest -v tests/integration/
