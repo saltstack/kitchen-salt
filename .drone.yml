@@ -35,6 +35,10 @@ pipeline:
       - python3 -m pip install -r test-requirements.txt
       - bundle exec kitchen verify all
   clean:
+    when:
+      status:
+        - failure
+        - success
     image: gtmanfred/kitchen-salt:latest
     environment:
       - DOCKER_HOST=tcp://172.17.0.1:2375
