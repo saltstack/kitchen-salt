@@ -10,7 +10,6 @@ addons:
     - git
     - shellcheck
     - python-pip
-    - virtualbox
 
 rvm:
   - ruby
@@ -20,26 +19,19 @@ env:
     - SUITE=apt
     - SUITE=yum
     - SUITE=bootstrap
-    - SUITE=vagrant-windows
-    - SUITE=vagrant-freebsd
-
-matrix:
-  allow_failures:
-    - env: SUITE=vagrant-windows
-    - env: SUITE=vagrant-freebsd
 
 sudo: true
 dist: trusty
+bundler_args: --with=docker --without vagrant windows
 
 before_install:
-  - curl -O https://releases.hashicorp.com/vagrant/1.9.8/vagrant_1.9.8_x86_64.deb
-  - sudo dpkg -i ./vagrant_1.9.8_x86_64.deb
-  - vagrant plugin install vagrant-winrm
   - pip install -r test-requirements.txt
 
 script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
+  - bundle exec gem list
+  - cat .kitchen.yml
   # Setup for tests
   - bundle exec kitchen create $SUITE -l warn -c 6
   # Run test-kitchen with docker driver:

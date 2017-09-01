@@ -1,0 +1,36 @@
+pipeline:
+  build:
+    image: alpine
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - env
+      - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
+      - bundle install --with=docker --without windows vagrant
+      - bundle exec kitchen create ${SUITE} -l warn -c 6
+      - bundle exec kitchen converge ${SUITE}
+  verify:
+    image: alpine
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - apk --update add docker python3-dev python3 git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev openssl-dev libffi-dev
+      - bundle install --with=docker --without windows vagrant
+      - python3 -m pip install -r test-requirements.txt
+      - bundle exec kitchen verify ${SUITE}
+  clean:
+    image: alpine
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - apk --update add docker git ruby-bundler ruby-rdoc ruby-dev gcc ruby-dev make libc-dev
+      - bundle install --with=docker --without windows vagrant
+      - bundle exec kitchen list
+      - bundle exec kitchen destroy ${SUITE}
+    environment:
+      - DOCKER_HOST=${DOCKER_HOST}
+matrix:
+  SUITE:
+    - bootstrap
+    - apt
+    - yum
