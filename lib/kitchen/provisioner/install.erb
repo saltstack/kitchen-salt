@@ -90,7 +90,8 @@ if [ ! -z "${FULL_SALT_VERSION}" ]
 then
   YEAR=$(echo "$FULL_SALT_VERSION" | cut -d "." -f1)
   MONTH=$(echo "$FULL_SALT_VERSION" | cut -d "." -f2)
-  SALT_VERSION="${YEAR}.${MONTH}"
+  MINOR=$(echo "$FULL_SALT_VERSION" | cut -d "." -f3)
+  SALT_VERSION="${YEAR}.${MONTH}.${MINOR}"
 fi
 
 if [ -z "${SALT_VERSION}" ]
