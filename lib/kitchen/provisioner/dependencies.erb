@@ -93,6 +93,7 @@ def install_dependencies
     linkFormulas "$SALT_ROOT"
     #{sudo('chown')} kitchen.kitchen -R "${SALT_SHARE_DIR}";
     #{sudo('chown')} kitchen.kitchen -R "${SALT_ROOT}";
+    echo "Content of $SALT_ROOT :";
     ls -la "$SALT_ROOT";
   INSTALL
   return script
