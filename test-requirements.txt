@@ -1,2 +1,2 @@
-git+git://github.com/gtmanfred/testinfra.git@master#egg=testinfra
+testinfra
 paramiko
