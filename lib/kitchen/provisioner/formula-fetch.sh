@@ -85,7 +85,7 @@ function linkFormulas() {
 }
 
 # detect if file is being sourced
-[[ "$0" != "${BASH_SOURCE[@]}" ]] || {
+[[ "$0" != "${BASH_SOURCE[0]}" ]] || {
     # if executed, run implicit function
     fetchGitFormula "${@}"
 }
