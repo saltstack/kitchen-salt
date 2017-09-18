@@ -32,7 +32,7 @@ pipeline:
       - DOCKER_HOST=tcp://172.17.0.1:2375
     commands:
       - bundle install --with=docker --without windows vagrant
-      - python3 -m pip install -r test-requirements.txt
+      - python3 -m pip install --user -r test-requirements.txt
       - bundle exec kitchen verify all
   clean:
     when:

@@ -25,7 +25,7 @@ dist: trusty
 bundler_args: --with=docker --without vagrant windows
 
 before_install:
-  - pip install -r test-requirements.txt
+  - pip install --user -r test-requirements.txt
 
 script:
   # Check shell scripts
