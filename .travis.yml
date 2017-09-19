@@ -30,6 +30,7 @@ before_install:
 script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
+  - shellcheck assets/*.sh*
   # Setup for tests
   - bundle exec kitchen create $SUITE -l warn -c 4
   # Provision containers
