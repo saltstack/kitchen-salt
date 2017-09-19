@@ -6,8 +6,8 @@ require 'kitchen-salt/version'
 Gem::Specification.new do |s|
   s.name          = 'kitchen-salt'
   s.version       = Kitchen::Salt::VERSION
-  s.authors       = ['Simon McCartney']
-  s.email         = ['simon@mccartney.ie']
+  s.authors       = ['SaltStack Inc']
+  s.email         = ['daniel@gtmanfred.com']
   s.homepage      = 'https://github.com/saltstack/kitchen-salt'
   s.summary       = 'salt provisioner for test-kitchen'
   s.licenses      = 'Apache-2.0'
@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'test-kitchen', '~> 1.4'
 
-  s.add_development_dependency 'rspec', '~> 3.2'
   s.add_development_dependency 'pry', '~> 0.10.1'
   s.add_development_dependency 'gem-release', '~> 0.7.3'
 end
