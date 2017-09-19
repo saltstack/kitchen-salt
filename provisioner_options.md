@@ -37,6 +37,7 @@ state_collection | false | treat this directory as a salt state collection and n
 [collection_name](#collection_name) | | used to derive then name of states we want to apply in a state collection. (if collection_name isn't set, formula will be used)
 [pillars](#pillars)| {} | pillar data
 [pillars-from-files](#pillars-from-files) | | a list of key-value pairs for files that should be loaded as pillar data
+[pillars_from_directories](#pillars_from_directories) | [] | a list of directories that will be copied recursively
 [grains](#grains) | | a hash to be re-written as /etc/salt/grains on the guest
 [dependencies](#dependencies) | [] | a list of hashes specifying dependencies formulas to be copied into the VM. e.g. [{ :path => 'deps/icinga-formula', :name => 'icinga' }]
 [vendor_path](#vendor_path) |""| path (absolute or relative) to a collection of formula reuired to be copied to the guest
@@ -284,7 +285,16 @@ And the contents of pillar.example is a normal pillar file:
           transport: stdout
           format: json
 
+### [pillars_from_directories](id:pillars_from_directories)
+The pillars_from_directories option allows you to copy directories recursively. It takes a list of hash which defines the source directory and the destination directory:
 
+      - name: tcp-output-external-pillar
+        provisioner:
+          pillars_from_directories:
+            - source: './test/fixtures'
+              dest: /srv/saltconfig
+
+**Note:** The destination directory is relative to the Kitchen temp dir (/tmp/kitchen)
 
 ### [grains](id:grains)
 (since v0.0.15)

@@ -66,6 +66,7 @@ module Kitchen
         vendor_repo: {},
         omnibus_cachier: false,
         local_salt_root: nil,
+        pillars_from_directories: [],
         salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
         salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s',
         salt_yum_repo_key: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub',
