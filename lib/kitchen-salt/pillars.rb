@@ -14,9 +14,15 @@ module Kitchen
 
         if pillars_from_directories.any?
           pillars_from_directories.each do |dir|
-            local_pillar_path = File.expand_path(dir[:source])
-            sandbox_pillar_path = File.join(sandbox_path, dir[:dest])
-            info("Copying pillars from #{dir[:source]} to #{dir[:dest]}")
+            if dir.is_a?(Hash)
+              local_pillar_path = File.expand_path(dir[:source])
+              sandbox_pillar_path = File.join(sandbox_path, dir[:dest])
+              info("Copying pillars from #{dir[:source]} to #{dir[:dest]}")
+            else
+              local_pillar_path = File.expand_path(dir)
+              sandbox_pillar_path = File.join(sandbox_path, '/srv/pillar')
+              info("Copying pillars from #{dir} to /srv/pillar")
+            end
             cp_r_with_filter(local_pillar_path, sandbox_pillar_path, config[:salt_copy_filter])
           end
         end
