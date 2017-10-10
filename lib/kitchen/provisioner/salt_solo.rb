@@ -70,7 +70,12 @@ module Kitchen
         salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
         salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s',
         salt_yum_repo_key: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub',
-        salt_yum_repo_latest: 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm'
+        salt_yum_repo_latest: 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm',
+        pip_pkg: 'salt==%s',
+        pip_editable: false,
+        pip_index_url: 'https://pypi.python.org/simple/',
+        pip_extra_index_url: [],
+        pip_bin: 'pip'
       }
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -80,7 +85,7 @@ module Kitchen
         default_config k, v
       end
 
-      def install_command
+      def prepare_command
         debug(diagnose)
         salt_version = config[:salt_version]
 
@@ -145,6 +150,7 @@ module Kitchen
       def create_sandbox
         super
         prepare_data
+        prepare_install
         prepare_minion
         prepare_pillars
         prepare_grains
@@ -152,6 +158,29 @@ module Kitchen
         prepare_state_top
         # upload scripts, cached formulas, and setup system repositories
         prepare_dependencies
+      end
+
+      def prepare_install
+        salt_version = config[:salt_version]
+        if config[:salt_install] == 'pip'
+          debug("Using pip to install")
+          if File.exist?(config[:pip_pkg])
+            debug("Installing with pip from sdist")
+            sandbox_pip_path = File.join(sandbox_path, 'pip')
+            FileUtils.mkdir_p(sandbox_pip_path)
+            FileUtils.cp_r(config[:pip_pkg], sandbox_pip_path)
+            config[:pip_install] = '/tmp/kitchen/pip/%s' % [File.basename(config[:pip_pkg])]
+            config[:pip_install] = File.join(config[:root_path], 'pip', File.basename(config[:pip_pkg]))
+          else
+            debug("Installing with pip from download")
+            if salt_version != 'latest'
+              config[:pip_install] = config[:pip_pkg] % [salt_version]
+            else
+              config[:pip_pkg].slice!('==%s')
+              config[:pip_install] = config[:pip_pkg]
+            end
+          end
+        end
       end
 
       def init_command

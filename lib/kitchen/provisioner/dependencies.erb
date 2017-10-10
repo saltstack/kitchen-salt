@@ -9,6 +9,7 @@ def install_dependencies
 
     export SALT_ROOT="#{config[:root_path]}/#{config[:salt_file_root]}";
     export SALT_SHARE_DIR='/usr/share/salt-formulas'
+    export DEBIAN_FRONTEND=noninteractive
 
     mkdir -p "${SALT_ROOT}";
     mkdir -p "${SALT_SHARE_DIR}";
