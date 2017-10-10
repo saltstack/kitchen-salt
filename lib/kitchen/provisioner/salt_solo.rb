@@ -85,7 +85,7 @@ module Kitchen
         default_config k, v
       end
 
-      def install_command
+      def prepare_command
         debug(diagnose)
         salt_version = config[:salt_version]
 
@@ -94,25 +94,6 @@ module Kitchen
         if (salt_version != 'latest') && (config[:salt_install] == 'bootstrap') && config[:salt_bootstrap_options].empty?
           debug("Using bootstrap git to install #{salt_version}")
           config[:salt_bootstrap_options] = "-P git v#{salt_version}"
-        end
-
-        if config[:salt_install] == 'pip'
-          debug("Using pip to install")
-          if File.exist?(config[:pip_pkg])
-            debug("Installing with pip from sdist")
-            sandbox_pip_path = File.join(sandbox_path, 'salt.tar.gz')
-            FileUtils.mkdir_p(sandbox_pip_path)
-            FileUtils.cp_r(config[:pip_pkg], sandbox_pip_path)
-            config[:pip_install] = sandbox_pip_path
-          else
-            debug("Installing with pip from download")
-            if salt_version != 'latest'
-              config[:pip_install] = config[:pip_pkg] % [salt_version]
-            else
-              config[:pip_pkg].slice!('==%s')
-              config[:pip_install] = config[:pip_pkg]
-            end
-          end
         end
 
         if windows_os?
@@ -169,6 +150,7 @@ module Kitchen
       def create_sandbox
         super
         prepare_data
+        prepare_install
         prepare_minion
         prepare_pillars
         prepare_grains
@@ -176,6 +158,29 @@ module Kitchen
         prepare_state_top
         # upload scripts, cached formulas, and setup system repositories
         prepare_dependencies
+      end
+
+      def prepare_install
+        salt_version = config[:salt_version]
+        if config[:salt_install] == 'pip'
+          debug("Using pip to install")
+          if File.exist?(config[:pip_pkg])
+            debug("Installing with pip from sdist")
+            sandbox_pip_path = File.join(sandbox_path, 'pip')
+            FileUtils.mkdir_p(sandbox_pip_path)
+            FileUtils.cp_r(config[:pip_pkg], sandbox_pip_path)
+            config[:pip_install] = '/tmp/kitchen/pip/%s' % [File.basename(config[:pip_pkg])]
+            config[:pip_install] = File.join(config[:root_path], 'pip', File.basename(config[:pip_pkg]))
+          else
+            debug("Installing with pip from download")
+            if salt_version != 'latest'
+              config[:pip_install] = config[:pip_pkg] % [salt_version]
+            else
+              config[:pip_pkg].slice!('==%s')
+              config[:pip_install] = config[:pip_pkg]
+            end
+          end
+        end
       end
 
       def init_command
