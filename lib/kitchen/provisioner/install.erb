@@ -27,7 +27,7 @@ sh -c '
 command -v salt-call >/dev/null 2>&1 && SALT_VERSION=$(salt-call --version|cut -d " " -f 2)
 command -v locale-gen >/dev/null 2>&1 && #{sudo('locale-gen')} en_US.UTF-8
 set +x
-
+export DEBIAN_FRONTEND=noninteractive
 
 if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
 then

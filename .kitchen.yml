@@ -6,8 +6,7 @@ driver:
   use_sudo: false
   socket: <%= ENV['DOCKER_HOST'] || 'unix:///var/run/docker.sock' %>
   provision_command:
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python-pip python-dev gcc git
-
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python-pip python-dev gcc git locales console-data
 provisioner:
   name: salt_solo
   salt_install: bootstrap
