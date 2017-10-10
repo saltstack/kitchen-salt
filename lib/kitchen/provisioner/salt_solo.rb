@@ -70,7 +70,12 @@ module Kitchen
         salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
         salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s',
         salt_yum_repo_key: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub',
-        salt_yum_repo_latest: 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm'
+        salt_yum_repo_latest: 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm',
+        pip_pkg: 'salt==%s',
+        pip_editable: false,
+        pip_index_url: 'https://pypi.python.org/simple/',
+        pip_extra_index_url: [],
+        pip_bin: 'pip'
       }
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -89,6 +94,25 @@ module Kitchen
         if (salt_version != 'latest') && (config[:salt_install] == 'bootstrap') && config[:salt_bootstrap_options].empty?
           debug("Using bootstrap git to install #{salt_version}")
           config[:salt_bootstrap_options] = "-P git v#{salt_version}"
+        end
+
+        if config[:salt_install] == 'pip'
+          debug("Using pip to install")
+          if File.exist?(config[:pip_pkg])
+            debug("Installing with pip from sdist")
+            sandbox_pip_path = File.join(sandbox_path, 'salt.tar.gz')
+            FileUtils.mkdir_p(sandbox_pip_path)
+            FileUtils.cp_r(config[:pip_pkg], sandbox_pip_path)
+            config[:pip_install] = sandbox_pip_path
+          else
+            debug("Installing with pip from download")
+            if salt_version != 'latest'
+              config[:pip_install] = config[:pip_pkg] % [salt_version]
+            else
+              config[:pip_pkg].slice!('==%s')
+              config[:pip_install] = config[:pip_pkg]
+            end
+          end
         end
 
         if windows_os?

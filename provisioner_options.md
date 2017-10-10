@@ -43,6 +43,11 @@ state_collection | false | treat this directory as a salt state collection and n
 [vendor_path](#vendor_path) |""| path (absolute or relative) to a collection of formula reuired to be copied to the guest
 [vendor_repo](#vendor_repo) |""| Setup DEB, RPM, SPM repository with hosted formulas
 [init_environment](#init_environment) |""| commands to run to prior salt-call run
+pip_pkg | salt==%s | pip package name to use.  %s is replaced by `salt_version`
+pip_editable | false | install using the editable flag
+pip_index_url | https://pypi.python.org/simple/ | Which index-url to use.
+pip_extra_index_url | [] | extra index urls.
+pip_bin | pip | binary for pip, can be full path if pip is not in `$PATH`
 
 
 ## Configuring Provisioner Options

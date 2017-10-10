@@ -10,6 +10,14 @@ salt_yum_rpm_key = config[:salt_yum_rpm_key] % [salt_version]
 salt_yum_repo = config[:salt_yum_repo] % [salt_version]
 salt_yum_repo_key = config[:salt_yum_repo_key] % [salt_version]
 salt_yum_repo_latest = config[:salt_yum_repo_latest]
+salt_pip_pkg = config[:pip_install]
+salt_pip_bin = config[:pip_bin]
+salt_pip_install_command = ' install'
+salt_pip_install_command += ' -e' if config[:pip_editable]
+salt_pip_install_command += ' --index-url ' + config[:pip_index_url] if config[:pip_index_url]
+config[:pip_extra_index_url].each do |url|
+  salt_pip_install_command += ' --extra-index-url ' + url
+end
 
 <<-INSTALL
 sh -c '
@@ -25,6 +33,10 @@ if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
 then
   do_download #{salt_url} /tmp/bootstrap-salt.sh
   #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
+elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "pip" ]
+then
+  echo #{sudo(salt_pip_bin)} #{salt_pip_install_command} #{salt_pip_pkg}
+  #{sudo(salt_pip_bin)} #{salt_pip_install_command} #{salt_pip_pkg}
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
 then
   if [ ! $(command -v lsb_release &>/dev/null) ]; then
