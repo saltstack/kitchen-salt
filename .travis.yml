@@ -31,7 +31,7 @@ script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
   # Setup for tests
-  - bundle exec kitchen create $SUITE -l warn -c 4
+  - bundle exec kitchen create $SUITE -l warn -c 6
   # Provision containers
   - bundle exec kitchen converge $SUITE
   # Run test-kitchen with docker driver:
