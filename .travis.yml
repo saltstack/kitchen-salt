@@ -38,5 +38,5 @@ script:
   - bundle exec kitchen verify $SUITE
 
 after_script:
-  - bundle exec kitchen list
-  - bundle exec kitchen destroy all
+  - bundle exec kitchen list $SUITE
+  - bundle exec kitchen destroy $SUITE
