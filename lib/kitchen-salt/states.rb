@@ -32,11 +32,12 @@ module Kitchen
       def prepare_states
         if config[:state_collection] || config[:is_file_root] || !config[:local_salt_root].nil?
           prepare_state_collection
+        elsif config[:remote_states]
+          prepare_remote_states
         else
           prepare_formula config[:kitchen_root], config[:formula]
           prepare_vendor_states
         end
-
       end
 
       def prepare_vendor_states
@@ -101,6 +102,23 @@ module Kitchen
         collection_dir = File.join(sandbox_path, config[:salt_file_root], collection_name)
         FileUtils.mkdir_p(collection_dir)
         cp_r_with_filter(states_location, collection_dir, config[:salt_copy_filter])
+      end
+
+      def prepare_remote_states
+        info('Preparing remote states')
+        remoteconf = config[:remote_states]
+        if remoteconf[:repo] == 'git'
+          require 'git'
+          repo = Git.clone(remoteconf[:name], File.join(sandbox_path, config[:salt_file_root]))
+          if remoteconf[:branch]
+            repo.branch(remoteconf[:branch].to_s)
+          end
+        end
+        if remoteconf[:testingdir]
+          dest = File.join(sandbox_path, remoteconf[:testingdir])
+          FileUtils.mkdir_p(dest)
+          cp_r_with_filter(config[:kitchen_root], dest, config[:salt_copy_filter])
+        end
       end
     end
   end

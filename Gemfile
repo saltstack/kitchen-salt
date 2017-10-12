@@ -19,5 +19,9 @@ group :docker do
   gem 'kitchen-docker'
 end
 
+group :git do
+  gem 'git'
+end
+
 # vi: set ft=ruby :
 
