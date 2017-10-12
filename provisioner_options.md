@@ -6,6 +6,7 @@ key | default value | Notes
 dry_run | false | Setting this to True makes the highstate to run with flag test=True (Ideal for testing states syntax)
 formula | | name of the formula, used to derive the path we need to copy to the guest
 [is_file_root](#is_file_root) | false | Treat this project as a complete file_root, not just a state collection or formula
+[remote_states](#remote_states)| nil | Repo for states to test that are not in this repository
 log_level | | set salt logging level when running commands (e.g. specifying `debug` is equivalent of `-l debug`)
 [salt_install](#salt_install) | "bootstrap" | Method by which to install salt, "bootstrap", "apt", "distrib", "ppa", or "yum"
 salt_bootstrap_url | "https://bootstrap.saltstack.com" | location of bootstrap script
@@ -140,6 +141,30 @@ With a .kitchen.yml like this you can now test the completed collection:
       - name: default
 
 In this example, the apache state could use functionality from the php state etc.  You're not just restricted to a single formula.
+
+### [remote_states](id:remote_states)
+
+This is used for testing environments.  Specify the salt states elsewhere, and
+then use them to deploy code from the current environment.
+
+    ---
+    provisioner:
+      name: salt_solo
+      remote_states:
+        repo: git
+        name: git://github.com/saltstack/salt-jenkins.git
+        branch: 2017.7
+        testingdir: /testing
+      state_top:
+        base:
+          '*':
+            - git.salt
+
+This will clone down the git repo to the sandbox /srv/salt, and then run the git.salt state.
+
+Salt-Jenkins is used to configure the testing environment for saltstack.
+
+The repo from which this is run is copied with the salt_copy_filter applied to the `testingdir`
 
 ### [salt_install](id:salt_install)
 

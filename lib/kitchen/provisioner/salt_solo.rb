@@ -60,6 +60,7 @@ module Kitchen
         salt_run_highstate: true,
         salt_copy_filter: [],
         is_file_root: false,
+        remote_states: nil,
         require_chef: true,
         dependencies: [],
         vendor_path: nil,
