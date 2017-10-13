@@ -108,10 +108,12 @@ module Kitchen
         info('Preparing remote states')
         remoteconf = config[:remote_states]
         if remoteconf[:repo] == 'git'
+          debug("Cloning #{remoteconf[:name]}")
           require 'git'
           repo = Git.clone(remoteconf[:name], File.join(sandbox_path, config[:salt_file_root]))
           if remoteconf[:branch]
-            repo.branch(remoteconf[:branch].to_s)
+            debug("Checking out #{remoteconf[:branch].to_s}")
+            repo.checkout(remoteconf[:branch].to_s)
           end
         end
         if remoteconf[:testingdir]
