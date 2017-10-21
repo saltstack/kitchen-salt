@@ -54,6 +54,7 @@ module Kitchen
         salt_pillar_root: '/srv/pillar',
         salt_spm_root: '/srv/spm',
         salt_state_top: '/srv/salt/top.sls',
+        salt_force_color: false,
         state_collection: false,
         state_top: {},
         state_top_from_file: false,
@@ -216,6 +217,7 @@ module Kitchen
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
+        cmd << " --force-color" if config[:salt_force_color] == 'true'
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd << ' --retcode-passthrough'

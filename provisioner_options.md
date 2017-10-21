@@ -31,6 +31,7 @@ salt_env| "base"| environment to use in minion config file
 salt_file_root| "/srv/salt"|
 salt_pillar_root| "/srv/pillar"|
 salt_state_top| "/srv/salt/top.sls"|
+salt_force_color| false |
 salt_run_highstate| true |
 [state_top](#state_top)| {} | states that should be applied, in standard top.sls format
 [state_top_from_file](#state_top_from_file) | false |
