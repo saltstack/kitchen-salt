@@ -110,11 +110,7 @@ module Kitchen
         if remoteconf[:repo] == 'git'
           debug("Cloning #{remoteconf[:name]}")
           require 'git'
-          repo = Git.clone(remoteconf[:name], File.join(sandbox_path, config[:salt_file_root]))
-          if remoteconf[:branch]
-            debug("Checking out #{remoteconf[:branch].to_s}")
-            repo.checkout(remoteconf[:branch].to_s)
-          end
+          repo = Git.clone(remoteconf[:name], File.join(sandbox_path, config[:salt_file_root]), opts={:branch => remoteconf[:branch]})
         end
         if remoteconf[:testingdir]
           dest = File.join(sandbox_path, remoteconf[:testingdir])
