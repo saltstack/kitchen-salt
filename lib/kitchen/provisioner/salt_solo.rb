@@ -217,7 +217,7 @@ module Kitchen
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
-        cmd << " --force-color" if config[:salt_force_color] == 'true'
+        cmd << " --force-color" if config[:salt_force_color]
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd << ' --retcode-passthrough'
