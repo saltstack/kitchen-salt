@@ -1,0 +1,6 @@
+--readme README.md
+--markup markdown
+--charset utf-8
+--title 'KitchenSalt Documentation'
+--output-dir html/
+'lib/**/*.rb' - 'docs/*.md'

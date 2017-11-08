@@ -40,6 +40,7 @@ salt_run_highstate| true |
 [state_top](#state_top)| {} | states that should be applied, in standard top.sls format
 [state_top_from_file](#state_top_from_file) | false |
 state_collection | false | treat this directory as a salt state collection and not a formula
+local_salt_root
 [collection_name](#collection_name) | | used to derive then name of states we want to apply in a state collection. (if collection_name isn't set, formula will be used)
 [pillars](#pillars)| {} | pillar data
 [pillars-from-files](#pillars-from-files) | | a list of key-value pairs for files that should be loaded as pillar data

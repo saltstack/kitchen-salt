@@ -1,6 +1,6 @@
 <!--
 # @markup markdown
-# @title INTRODUCTION
+# @title Introduction
 # @author SaltStack Inc.
 -->
 I'd like to introduce you to something I've been working on over the last few days, I finally scratched an itch and wrote a salt provisioner for test-kitchen.  If you've arrived at salt via the chef community, you'll likely have heard of test-kitchen, an awesome tool by Fletcher Nichol (fnichol) that makes it very simple to perform a suite of tests against a cookbook, by converging on a virtual machine, it supports executing different suites of tests & multiple guest platforms (various version & flavours of Ubuntu, CentOS, FreeBSD etc).

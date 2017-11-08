@@ -43,9 +43,6 @@ namespace :integration do
 end
 
 desc 'Run yarddoc for the source'
-YARD::Rake::YardocTask.new do |yard|
-  yard.files = ['lib/**/*.rb', '-', 'INTRODUCTION.md', 'provisioner_options.md', 'docs/**'] # optional
-  yard.options = ['--output-dir', 'html/']
-end
+YARD::Rake::YardocTask.new
 
 task :default => ['integration:test']
