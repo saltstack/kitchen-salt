@@ -25,6 +25,7 @@ __pycache__
 .yardoc
 _yardoc
 doc/
+html/
 
 # Other
 *.DS_Store
