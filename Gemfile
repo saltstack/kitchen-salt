@@ -4,6 +4,8 @@ gemspec
 gem 'test-kitchen'
 gem 'kitchen-sync'
 gem 'json'
+gem 'coderay'
+gem 'rake'
 
 group :vagrant do
   gem 'vagrant-wrapper'
@@ -22,6 +24,4 @@ end
 group :git do
   gem 'git'
 end
-
 # vi: set ft=ruby :
-
