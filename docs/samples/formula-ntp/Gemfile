@@ -1,6 +1,0 @@
-source 'https://rubygems.org'
-
-gem 'kitchen-docker'
-gem 'kitchen-ec2'
-gem 'kitchen-inspec'
-gem 'kitchen-salt', path: '../../..'

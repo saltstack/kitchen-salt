@@ -58,7 +58,6 @@ module Kitchen
         state_collection: false,
         state_top: {},
         state_top_from_file: false,
-        salt_run_highstate: true,
         salt_copy_filter: [],
         is_file_root: false,
         remote_states: nil,

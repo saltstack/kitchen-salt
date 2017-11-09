@@ -2,7 +2,7 @@ require 'bundler/setup'
 require 'bundler/gem_tasks'
 require 'rake'
 require 'rake/testtask'
-require 'rdoc/task'
+require 'yard'
 
 Rake::Task.define_task(:environment)
 
@@ -42,10 +42,7 @@ namespace :integration do
   end
 end
 
-
-RDoc::Task.new do |rdoc|
-  rdoc.main = "README.rdoc"
-  rdoc.rdoc_files.include("README.md", "lib/**/*.rb")
-end
+desc 'Run yarddoc for the source'
+YARD::Rake::YardocTask.new
 
 task :default => ['integration:test']

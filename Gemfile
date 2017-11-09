@@ -6,6 +6,7 @@ gem 'kitchen-sync'
 gem 'json'
 gem 'coderay'
 gem 'rake'
+gem 'yard'
 
 group :vagrant do
   gem 'vagrant-wrapper'
