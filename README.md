@@ -7,7 +7,6 @@
 [![Gem Version](https://badge.fury.io/rb/kitchen-salt.svg)](http://badge.fury.io/rb/kitchen-salt)
 [![Gem Downloads](http://ruby-gem-downloads-badge.herokuapp.com/kitchen-salt?type=total&color=brightgreen)](https://rubygems.org/gems/kitchen-salt)
 [![Build Status](https://travis-ci.org/saltstack/kitchen-salt.png)](https://travis-ci.org/saltstack/kitchen-salt)
-[![Build Status](https://drone.gtmanfred.com/api/badges/saltstack/kitchen-salt/status.svg)](https://drone.gtmanfred.com/saltstack/kitchen-salt)
 
 A Test Kitchen Provisioner for Salt
 

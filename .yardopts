@@ -3,4 +3,5 @@
 --charset utf-8
 --title 'KitchenSalt Documentation'
 --output-dir html/
+-t default
 'lib/**/*.rb' - 'docs/*.md'
