@@ -1,3 +1,8 @@
+<!--
+# @markup markdown
+# @title Introduction
+# @author SaltStack Inc.
+-->
 I'd like to introduce you to something I've been working on over the last few days, I finally scratched an itch and wrote a salt provisioner for test-kitchen.  If you've arrived at salt via the chef community, you'll likely have heard of test-kitchen, an awesome tool by Fletcher Nichol (fnichol) that makes it very simple to perform a suite of tests against a cookbook, by converging on a virtual machine, it supports executing different suites of tests & multiple guest platforms (various version & flavours of Ubuntu, CentOS, FreeBSD etc).
 
 [Test Kitchen](http://kitchen.ci/) describes itself as "a test harness tool to execute your configured code on one or more platforms", through it's modular architecture, I was able to build a working salt provider in a few hours, this is [kitchen-salt](https://github.com/saltstack/kitchen-salt). There is lots more info about Test Kitchen on their website, including a very useful tutorial on creating a Chef Cookbook and then adding some Test Kitchen love, I suggest you read through this to get a feel for what possible & what I'm trying to achieve here.

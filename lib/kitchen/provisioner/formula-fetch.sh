@@ -51,7 +51,9 @@ function fetchGitFormula() {
           fi
           # install dependencies
           FETCHED+=($name)
-          fetchDependencies "$GIT_FORMULAS_PATH/$name/metadata.yml"
+          if [ -e "$GIT_FORMULAS_PATH/$name/metadata.yml" ]; then
+            fetchDependencies "$GIT_FORMULAS_PATH/$name/metadata.yml"
+          fi
         fi
     else
         echo Usage: fetchGitFormula "<git repo>" "[local formula directory name]" "[branch]"

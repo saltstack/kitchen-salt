@@ -31,13 +31,9 @@ script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
   - shellcheck assets/*.sh*
-  # Setup for tests
-  - bundle exec kitchen create $SUITE -l warn -c 4
-  # Provision containers
-  - bundle exec kitchen converge $SUITE
   # Run test-kitchen with docker driver:
-  - bundle exec kitchen verify $SUITE
+  - bundle exec rake "integration:verify[$SUITE]"
 
 after_script:
-  - bundle exec kitchen list
-  - bundle exec kitchen destroy all
+  - bundle exec kitchen list $SUITE
+  - bundle exec rake "integration:destroy[$SUITE]"

@@ -1,27 +1,24 @@
 # encoding: utf-8
 
-$LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
-require 'kitchen-salt/version'
+require File.expand_path('../lib/kitchen-salt/version', __FILE__)
 
-Gem::Specification.new do |s|
-  s.name          = 'kitchen-salt'
-  s.version       = Kitchen::Salt::VERSION
-  s.authors       = ['Simon McCartney']
-  s.email         = ['simon@mccartney.ie']
-  s.homepage      = 'https://github.com/saltstack/kitchen-salt'
-  s.summary       = 'salt provisioner for test-kitchen'
-  s.licenses      = 'Apache-2.0'
-  s.description   = 'salt provisioner for test-kitchen '\
-                    'so that you can test all the things'
+Gem::Specification.new do |spec|
+  spec.name          = 'kitchen-salt'
+  spec.version       = Kitchen::Salt::VERSION
+  spec.authors       = ['SaltStack Inc']
+  spec.email         = ['daniel@gtmanfred.com']
+  spec.homepage      = 'https://github.com/saltstack/kitchen-salt'
+  spec.summary       = 'salt provisioner for test-kitchen'
+  spec.licenses      = 'Apache-2.0'
+  spec.description   = 'salt provisioner for test-kitchen so that you can test all the things'
 
-  s.files         = `git ls-files lib`.split("\n")
-  s.platform      = Gem::Platform::RUBY
-  s.require_paths = ['lib']
-  s.rubyforge_project = '[none]'
+  spec.files         = `git ls-files lib`.split("\n")
+  spec.platform      = Gem::Platform::RUBY
+  spec.require_paths = ['lib']
+  spec.rubyforge_project = '[none]'
 
-  s.add_runtime_dependency 'test-kitchen', '~> 1.4'
+  spec.add_runtime_dependency 'test-kitchen', '~> 1.4'
 
-  s.add_development_dependency 'rspec', '~> 3.2'
-  s.add_development_dependency 'pry', '~> 0.10.1'
-  s.add_development_dependency 'gem-release', '~> 0.7.3'
+  spec.add_development_dependency 'pry', '~> 0.10.1'
+  spec.add_development_dependency 'gem-release', '~> 0.7.3'
 end
