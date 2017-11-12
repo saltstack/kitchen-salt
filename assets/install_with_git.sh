@@ -59,7 +59,7 @@ install_file() {
   ln -sf `which ruby` /opt/chef/embedded/bin/
 }
 
-if test -f "/etc/debian_version"; then
+if test -f "/etc/debian_version" || test -f "/etc/devuan_version"; then
   platform="debian"
 elif test -f "/etc/redhat-release"; then
   platform=`sed 's/^\(.\+\) release.*/\1/' /etc/redhat-release | tr '[A-Z]' '[a-z]'`
