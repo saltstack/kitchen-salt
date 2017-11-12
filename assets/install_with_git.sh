@@ -61,6 +61,8 @@ install_file() {
 
 if test -f "/etc/debian_version"; then
   platform="debian"
+elif test -f "/etc/devuan_version"; then
+  platform="debian"
 elif test -f "/etc/redhat-release"; then
   platform=`sed 's/^\(.\+\) release.*/\1/' /etc/redhat-release | tr '[A-Z]' '[a-z]'`
 
