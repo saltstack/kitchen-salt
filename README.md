@@ -8,7 +8,3 @@ A Test Kitchen Provisioner for Salt
 The provider works by generating a salt-minion config, creating pillars based on attributes in .kitchen.yml and calling salt-call.
 
 This provisioner is tested with kitchen-docker against CentOS, Ubuntu, and Debian.
-
-## Documentation ##
-
-<https://kitchen.saltstack.com>
