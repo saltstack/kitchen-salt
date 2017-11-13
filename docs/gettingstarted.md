@@ -129,9 +129,9 @@ If windows is being tested, `winrm-transport` will probably be required for the 
 This section is where the distributions and operating systems that will be tested are specified. Because different distributions put the systemd binary in different places, the `run_command` is specified here in the `driver_config`.
 
     platforms:
-    - name: centos
-      driver_config:
-        run_command: /usr/lib/systemd/systemd
+      - name: centos
+        driver_config:
+          run_command: /usr/lib/systemd/systemd
 
 ### suites ###
 
