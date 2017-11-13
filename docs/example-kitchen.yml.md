@@ -45,6 +45,11 @@
       pillars-from-files:
         wordpress.sls: pillar.example
 
+    platforms:
+      - name: centos
+        driver_config:
+          run_command: /usr/lib/systemd/systemd
+
     suites:
       - name: nitrogen
         provisioner:
