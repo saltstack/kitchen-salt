@@ -1,5 +1,6 @@
---readme README.md
+--readme README.rdoc
 --markup markdown
+--markup-provider maruku
 --charset utf-8
 --title 'KitchenSalt Documentation'
 --output-dir html/

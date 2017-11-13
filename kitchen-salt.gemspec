@@ -21,4 +21,8 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'pry', '~> 0.10.1'
   spec.add_development_dependency 'gem-release', '~> 0.7.3'
+  spec.add_development_dependency 'coderay'
+  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'yard'
+  spec.add_development_dependency 'maruku'
 end
