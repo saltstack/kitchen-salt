@@ -21,8 +21,8 @@ provisioner:
     - .filter_hidden
   vendor_repo:
     - type: apt
-      url: http://apt-mk.mirantis.com/trusty
-      key_url: http://apt-mk.mirantis.com/public.gpg
+      url: http://apt.mirantis.com/trusty
+      key_url: http://apt.mirantis.com/public.gpg
       components: salt
       distribution: nightly
     - type: ppa

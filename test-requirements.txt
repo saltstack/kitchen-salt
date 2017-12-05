@@ -1,2 +1,3 @@
 testinfra
 paramiko
+six>=1.10.0
