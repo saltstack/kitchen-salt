@@ -181,6 +181,10 @@ module Kitchen
               config[:pip_install] = config[:pip_pkg]
             end
           end
+        elsif config[:salt_install] == 'bootstrap'
+          if File.exists?(config[:salt_bootstrap_url])
+            FileUtils.cp_r(config[:salt_bootstrap_url], File.join(sandbox_path, 'bootstrap.sh'))
+          end
         end
       end
 
