@@ -315,7 +315,7 @@ This is also used to verify that the correct version of salt was installed befor
 
 default: `https://bootstrap.saltstack.com`
 
-Location of the bootstrap script.
+Location of the bootstrap script. This can also be a file located locally.
 
 For Windows, use the [powershell script](https://github.com/saltstack/salt-bootstrap/blob/develop/bootstrap-salt.ps1)
 

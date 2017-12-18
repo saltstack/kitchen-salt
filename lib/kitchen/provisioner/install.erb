@@ -31,8 +31,11 @@ export DEBIAN_FRONTEND=noninteractive
 
 if [ -z "${SALT_VERSION}" -a "#{salt_install}" = "bootstrap" ]
 then
-  do_download #{salt_url} /tmp/bootstrap-salt.sh
-  #{sudo('sh')} /tmp/bootstrap-salt.sh #{bootstrap_options}
+  BOOTSTRAP="/tmp/kitchen/bootstrap.sh"
+  if ! test -f $BOOTSTRAP; then
+      do_download #{salt_url} "$BOOTSTRAP"
+  fi
+  #{sudo('sh')} $BOOTSTRAP #{bootstrap_options}
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "pip" ]
 then
   echo #{sudo(salt_pip_bin)} #{salt_pip_install_command} #{salt_pip_pkg}
