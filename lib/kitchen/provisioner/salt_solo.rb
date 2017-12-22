@@ -46,8 +46,10 @@ module Kitchen
         bootstrap_url: 'https://raw.githubusercontent.com/saltstack/kitchen-salt/master/assets/install.sh',
         chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
         salt_config: '/etc/salt',
-        salt_minion_config: '/etc/salt/minion',
+        salt_minion_config_include_data: [],
+        salt_minion_config_include_files: [],
         salt_minion_config_template: nil,
+        salt_minion_config: '/etc/salt/minion',
         salt_minion_id: nil,
         salt_env: 'base',
         salt_file_root: '/srv/salt',
@@ -270,8 +272,22 @@ module Kitchen
         cp_r_with_filter(config[:data_path], tmpdata_dir, config[:salt_copy_filter])
       end
 
+      def load_minion_config_includes
+        unless config[:salt_minion_config_include_data].empty? && config[:salt_minion_config_include_files].any?
+          info('Data was found in salt_minion_config_include_data and files were declared in salt_minion_config_include_files. Those two settings may not be used together by a user. Parsing of salt_minion_config_include_files will be skipped.')
+        end
+        abort 'salt_minion_config_include_files must be an array' unless config[:salt_minion_config_include_files].is_a?(Array)
+        config[:salt_minion_config_include_files].each do |file|
+          abort "Cannot find minon configuration include file at #{file}" unless File.file?(file)
+          config[:salt_minion_config_include_data] << File.read(file)
+        end if config[:salt_minion_config_include_data].empty?
+        config[:salt_minion_config_include_data].join("\n") if config[:salt_minion_config_include_data].is_a?(Array)
+      end
+
       def prepare_minion
         info('Preparing salt-minion')
+
+        load_minion_config_includes()
 
         if config[:salt_minion_config_template]
           minion_template = File.expand_path(config[:salt_minion_config_template], Kitchen::Config.new.kitchen_root)

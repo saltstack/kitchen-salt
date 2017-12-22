@@ -12,3 +12,5 @@ pillar_roots:
  <%= config[:salt_env] %>:
    - <%= File.join(config[:root_path], (windows_os? ? config[:salt_pillar_root].gsub('/', '\\') : config[:salt_pillar_root])) %>
    - <%= File.join(config[:root_path], (windows_os? ? config[:salt_spm_root].gsub('/', '\\') : config[:salt_spm_root])) %>/pillar
+
+<% unless config[:salt_minion_config_include_data].empty? %><%= config[:salt_minion_config_include_data] %><% end %>
