@@ -458,6 +458,32 @@ Example
         - .git
         - .travis.yml
 
+### salt_minion_config_include_data ###
+
+default: `[]`
+
+Allows arbitrary data to be inserted inside the minion config. This value may be a string or an array of strings. If an array is used, it will be joined with newlines before being commited to the minon config.
+
+Example
+
+    provisioner:
+      salt_minion_config_include_data: "output: json"
+
+### salt_minion_config_include_files ###
+
+default: `[]`
+
+Allows reading of files outside the kitchen for data to inject in the minion config. The contents of the files in this array of paths will be read into `salt_minion_config_include_data` and written into the minion config file.
+
+If `salt_minion_config_include_data` as well as `salt_minion_config_include_files` is declared by the user, kitchen will skip parsing `salt_minion_config_include_files`, use the declared data _only_, and emit a warning.
+
+Example
+
+    provisioner:
+      salt_minion_config_include_files:
+        - ../salt-base/master.d/nodegroups.conf
+        - ../sea-salt/output-config.yml
+
 ### salt_minion_config ###
 
 default: `/etc/salt/minion`
