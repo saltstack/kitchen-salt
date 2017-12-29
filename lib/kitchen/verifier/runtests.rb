@@ -37,6 +37,7 @@ module Kitchen
         instance.transport.connection(state) do |conn|
           conn.execute(sudo(command))
           config[:save].each do |remote, local|
+            conn.execute(sudo("chmod -R +r #{remote}"))
             conn.download(remote, local)
           end
         end
