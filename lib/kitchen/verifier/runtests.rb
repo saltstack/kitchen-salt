@@ -17,6 +17,7 @@ module Kitchen
       default_config :coverage_xml, false
       default_config :types, []
       default_config :transport, false
+      default_config :save, {}
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
@@ -35,6 +36,9 @@ module Kitchen
         ].join(' ')
         instance.transport.connection(state) do |conn|
           conn.execute(sudo(command))
+          config[:save].each do |remote, local|
+            conn.download(remote, local)
+          end
         end
         debug("[#{name}] Verify completed.")
       end
