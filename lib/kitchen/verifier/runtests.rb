@@ -16,6 +16,7 @@ module Kitchen
       default_config :xml, false
       default_config :coverage_xml, false
       default_config :types, []
+      default_config :tests, []
       default_config :transport, false
       default_config :save, {}
 
