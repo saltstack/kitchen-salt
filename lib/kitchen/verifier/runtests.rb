@@ -34,12 +34,14 @@ module Kitchen
           config[:types].collect{|type| "--#{type}"}.join(' '),
           config[:tests].collect{|test| "-n #{test}"}.join(' '),
         ].join(' ')
+        info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
           begin
             conn.execute(sudo(command))
           ensure
             config[:save].each do |remote, local|
               conn.execute(sudo("chmod -R +r #{remote}"))
+              info("Copying #{remote} to #{local}")
               conn.download(remote, local)
             end
           end
