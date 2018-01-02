@@ -273,7 +273,7 @@ module Kitchen
       end
 
       def load_minion_config_includes
-        unless config[:salt_minion_config_include_data].empty? && config[:salt_minion_config_include_files].any?
+        unless !config[:salt_minion_config_include_data].empty? && config[:salt_minion_config_include_files].any?
           info('Data was found in salt_minion_config_include_data and files were declared in salt_minion_config_include_files. Those two settings may not be used together by a user. Parsing of salt_minion_config_include_files will be skipped.')
         end
         abort 'salt_minion_config_include_files must be an array' unless config[:salt_minion_config_include_files].is_a?(Array)
