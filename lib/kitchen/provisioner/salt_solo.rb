@@ -183,7 +183,6 @@ module Kitchen
             sandbox_pip_path = File.join(sandbox_path, 'pip')
             FileUtils.mkdir_p(sandbox_pip_path)
             FileUtils.cp_r(config[:pip_pkg], sandbox_pip_path)
-            config[:pip_install] = '/tmp/kitchen/pip/%s' % [File.basename(config[:pip_pkg])]
             config[:pip_install] = File.join(config[:root_path], 'pip', File.basename(config[:pip_pkg]))
           else
             debug("Installing with pip from download")
