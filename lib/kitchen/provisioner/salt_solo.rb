@@ -76,7 +76,8 @@ module Kitchen
         pip_editable: false,
         pip_index_url: 'https://pypi.python.org/simple/',
         pip_extra_index_url: [],
-        pip_bin: 'pip'
+        pip_bin: 'pip',
+        install_after_init_environment: false,
       }
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -86,7 +87,19 @@ module Kitchen
         default_config k, v
       end
 
+      def install_command
+        unless config[:salt_install] == 'pip' || config[:install_after_init_environment]
+          setup_salt
+        end
+      end
+
       def prepare_command
+        if config[:salt_install] == 'pip' || config[:install_after_init_environment]
+          setup_salt
+        end
+      end
+
+      def setup_salt
         debug(diagnose)
         salt_version = config[:salt_version]
 
@@ -170,7 +183,6 @@ module Kitchen
             sandbox_pip_path = File.join(sandbox_path, 'pip')
             FileUtils.mkdir_p(sandbox_pip_path)
             FileUtils.cp_r(config[:pip_pkg], sandbox_pip_path)
-            config[:pip_install] = '/tmp/kitchen/pip/%s' % [File.basename(config[:pip_pkg])]
             config[:pip_install] = File.join(config[:root_path], 'pip', File.basename(config[:pip_pkg]))
           else
             debug("Installing with pip from download")
