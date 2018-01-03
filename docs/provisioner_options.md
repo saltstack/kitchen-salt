@@ -420,6 +420,12 @@ default: `""`
 
 Commands to run prior to running salt-call
 
+### install_after_init_environment ###
+
+default: `false`
+
+Install salt after `init_environment` is run
+
 ### bootstrap_url ###
 
 default: `https://raw.githubusercontent.com/saltstack/kitchen-salt/master/assets/install.sh`

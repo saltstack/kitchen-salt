@@ -76,7 +76,8 @@ module Kitchen
         pip_editable: false,
         pip_index_url: 'https://pypi.python.org/simple/',
         pip_extra_index_url: [],
-        pip_bin: 'pip'
+        pip_bin: 'pip',
+        install_after_init_environment: false,
       }
 
       # salt-call version that supports the undocumented --retcode-passthrough command
@@ -86,7 +87,19 @@ module Kitchen
         default_config k, v
       end
 
+      def install_command
+        unless config[:salt_install] == 'pip' || config[:install_after_init_environment]
+          setup_salt
+        end
+      end
+
       def prepare_command
+        if config[:salt_install] == 'pip' || config[:install_after_init_environment]
+          setup_salt
+        end
+      end
+
+      def setup_salt
         debug(diagnose)
         salt_version = config[:salt_version]
 
