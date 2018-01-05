@@ -49,6 +49,8 @@ module Kitchen
             config[:save].each do |remote, local|
               unless config[:windows]
                 conn.execute(sudo("chmod -R +r #{remote}"))
+              else
+                remote = "C:#{remote.to_s.gsub(/\//, '\\\\').to_sym}"
               end
               info("Copying #{remote} to #{local}")
               conn.download(remote, local)
