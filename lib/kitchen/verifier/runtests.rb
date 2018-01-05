@@ -41,6 +41,9 @@ module Kitchen
         info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
           begin
+            if config[:windows]
+              conn.execute('$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")')
+            end
             conn.execute(sudo(command))
           ensure
             config[:save].each do |remote, local|
