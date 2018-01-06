@@ -23,7 +23,7 @@ module Kitchen
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
-        root_path = config[:root_path].gsub(/verifier/, 'kitchen')
+        root_path = (config[:windows] ? '$env:TEMP\\kitchen' : '/tmp/kitchen')
         command = [
           (config[:windows] ? 'python.exe' : config[:python_bin]),
           File.join(root_path, config[:testingdir], '/tests/runtests.py'),
@@ -41,6 +41,9 @@ module Kitchen
         info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
           begin
+            if config[:windows]
+              conn.execute('$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")')
+            end
             conn.execute(sudo(command))
           ensure
             config[:save].each do |remote, local|
