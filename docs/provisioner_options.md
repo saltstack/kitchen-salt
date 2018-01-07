@@ -84,7 +84,11 @@ The above will require that a `salt` directory be located at `setup/salt/` with 
 
 default: `nil`
 
-This is used for testing environments.  Specify the salt states elsewhere, and then use them to deploy code from the current environment.
+Note that this is not used if `state_collection` or `local_salt_root` are specified, or `is_file_root` is set to `true`.
+
+This is used for testing environments.  Specify the salt states elsewhere, and then use them to deploy code from the current environment. 
+
+For example, saltstack itself uses a `Salt-Jenkins` project to configure its testing environment.  This is done like so:
 
     ---
     provisioner:
@@ -99,11 +103,9 @@ This is used for testing environments.  Specify the salt states elsewhere, and t
           '*':
             - git.salt
 
-This will clone down the git repo to the sandbox /srv/salt, and then run the git.salt state.
+This will clone the `salt-jenkins.git` git repository to the `salt_file_root` (`/srv/salt`) directory, and then run the git.salt state.
 
-Salt-Jenkins is used to configure the testing environment for saltstack.
-
-The repo from which this is run is copied with the `salt_copy_filter` applied to the `testingdir`
+The optional `testingdir` field specifies where to create a copy of the test kitchen project's root directory. The `salt_copy_filter` provisioner option is applied during this copy to exclude any files.
 
 ### log_level ###
 
@@ -419,6 +421,12 @@ pip binary in the `$PATH` or path to a pip binary to use for installing salt.
 default: `""`
 
 Commands to run prior to running salt-call
+
+### install_after_init_environment ###
+
+default: `false`
+
+Install salt after `init_environment` is run
 
 ### bootstrap_url ###
 

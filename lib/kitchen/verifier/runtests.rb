@@ -9,7 +9,7 @@ module Kitchen
 
       plugin_version Kitchen::VERSION
 
-      default_config :testingdir, '/tmp/kitchen/testing'
+      default_config :testingdir, '/testing'
       default_config :python_bin, 'python2'
       default_config :verbose, false
       default_config :run_destructive, false
@@ -19,14 +19,17 @@ module Kitchen
       default_config :tests, []
       default_config :transport, false
       default_config :save, {}
+      default_config :windows, false
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
+        root_path = (config[:windows] ? '$env:TEMP\\kitchen' : '/tmp/kitchen')
         command = [
-          config[:python_bin],
-          File.join(config[:testingdir], '/tests/runtests.py'),
+          (config[:windows] ? 'python.exe' : config[:python_bin]),
+          File.join(root_path, config[:testingdir], '/tests/runtests.py'),
           '--sysinfo',
           '--output-columns=80',
+          (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
           (config[:transport] ? "--transport=#{config[:transport]}" : ''),
           (config[:verbose] ? '-v' : ''),
           (config[:run_destructive] ? "--run-destructive" : ''),
@@ -38,10 +41,15 @@ module Kitchen
         info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
           begin
+            if config[:windows]
+              conn.execute('$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")')
+            end
             conn.execute(sudo(command))
           ensure
             config[:save].each do |remote, local|
-              conn.execute(sudo("chmod -R +r #{remote}"))
+              unless config[:windows]
+                conn.execute(sudo("chmod -R +r #{remote}"))
+              end
               info("Copying #{remote} to #{local}")
               conn.download(remote, local)
             end

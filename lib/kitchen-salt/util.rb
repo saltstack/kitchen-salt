@@ -47,6 +47,8 @@ module Kitchen
             FileUtils.cp_r "#{source}/.", target if File.symlink? source
           elsif filtered
             debug("Found #{source} in #{filter}, not copying file")
+          elsif File.symlink? source
+            FileUtils.symlink File.readlink(source), target
           else
             FileUtils.copy source, target
           end
