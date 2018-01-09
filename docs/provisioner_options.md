@@ -144,9 +144,11 @@ Environment to use in the environment to use in minion config file for the file 
 
 ### state_top_from_file ###
 
-default: `nil`
+default: `false`
 
-File to use as the `top.sls` in the test instance
+If a top.sls file is provided in the states directory, and that is the top.sls
+that is to be used, then this should be set to true so that it is not
+overwritten by `state_top`
 
 ### vendor_path ###
 
