@@ -304,8 +304,11 @@ Method by which salt will be installed:
 - **apt**: install salt from an apt repository.
 - **distrib**: install the version of salt that comes with the distribution.
 - **ppa**: install salt from a ppa.
+- **none**: bypass salt installation.
 
 Except for `distrib` and `bootstrap`, most of these options will require extra configuration to make sure it fits the tests distribution version.  Unless the newest version is used, then it should just work for yum and apt setups.
+
+If set to `none`, salt must already exist or provisioning will fail. This option is useful for images that have salt pre-installed.
 
 ### salt_version ###
 
