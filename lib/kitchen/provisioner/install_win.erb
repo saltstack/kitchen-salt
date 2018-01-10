@@ -15,16 +15,24 @@ if (-Not $installed_version -And "#{salt_install}" -eq "bootstrap") {
   (New-Object net.webclient).DownloadFile("#{salt_url}", "c:\\temp\\salt_bootstrap.ps1")
   #{sudo('powershell')} c:\\temp\\salt_bootstrap.ps1 #{bootstrap_options}
 }
-$installed_version = $(c:\\salt\\salt-call.bat --version).split(' ')[1] 
-if (-Not $installed_version) {
+$FULL_SALT_VERSION = $(c:\\salt\\salt-call.bat --version).split(' ')[1]
+if ($FULL_SALT_VERSION) {
+  $YEAR = $FULL_SALT_VERSION.split('.')[0]
+  $MONTH = $FULL_SALT_VERSION.split('.')[1]
+  $SALT_VERSION = "$YEAR.$MONTH"
+}
+
+if (-Not $SALT_VERSION) {
   write-host "No salt-minion installed, install must have failed!!"
   write-host "salt_install = #{salt_install}"
   write-host "salt_url = #{salt_url}"
   write-host "bootstrap_options = #{bootstrap_options}"
-} elseif ($installed_version -And "#{salt_install}" -eq "bootstrap") {
-  write-host "You asked for bootstrap install and you have got $installed_version, hope that's ok!"
+} elseif ($SALT_VERSION -eq "#{salt_version}" -Or "#{salt_version}" -eq "latest" -Or "#{salt_version}" -eq "$FULL_SALT_VERSION") {
+  write-host "You asked for #{salt_version} and you have ${FULL_SALT_VERSION} installed, sweet!"
+} elseif ($SALT_VERSION -And "#{salt_install}" -eq "bootstrap") {
+  write-host "You asked for bootstrap install and you have got $SALT_VERSION, hope that's ok!"
 } else {
-  write-host "You asked for #{salt_version} and you have got $installed_version installed, dunno how to fix that, sorry!"
+  write-host "You asked for #{salt_version} and you have got $SALT_VERSION installed, dunno how to fix that, sorry!"
   exit 2
 }
 #{install_chef}
