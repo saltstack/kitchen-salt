@@ -24,7 +24,7 @@ if (-Not $installed_version) {
 } elseif ($installed_version -And "#{salt_install}" -eq "bootstrap") {
   write-host "You asked for bootstrap install and you have got $installed_version, hope that's ok!"
 } else {
-  write-host "You asked for #{salt_version} and you have got $installed_version installed, dunno ho to fix that, sorry!"
+  write-host "You asked for #{salt_version} and you have got $installed_version installed, dunno how to fix that, sorry!"
   exit 2
 }
 #{install_chef}
