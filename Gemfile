@@ -1,9 +1,10 @@
 source 'https://rubygems.org'
 
 gemspec
-gem 'test-kitchen'
-gem 'kitchen-sync'
+gem 'hashie'
 gem 'json'
+gem 'kitchen-sync'
+gem 'test-kitchen'
 
 group :vagrant do
   gem 'vagrant-wrapper'

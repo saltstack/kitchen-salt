@@ -16,11 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'kitchen/provisioner/base'
-require 'kitchen-salt/util'
+require 'fileutils'
+require 'hashie'
 require 'kitchen-salt/pillars'
 require 'kitchen-salt/states'
-require 'fileutils'
+require 'kitchen-salt/util'
+require 'kitchen/provisioner/base'
 require 'yaml'
 
 module Kitchen
@@ -61,8 +62,10 @@ module Kitchen
         salt_file_root: '/srv/salt',
         salt_force_color: false,
         salt_install: 'bootstrap',
+        salt_minion_config_dropin_files: [],
         salt_minion_config_template: nil,
         salt_minion_config: '/etc/salt/minion',
+        salt_minion_extra_config: {},
         salt_minion_id: nil,
         salt_pillar_root: '/srv/pillar',
         salt_ppa: 'ppa:saltstack/salt',
@@ -280,9 +283,7 @@ module Kitchen
         cp_r_with_filter(config[:data_path], tmpdata_dir, config[:salt_copy_filter])
       end
 
-      def prepare_minion
-        info('Preparing salt-minion')
-
+      def prepare_minion_base_config
         if config[:salt_minion_config_template]
           minion_template = File.expand_path(config[:salt_minion_config_template], Kitchen::Config.new.kitchen_root)
         else
@@ -300,6 +301,40 @@ module Kitchen
         sandbox_minion_config_path = File.join(sandbox_path, config[:salt_minion_config])
 
         write_raw_file(sandbox_minion_config_path, minion_config_content)
+      end
+
+      def prepare_minion_extra_config
+        minion_template = File.expand_path('./../99-minion.conf.erb', __FILE__)
+
+        safe_hash = Hashie.stringify_keys(config[:salt_minion_extra_config])
+        minion_extra_config_content = ERB.new(File.read(minion_template)).result(binding)
+
+        sandbox_dropin_path = File.join(sandbox_path, 'etc/salt/minion.d')
+
+        write_raw_file(File.join(sandbox_dropin_path, '99-minion.conf'), minion_extra_config_content)
+      end
+
+      def insert_minion_config_dropins
+        sandbox_dropin_path = File.join(sandbox_path, 'etc/salt/minion.d')
+        Dir.mkdir(sandbox_dropin_path)
+
+        config[:salt_minion_config_dropin_files].each_index do |i|
+          filename = File.basename(config[:salt_minion_config_dropin_files][i])
+          index = (99 - config[:salt_minion_config_dropin_files].count + i).to_s.rjust(2, '0')
+
+          file = File.expand_path(config[:salt_minion_config_dropin_files][i])
+          puts file
+          data = File.read(file)
+
+          write_raw_file(File.join(sandbox_dropin_path, [index, filename].join('-')), data)
+        end
+      end
+
+      def prepare_minion
+        info('Preparing salt-minion')
+        prepare_minion_base_config
+        prepare_minion_extra_config if config[:salt_minion_extra_config].keys.any?
+        insert_minion_config_dropins if config[:salt_minion_config_dropin_files].any?
       end
 
       def prepare_grains
