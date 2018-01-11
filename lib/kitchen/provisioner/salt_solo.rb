@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+
 #
 # Author:: Simon McCartney <simon.mccartney@hp.com>
 #
@@ -77,8 +77,8 @@ module Kitchen
         pip_index_url: 'https://pypi.python.org/simple/',
         pip_extra_index_url: [],
         pip_bin: 'pip',
-        install_after_init_environment: false,
-      }
+        install_after_init_environment: false
+      }.freeze
 
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'.freeze
@@ -110,14 +110,14 @@ module Kitchen
           config[:salt_bootstrap_options] = "-P git v#{salt_version}"
         end
 
-        if windows_os?
-          install_template = File.expand_path("./../install_win.erb", __FILE__)
-        else
-          install_template = File.expand_path("./../install.erb", __FILE__)
-        end
+        install_template = if windows_os?
+                             File.expand_path('./../install_win.erb', __FILE__)
+                           else
+                             File.expand_path('./../install.erb', __FILE__)
+                           end
 
         erb = ERB.new(File.read(install_template)).result(binding)
-        debug("Install Command:" + erb.to_s)
+        debug('Install Command:' + erb.to_s)
         erb
       end
 
@@ -136,10 +136,10 @@ module Kitchen
             }
           POWERSHELL
         else
-            omnibus_download_dir = config[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
-            bootstrap_url = config[:bootstrap_url]
-            bootstrap_download_dir = '/tmp'
-            <<-INSTALL
+          omnibus_download_dir = config[:omnibus_cachier] ? '/tmp/vagrant-cache/omnibus_chef' : '/tmp'
+          bootstrap_url = config[:bootstrap_url]
+          bootstrap_download_dir = '/tmp'
+          <<-INSTALL
               echo "-----> Trying to install ruby(-dev) using assets.sh from kitchen-salt"
                 mkdir -p #{bootstrap_download_dir}
                 if [ ! -x #{bootstrap_download_dir}/install.sh ]
@@ -177,24 +177,24 @@ module Kitchen
       def prepare_install
         salt_version = config[:salt_version]
         if config[:salt_install] == 'pip'
-          debug("Using pip to install")
+          debug('Using pip to install')
           if File.exist?(config[:pip_pkg])
-            debug("Installing with pip from sdist")
+            debug('Installing with pip from sdist')
             sandbox_pip_path = File.join(sandbox_path, 'pip')
             FileUtils.mkdir_p(sandbox_pip_path)
             FileUtils.cp_r(config[:pip_pkg], sandbox_pip_path)
             config[:pip_install] = File.join(config[:root_path], 'pip', File.basename(config[:pip_pkg]))
           else
-            debug("Installing with pip from download")
+            debug('Installing with pip from download')
             if salt_version != 'latest'
-              config[:pip_install] = config[:pip_pkg] % [salt_version]
+              config[:pip_install] = format(config[:pip_pkg], salt_version)
             else
               config[:pip_pkg].slice!('==%s')
               config[:pip_install] = config[:pip_pkg]
             end
           end
         elsif config[:salt_install] == 'bootstrap'
-          if File.exists?(config[:salt_bootstrap_url])
+          if File.exist?(config[:salt_bootstrap_url])
             FileUtils.cp_r(config[:salt_bootstrap_url], File.join(sandbox_path, 'bootstrap.sh'))
           end
         end
@@ -202,11 +202,11 @@ module Kitchen
 
       def init_command
         debug("Initialising Driver #{name}")
-        if windows_os?
-          cmd = "mkdir -Force -Path ""#{config[:root_path]}""\n"
-        else
-          cmd = "mkdir -p '#{config[:root_path]}';"
-        end
+        cmd = if windows_os?
+                'mkdir -Force -Path '"#{config[:root_path]}""\n"
+              else
+                "mkdir -p '#{config[:root_path]}';"
+              end
         cmd += <<-INSTALL
           #{config[:init_environment]}
         INSTALL
@@ -216,30 +216,28 @@ module Kitchen
       def salt_command
         salt_version = config[:salt_version]
 
-        cmd = ""
+        cmd = ''
         if windows_os?
-          salt_call = "c:\\salt\\salt-call.bat"
-          salt_config_path = config[:salt_config].gsub('/', '\\')
-          cmd << "(get-content #{File.join(config[:root_path], salt_config_path, 'minion').gsub('/', '\\')}).replace(\"`$env`:TEMP\", $env:TEMP) | set-content #{File.join(config[:root_path], salt_config_path, 'minion').gsub('/', '\\')} ;"
+          salt_call = 'c:\\salt\\salt-call.bat'
+          salt_config_path = config[:salt_config].tr('/', '\\')
+          cmd << "(get-content #{File.join(config[:root_path], salt_config_path, 'minion').tr('/', '\\')}).replace(\"`$env`:TEMP\", $env:TEMP) | set-content #{File.join(config[:root_path], salt_config_path, 'minion').tr('/', '\\')} ;"
         else
           # install/update dependencies
           cmd << sudo("chmod +x #{config[:root_path]}/*.sh;")
           cmd << sudo("#{config[:root_path]}/dependencies.sh;")
           salt_config_path = config[:salt_config]
-          salt_call = "salt-call"
+          salt_call = 'salt-call'
         end
         cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{File.join(config[:root_path], salt_config_path)} --local state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
-        cmd << " --force-color" if config[:salt_force_color]
+        cmd << ' --force-color' if config[:salt_force_color]
         if salt_version > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd << ' --retcode-passthrough'
         end
-        if windows_os?
-          cmd << ' ; exit $LASTEXITCODE'
-        end
+        cmd << ' ; exit $LASTEXITCODE' if windows_os?
         cmd
       end
 
@@ -288,14 +286,14 @@ module Kitchen
         if config[:salt_minion_config_template]
           minion_template = File.expand_path(config[:salt_minion_config_template], Kitchen::Config.new.kitchen_root)
         else
-          minion_template = File.expand_path("./../minion.erb", __FILE__)
+          minion_template = File.expand_path('./../minion.erb', __FILE__)
         end
 
-        if File.extname(minion_template) == ".erb"
-          minion_config_content = ERB.new(File.read(minion_template)).result(binding)
-        else
-          minion_config_content = File.read(minion_template)
-        end
+        minion_config_content = if File.extname(minion_template) == '.erb'
+                                  ERB.new(File.read(minion_template)).result(binding)
+                                else
+                                  File.read(minion_template)
+                                end
 
         # create the temporary path for the salt-minion config file
         debug("sandbox is #{sandbox_path}")
@@ -326,14 +324,14 @@ module Kitchen
         # PLACEHOLDER, git formulas might be fetched locally to temp and uploaded
 
         # setup spm
-        spm_template = File.expand_path("./../spm.erb", __FILE__)
+        spm_template = File.expand_path('./../spm.erb', __FILE__)
         spm_config_content = ERB.new(File.read(spm_template)).result(binding)
         sandbox_spm_config_path = File.join(sandbox_path, config[:salt_config], 'spm')
         write_raw_file(sandbox_spm_config_path, spm_config_content)
 
-        spm_repos = config[:vendor_repo].select{|x| x[:type]=='spm'}.each{|x| x[:url]}.map {|x| x[:url] }
+        spm_repos = config[:vendor_repo].select { |x| x[:type] == 'spm' }.each { |x| x[:url] }.map { |x| x[:url] }
         spm_repos.each do |url|
-          id=url.gsub(/[htp:\/.]/,'')
+          id = url.gsub(/[htp:\/.]/, '')
           spmreposd = File.join(sandbox_path, 'etc', 'salt', 'spm.repos.d')
           repo_spec = File.join(spmreposd, 'spm.repo')
           FileUtils.mkdir_p(spmreposd)
@@ -345,13 +343,12 @@ module Kitchen
         end
 
         # upload scripts
-        %w(formula-fetch.sh repository-setup.sh).each do |script|
+        %w[formula-fetch.sh repository-setup.sh].each do |script|
           write_raw_file(File.join(sandbox_path, script), File.read(File.expand_path("../#{script}", __FILE__)))
         end
-        dependencies_script = File.expand_path("./../dependencies.erb", __FILE__)
+        dependencies_script = File.expand_path('./../dependencies.erb', __FILE__)
         dependencies_content = ERB.new(File.read(dependencies_script)).result(binding)
         write_raw_file(File.join(sandbox_path, 'dependencies.sh'), dependencies_content)
-
       end
     end
   end
