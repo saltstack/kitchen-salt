@@ -22,7 +22,7 @@ env:
 
 sudo: true
 dist: trusty
-bundler_args: --with=docker --without vagrant windows
+bundler_args: --with=docker --without vagrant
 
 before_install:
   - pip install --user -r test-requirements.txt
