@@ -471,24 +471,27 @@ Example
         - .git
         - .travis.yml
 
-### salt_minion_config_include_data ###
+### salt_minion_extra_config: {}, ###
 
-default: `[]`
+default: `{}`
 
-Allows arbitrary data to be inserted inside the minion config. This value may be a string or an array of strings. If an array is used, it will be joined with newlines before being commited to the minon config.
+Allows extra configuraiton that will be written to a minion config drop-in. Data will be written in `/tmp/kitchen/etc/salt/minion.d/99-minion.conf`
 
 Example
 
     provisioner:
-      salt_minion_config_include_data: "output: json"
+      salt_minion_extra_config:
+        mine_functions:
+        test.ping: []
+        network.ip_addrs:
+          interface: eth0
+          cidr: '10.0.0.0/8'
 
-### salt_minion_config_include_files ###
+### salt_minion_config_dropin_files ###
 
 default: `[]`
 
-Allows reading of files outside the kitchen for data to inject in the minion config. The contents of the files in this array of paths will be read into `salt_minion_config_include_data` and written into the minion config file.
-
-If `salt_minion_config_include_data` as well as `salt_minion_config_include_files` is declared by the user, kitchen will skip parsing `salt_minion_config_include_files`, use the declared data _only_, and emit a warning.
+Allows reading of files outside the kitchen for files to add as minion config drop-ins. The files will be numbered in order of appearance in the array and will be written to `/tmp/kitchen/etc/salt/minion.d`.
 
 Example
 
@@ -496,6 +499,12 @@ Example
       salt_minion_config_include_files:
         - ../salt-base/master.d/nodegroups.conf
         - ../sea-salt/output-config.yml
+
+This would generate the following files :
+
+    /tmp/kitchen/etc/salt/minion.d
+      |- 97-nodegroups.conf
+      |- 98-output-config.yml
 
 ### salt_minion_config ###
 
