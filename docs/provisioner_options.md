@@ -471,7 +471,7 @@ Example
         - .git
         - .travis.yml
 
-### salt_minion_extra_config: {}, ###
+### salt_minion_extra_config ###
 
 default: `{}`
 
