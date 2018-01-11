@@ -25,9 +25,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pry', '~> 0.10.1'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'yard'
-
-  if Gem.win_platform?
-    spec.add_development_dependency 'winrm', '~>2.0'
-    spec.add_development_dependency 'winrm-fs', '~>1.0'
-  end
 end
