@@ -323,7 +323,6 @@ module Kitchen
           index = (99 - config[:salt_minion_config_dropin_files].count + i).to_s.rjust(2, '0')
 
           file = File.expand_path(config[:salt_minion_config_dropin_files][i])
-          puts file
           data = File.read(file)
 
           write_raw_file(File.join(sandbox_dropin_path, [index, filename].join('-')), data)
