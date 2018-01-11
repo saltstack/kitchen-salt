@@ -1,5 +1,3 @@
-require 'bundler'
-require 'pp'
 require File.expand_path('../lib/kitchen-salt/version', __FILE__)
 
 Gem::Specification.new do |spec|
