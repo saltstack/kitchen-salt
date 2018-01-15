@@ -351,7 +351,6 @@ module Kitchen
         dependencies_script = File.expand_path("./../dependencies.erb", __FILE__)
         dependencies_content = ERB.new(File.read(dependencies_script)).result(binding)
         write_raw_file(File.join(sandbox_path, 'dependencies.sh'), dependencies_content)
-
       end
     end
   end
