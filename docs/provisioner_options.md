@@ -471,6 +471,41 @@ Example
         - .git
         - .travis.yml
 
+### salt_minion_extra_config ###
+
+default: `{}`
+
+Allows extra configuraiton that will be written to a minion config drop-in. Data will be written in `/tmp/kitchen/etc/salt/minion.d/99-minion.conf`
+
+Example
+
+    provisioner:
+      salt_minion_extra_config:
+        mine_functions:
+        test.ping: []
+        network.ip_addrs:
+          interface: eth0
+          cidr: '10.0.0.0/8'
+
+### salt_minion_config_dropin_files ###
+
+default: `[]`
+
+Allows reading of files outside the kitchen for files to add as minion config drop-ins. The files will be numbered in order of appearance in the array and will be written to `/tmp/kitchen/etc/salt/minion.d`.
+
+Example
+
+    provisioner:
+      salt_minion_config_include_files:
+        - ../salt-base/master.d/nodegroups.conf
+        - ../sea-salt/output-config.yml
+
+This would generate the following files :
+
+    /tmp/kitchen/etc/salt/minion.d
+      |- 97-nodegroups.conf
+      |- 98-output-config.yml
+
 ### salt_minion_config ###
 
 default: `/etc/salt/minion`
