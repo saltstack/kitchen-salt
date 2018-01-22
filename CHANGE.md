@@ -1,3 +1,15 @@
+v0.2.0
+
+* Added ability to copy drop-in files to the minion configuration
+  See 
+  https://github.com/saltstack/kitchen-salt/blob/master/docs/provisioner_options.md#salt_minion_extra_config
+* Provides support for PowerShell 2.0 under Windows Server 2008r2
+* Fixed a bug where `salt_install: none` would fail on Windows
+
+v0.1.0
+
+* Two years worth of changes. You'll need to browse the commit history, sorry!
+
 v0.0.19
 * Added ability to copy additional dependency formulas into the VM
   See https://github.com/saltstack/kitchen-salt/blob/master/provisioner_options.md#dependencies
