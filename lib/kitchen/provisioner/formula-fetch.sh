@@ -73,7 +73,9 @@ function linkFormulas() {
       for formula in $GIT_FORMULA_LIST
       do
         name=$(basename "$formula")
-        ln -fs "$formula/$name" "$SALT_ROOT/$name"
+        if [[ ! -L "$SALT_ROOT/$name" ]]; then
+          ln -fs "$formula/$name" "$SALT_ROOT/$name"
+        fi
         find "$formula" -maxdepth 1 -mindepth 1 -type d |grep -E "_(modules|states|grains|renderers|returners)" | xargs -I{} \
           basename {}| xargs -I{} cp -rs "$formula"/{} "$SALT_ROOT"/
       done
