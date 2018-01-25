@@ -289,7 +289,18 @@ And the contents of pillar.example is a normal pillar file:
 
 default: `[]`
 
-A list of directories that will be copied recursively to the pillar root.
+An array of strings or hashes of directories that will be copied recursively to the pillar root.
+
+    pillars_from_directories:
+      - source: ../foo/bar
+        dest: srv/pillar/baz
+      - ../qux
+
+The result would be:
+
+    {sandbox_path}/srv/pillar
+    |- baz
+    |- [contents of qux]
 
 ## Install Salt ##
 
