@@ -316,7 +316,7 @@ module Kitchen
 
       def insert_minion_config_dropins
         sandbox_dropin_path = File.join(sandbox_path, 'etc/salt/minion.d')
-        Dir.mkdir(sandbox_dropin_path)
+        FileUtils.mkdir_p(sandbox_dropin_path)
 
         config[:salt_minion_config_dropin_files].each_index do |i|
           filename = File.basename(config[:salt_minion_config_dropin_files][i])
