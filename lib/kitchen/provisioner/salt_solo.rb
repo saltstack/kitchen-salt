@@ -240,7 +240,7 @@ module Kitchen
           # hope for the best and hope it works eventually
           cmd << ' --retcode-passthrough'
         end
-        cmd << ' ; exit $LASTEXITCODE' if windows_os?
+        cmd << ' 2>&1 ; exit $LASTEXITCODE' if windows_os?
         cmd
       end
 
