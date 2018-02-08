@@ -220,6 +220,11 @@ module Kitchen
         salt_version = config[:salt_version]
 
         cmd = ''
+        if config[:pre_salt_call_hook]
+          cmd += <<-HOOK
+          #{config[:pre_salt_call_hook]}
+          HOOK
+        end
         if windows_os?
           salt_call = "c:\\salt\\salt-call.bat"
           salt_config_path = config[:salt_config].tr('/', '\\')
