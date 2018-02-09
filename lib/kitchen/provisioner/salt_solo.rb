@@ -100,7 +100,7 @@ module Kitchen
         cmd = ''
         if config[:prepare_salt_environment]
           cmd += <<-PREPARE
-          #{config[:prepare_salt_environment]}
+            #{config[:prepare_salt_environment]}
           PREPARE
         end
         if config[:salt_install] == 'pip' || config[:install_after_init_environment]
