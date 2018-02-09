@@ -97,9 +97,16 @@ module Kitchen
       end
 
       def prepare_command
-        if config[:salt_install] == 'pip' || config[:install_after_init_environment]
-          setup_salt
+        cmd = ''
+        if config[:prepare_salt_environment]
+          cmd += <<-PREPARE
+          #{config[:prepare_salt_environment]}
+          PREPARE
         end
+        if config[:salt_install] == 'pip' || config[:install_after_init_environment]
+          cmd << setup_salt
+        end
+        cmd
       end
 
       def setup_salt
@@ -220,11 +227,6 @@ module Kitchen
         salt_version = config[:salt_version]
 
         cmd = ''
-        if config[:pre_salt_call_hook]
-          cmd += <<-HOOK
-          #{config[:pre_salt_call_hook]}
-          HOOK
-        end
         if windows_os?
           salt_call = "c:\\salt\\salt-call.bat"
           salt_config_path = config[:salt_config].tr('/', '\\')
