@@ -359,6 +359,20 @@ For the Windows Powershell script:
         salt_bootstrap_script: https://github.com/saltstack/salt-bootstrap/blob/develop/bootstrap-salt.ps1
         salt_bootstrap_options: -version 2017.7.2
 
+You can also use `%s` in any part of this, to replace with the version of salt, as specified by `salt_version`
+
+For example, below is a custom bootstrap option for centos6 requiring python2.7, here `%s` gets replaced by `2018.3`
+
+    platform:
+      - centos-6:
+        salt_bootstrap_options: "-P -p git -p curl -p sudo -y -x python2.7 git %s"
+    
+    suites:
+      - name: oxygen
+        provisioner:
+          salt_version: '2018.3'
+          salt_install: bootstrap
+
 ### salt_apt_repo ###
 
 default: `https://repo.saltstack.com/apt/ubuntu/16.04/amd64/`

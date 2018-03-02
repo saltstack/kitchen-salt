@@ -1,8 +1,8 @@
 <%=
 salt_install = config[:salt_install]
 salt_url = config[:salt_bootstrap_url]
-bootstrap_options = config[:salt_bootstrap_options]
 salt_version = config[:salt_version]
+bootstrap_options = config[:salt_bootstrap_options] % [salt_version]
 salt_apt_repo = config[:salt_apt_repo]
 salt_apt_repo_key = config[:salt_apt_repo_key]
 salt_ppa = config[:salt_ppa]
