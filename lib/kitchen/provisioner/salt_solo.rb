@@ -83,11 +83,22 @@ module Kitchen
         vendor_repo: {}
       }.freeze
 
+      WIN_DEFAULT_CONFIG = {
+        chef_bootstrap_url: 'https://omnitruck.chef.io/install.ps1',
+        salt_bootstrap_url: 'https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1'
+      }.freeze
+
       # salt-call version that supports the undocumented --retcode-passthrough command
       RETCODE_VERSION = '0.17.5'.freeze
 
       DEFAULT_CONFIG.each do |k, v|
         default_config k, v
+      end
+
+      WIN_DEFAULT_CONFIG.each_key do |key|
+        default_config key do |provisioner|
+          provisioner.windows_os? ? WIN_DEFAULT_CONFIG[key] : DEFAULT_CONFIG[key]
+        end
       end
 
       def install_command
@@ -136,10 +147,11 @@ module Kitchen
         chef_url = config[:chef_bootstrap_url]
         if windows_os?
           <<-POWERSHELL
-            if (-Not $(test-path c:\\opscode\\chef) {
+            if (-Not $(test-path c:\\opscode\\chef)) {
               if (-Not $(Test-Path c:\\temp)) {
                 New-Item -Path c:\\temp -itemtype directory
               }
+              [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
               (New-Object net.webclient).DownloadFile("#{chef_url}", "c:\\temp\\chef_bootstrap.ps1")
               write-host "-----> Installing Chef Omnibus (for busser/serverspec ruby support)"
               #{sudo('powershell')} c:\\temp\\chef_bootstrap.ps1
@@ -231,14 +243,15 @@ module Kitchen
           salt_call = "c:\\salt\\salt-call.bat"
           salt_config_path = config[:salt_config].tr('/', '\\')
           cmd << "(get-content #{File.join(config[:root_path], salt_config_path, 'minion').tr('/', '\\')}) -replace '\\$env:TEMP', $env:TEMP | set-content #{File.join(config[:root_path], salt_config_path, 'minion').tr('/', '\\')} ;"
+          cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{File.join(config[:root_path], salt_config_path).tr('/', '\\')} --local state.highstate")
         else
           # install/update dependencies
           cmd << sudo("chmod +x #{config[:root_path]}/*.sh;")
           cmd << sudo("#{config[:root_path]}/dependencies.sh;")
           salt_config_path = config[:salt_config]
           salt_call = 'salt-call'
+          cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{File.join(config[:root_path], salt_config_path)} --local state.highstate")
         end
-        cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{File.join(config[:root_path], salt_config_path)} --local state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
