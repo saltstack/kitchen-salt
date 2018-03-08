@@ -43,6 +43,7 @@ module Kitchen
           begin
             if config[:windows]
               conn.execute('$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")')
+              conn.execute("$env:PythonPath = [Environment]::ExpandEnvironmentVariables(\"#{root_path}\\testing\")")
             else
               conn.execute(sudo("chown -R $USER #{root_path}"))
             end
