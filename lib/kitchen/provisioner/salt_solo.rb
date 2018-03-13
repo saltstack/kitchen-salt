@@ -109,6 +109,9 @@ module Kitchen
 
       def prepare_command
         cmd = ''
+        cmd += <<-CHOWN
+          #{sudo('chown')} "${SUDO_USER:-$USER}" -R "#{config[:root_path]}/#{config[:salt_file_root]}"
+        CHOWN
         if config[:prepare_salt_environment]
           cmd += <<-PREPARE
             #{config[:prepare_salt_environment]}
