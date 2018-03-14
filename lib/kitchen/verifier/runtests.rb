@@ -31,12 +31,13 @@ module Kitchen
           '--output-columns=80',
           (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
           (config[:transport] ? "--transport=#{config[:transport]}" : ''),
-          (config[:verbose] ? '-v' : ''),
+          (config[:verbose] ? '-vv' : '-v'),
           (config[:run_destructive] ? "--run-destructive" : ''),
           (config[:coverage_xml] ? "--coverage-xml=#{config[:coverage_xml]}" : ''),
           (config[:xml] ? "--xml=#{config[:xml]}" : ''),
           config[:types].collect{|type| "--#{type}"}.join(' '),
           config[:tests].collect{|test| "-n #{test}"}.join(' '),
+          '2>&1',
         ].join(' ')
         info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
