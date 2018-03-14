@@ -45,7 +45,7 @@ Make sure the private key is either created or uploaded to the same region that 
 
 ## Setting up Kitchen ##
 
-The first thing that needs to be done is setup the extra kitchen files.  The .kitchen.yml is templated to use files from .kitchen/ instead of the configurations in the actual file if the new files are available.  In order to build on EC2, you can either store the files in .kitchen/ or export environment variables to point to new files.  The following files are the ones we use for Jenkins.
+The first thing that needs to be done is setup the extra kitchen files.  The .kitchen.yml is templated to use files from .kitchen/ instead of the configurations in the actual file if the new files are available.  In order to build on EC2, you can either store the files in .kitchen/ inside of the git repository or export environment variables to point to new files.  The following files are the ones we use for Jenkins.
 
 ### .kitchen/driver.yml or SALT_KITCHEN_DRIVER ##
 
@@ -181,7 +181,7 @@ The above is the platform file as it exists on our Jenkins nodes, it just needs 
 
 ## Extra verifier config files ##
 
-These file paths need to be exported as the `SALT_KITCHEN_VERIFIER` environment variable, or placed in '.kitchen/verifier.yml' in the git repository root.
+These file paths need to be exported as the `SALT_KITCHEN_VERIFIER` environment variable, or placed in `.kitchen/verifier.yml` in the git repository root.
 
 ### .kitchen/transport.yml ###
 
