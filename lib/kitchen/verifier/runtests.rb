@@ -24,6 +24,9 @@ module Kitchen
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
         root_path = (config[:windows] ? '$env:TEMP\\kitchen' : '/tmp/kitchen')
+        if ENV['KITCHEN_TESTS']
+          ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
+        end
         command = [
           (config[:windows] ? 'python.exe' : config[:python_bin]),
           File.join(root_path, config[:testingdir], '/tests/runtests.py'),
