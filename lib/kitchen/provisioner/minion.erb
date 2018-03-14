@@ -5,10 +5,16 @@ root_dir: <%= config[:root_path] %>
 
 file_roots:
  <%= config[:salt_env] %>:
-   - <%= File.join(config[:root_path], (windows_os? ? config[:salt_file_root].gsub('/', '\\') : config[:salt_file_root])) %>
-   - <%= File.join(config[:root_path], (windows_os? ? config[:salt_spm_root].gsub('/', '\\') : config[:salt_spm_root])) %>/salt
+   - <%= os_join(config[:root_path], config[:salt_file_root]) %>
+   - <%= os_join(config[:root_path], config[:salt_spm_root], 'salt') %>
 
 pillar_roots:
  <%= config[:salt_env] %>:
-   - <%= File.join(config[:root_path], (windows_os? ? config[:salt_pillar_root].gsub('/', '\\') : config[:salt_pillar_root])) %>
-   - <%= File.join(config[:root_path], (windows_os? ? config[:salt_spm_root].gsub('/', '\\') : config[:salt_spm_root])) %>/pillar
+   - <%= os_join(config[:root_path], config[:salt_pillar_root]) %>
+   - <%= os_join(config[:root_path], config[:salt_spm_root], 'pillar') %>
+
+<% if windows_os? %>
+file_client: local
+winrepo_dir: <%= os_join(config[:root_path], config[:salt_file_root], 'win', 'repo') %>
+winrepo_dir_ng: <%= os_join(config[:root_path], config[:salt_file_root], 'win', 'repo-ng') %>
+<% end %>

@@ -109,9 +109,11 @@ module Kitchen
 
       def prepare_command
         cmd = ''
-        cmd += <<-CHOWN
-          #{sudo('chown')} "${SUDO_USER:-$USER}" -R "#{config[:root_path]}/#{config[:salt_file_root]}"
-        CHOWN
+        unless windows_os?
+          cmd += <<-CHOWN
+            #{sudo('chown')} "${SUDO_USER:-$USER}" -R "#{config[:root_path]}/#{config[:salt_file_root]}"
+          CHOWN
+        end
         if config[:prepare_salt_environment]
           cmd += <<-PREPARE
             #{config[:prepare_salt_environment]}
@@ -238,23 +240,30 @@ module Kitchen
         cmd
       end
 
+      def os_join(*args)
+        if windows_os?
+           File.join(*args).tr('/', '\\')
+        else
+           File.join(*args)
+        end
+      end
+
       def salt_command
         salt_version = config[:salt_version]
 
         cmd = ''
         if windows_os?
           salt_call = "c:\\salt\\salt-call.bat"
-          salt_config_path = config[:salt_config].tr('/', '\\')
-          cmd << "(get-content #{File.join(config[:root_path], salt_config_path, 'minion').tr('/', '\\')}) -replace '\\$env:TEMP', $env:TEMP | set-content #{File.join(config[:root_path], salt_config_path, 'minion').tr('/', '\\')} ;"
-          cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{File.join(config[:root_path], salt_config_path).tr('/', '\\')} --local state.highstate")
+          salt_config_path = config[:salt_config]
+          cmd << "(get-content #{os_join(config[:root_path], salt_config_path, 'minion')}) -replace '\\$env:TEMP', $env:TEMP | set-content #{os_join(config[:root_path], salt_config_path, 'minion')} ;"
         else
           # install/update dependencies
           cmd << sudo("chmod +x #{config[:root_path]}/*.sh;")
           cmd << sudo("#{config[:root_path]}/dependencies.sh;")
           salt_config_path = config[:salt_config]
           salt_call = 'salt-call'
-          cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{File.join(config[:root_path], salt_config_path)} --local state.highstate")
         end
+        cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} --local state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
