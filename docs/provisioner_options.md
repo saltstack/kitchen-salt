@@ -32,7 +32,7 @@ default: `false`
 
 Treat the root directory of this project as a complete file root.
 
-Setting the `is_file_root` flag allows you to work with a directory tree that more closely resembles a built file_root on a salt-master, where you have may have multiple directories of states or formula.  The project is recursively copied down to guest instance, excluding any hidden files or directories (i.e. .git is not copied down, this is the standard behaviour of ruby's FileUtil.cp_r method)
+Setting the `is_file_root` flag allows you to work with a directory tree that more closely resembles a built file_root on a salt-master, where you have may have multiple directories of states or formula.  The project is recursively copied down to guest instance.
 
 Consider a directory that looks like this:
 
