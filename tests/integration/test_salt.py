@@ -31,6 +31,7 @@ def test_postfix_depends(salt):
     assert all([formula in dirs for formula in formulas])
 
 
+@pytest.mark.xfail
 @pytest.mark.skipif('windows' in os.environ.get('KITCHEN_INSTANCE'), reason='spm not supported on windows')
 def test_spm_depends(salt):
     formulas = {'hubblestack_nova'}
