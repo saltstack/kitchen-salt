@@ -42,7 +42,7 @@
           base:
             "*":
               - wordpress
-      pillars-from-files:
+      pillars_from_files:
         wordpress.sls: pillar.example
 
     platforms:

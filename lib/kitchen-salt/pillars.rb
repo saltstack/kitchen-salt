@@ -7,7 +7,12 @@ module Kitchen
         info("Preparing pillars into #{config[:salt_pillar_root]}")
 
         pillars = config[:pillars]
-        pillars_from_files = config[:'pillars-from-files']
+        if config.key?(:'pillars-from-files')
+          info("pillars-from-files is deprecated in favor of pillars_from_files")
+          pillars_from_files = config[:'pillars-from-files']
+        else
+          pillars_from_files = config[:'pillars_from_files']
+        end
         pillars_from_directories = config[:pillars_from_directories]
 
         debug("Pillars Directories: #{pillars_from_directories}")
