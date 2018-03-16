@@ -10,6 +10,19 @@ The new SaltStack Jenkins setup at https://jenkinsci.saltstack.com is using kitc
 
 The only thing that needs to be available is `ruby` and `gem` or `bundler` (`gem install bundler`). The rest of this guide will be using bundler. If you need to install ruby, there is a guide available for managed versions using rbenv or rvm available in the {file:docs/gettingstarted.md} doc.
 
+## Testing with Docker/Vagrant ##
+
+By default, the salt `.kitchen.yml` is configured to use Docker to test Linux Distributions and Vagrant to test Windows.
+
+Note: If `Vagrant` is installed on the system, the WinRM plugin will have to be installed in order to run any of the tests
+
+    vagrant plugin install vagrant-winrm
+
+`rsync` is also required.  The Salt test suite uses rsync to transfer files to the test instance, because symlinks must be maintained, and neither scp nor sftp preserve them.  With the base test suite in salt, kitchen-docker generates an ssh key at `.kitchen/docker_id_rsa`, this will need to be added to an ssh-agent.
+
+    source <(ssh-agent)
+    ssh-add .kitchen/docker_id_rsa
+
 ## Setting up EC2 ##
 
 There are requirements that are needed to run tests in EC2.
