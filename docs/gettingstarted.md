@@ -195,12 +195,12 @@ This is what kitchen-salt actually provides.
           base:
             "*":
               - wordpress
-      pillars-from-files:
+      pillars_from_files:
         wordpress.sls: pillar.example
 
 In this, the salt provisioner is specified by the name `salt_solo`.  The [salt-bootstrap](https://github.com/saltstack/salt-bootstrap) script is used to install salt. The option `is_file_root` specifies that the top level directory of this git repository should be copied to the salt `file_root` in the test instance. Since ruby is not being used to test the instance in the verifier step, `require_chef` is set to `False`.
 
-Next, the `dependencies` are different repositories that the `wordpress-formula` depends on to be available to work correctly.  The `state_top` specifies the top file that will be applied. Like the `state_top`, the `pillars` and `pillars-from-files` directives specifies different files to drop into the salt `pillar_roots` on the test instance. If there are multiple groups of state or pillar files that can be tested independently, it would probably be useful to specify the extra ones under the different suites.
+Next, the `dependencies` are different repositories that the `wordpress-formula` depends on to be available to work correctly.  The `state_top` specifies the top file that will be applied. Like the `state_top`, the `pillars` and `pillars_from_files` directives specifies different files to drop into the salt `pillar_roots` on the test instance. If there are multiple groups of state or pillar files that can be tested independently, it would probably be useful to specify the extra ones under the different suites.
 
 ## Run Tests ##
 

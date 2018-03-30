@@ -260,17 +260,17 @@ Dictionary of pillar files to setup on the minion.
           bin: /usr/bin/python3
           version: 3
 
-### pillars-from-files ###
+### pillars_from_files ###
 
 default: `nil`
 
-The pillars-from-files option allows for loading pillar data from another file, instead of being embedded in the .kitchen.yml.  This allows the re-use of the example files or reduce the clutter in .kitchen.yml
+The pillars_from_files option allows for loading pillar data from another file, instead of being embedded in the .kitchen.yml.  This allows the re-use of the example files or reduce the clutter in .kitchen.yml
 
 Consider the following suite definition:
 
     - name: tcp-output-external-pillar
       provisioner:
-        pillars-from-files:
+        pillars_from_files:
           beaver.sls: pillar.example
         pillars:
           top.sls:
