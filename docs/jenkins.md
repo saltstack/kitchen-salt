@@ -179,6 +179,9 @@ The following fields will need to be filled out:
       provisioner:
         salt_bootstrap_url: https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1
         salt_bootstrap_options: -version <%= version %>
+        init_environment: |
+          reg add "hklm\system\currentcontrolset\control\session manager\memory management" /v pagingfiles /t reg_multi_sz /d "d:\pagefile.sys 4096 8192" /f
+          winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="5000"}'
       transport:
         name: winrm
       verifier:
