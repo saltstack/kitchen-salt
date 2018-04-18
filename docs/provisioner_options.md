@@ -86,7 +86,7 @@ default: `nil`
 
 Note that this is not used if `state_collection` or `local_salt_root` are specified, or `is_file_root` is set to `true`.
 
-This is used for testing environments.  Specify the salt states elsewhere, and then use them to deploy code from the current environment. 
+This is used for testing environments.  Specify the salt states elsewhere, and then use them to deploy code from the current environment.
 
 For example, saltstack itself uses a `Salt-Jenkins` project to configure its testing environment.  This is done like so:
 
@@ -366,7 +366,7 @@ For example, below is a custom bootstrap option for centos6 requiring python2.7,
     platform:
       - centos-6:
         salt_bootstrap_options: "-P -p git -p curl -p sudo -y -x python2.7 git %s"
-    
+
     suites:
       - name: oxygen
         provisioner:
@@ -466,7 +466,7 @@ A bootstrap script used to provide Ruby (`ruby` and `ruby-dev`) required for the
 
 ### chef_bootstrap_url ###
 
-default: `https://www.getchef.com/chef/install.sh`
+default: `https://www.chef.io/chef/install.sh`
 
 The chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS.
 

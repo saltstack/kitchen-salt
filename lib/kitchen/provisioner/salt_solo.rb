@@ -37,7 +37,7 @@ module Kitchen
 
       DEFAULT_CONFIG = {
         bootstrap_url: 'https://raw.githubusercontent.com/saltstack/kitchen-salt/master/assets/install.sh',
-        chef_bootstrap_url: 'https://www.getchef.com/chef/install.sh',
+        chef_bootstrap_url: 'https://www.chef.io/chef/install.sh',
         dependencies: [],
         dry_run: false,
         install_after_init_environment: false,
