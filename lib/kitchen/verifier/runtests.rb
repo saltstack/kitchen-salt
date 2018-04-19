@@ -23,7 +23,7 @@ module Kitchen
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
-        root_path = (config[:windows] ? '$env:TEMP\\kitchen' : '/tmp/kitchen')
+        root_path = (config[:windows] ? '%TEMP%\\kitchen' : '/tmp/kitchen')
         if ENV['KITCHEN_TESTS']
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
         end
@@ -42,6 +42,9 @@ module Kitchen
           config[:tests].collect{|test| "-n #{test}"}.join(' '),
           '2>&1',
         ].join(' ')
+        if config[:windows]
+           command = "cmd.exe /c \"#{command}\" 2>&1"
+        end
         info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
           begin
