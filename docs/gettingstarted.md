@@ -96,6 +96,32 @@ There are a few things that are needed for running kitchen-salt
 
    This will install all the gems from the Gemfile, and make only those gems available when commands are run with `bundle exec <command>`
 
+
+For more complicated setups where different methods of running Kitchen are required, groups can be assigned in the Gemfile.
+
+    # Gemfile
+    source 'https://rubygems.org'
+
+    gem 'test-kitchen', :git => 'https://github.com/gtmanfred/test-kitchen.git'
+    gem 'kitchen-salt', :git => 'https://github.com/saltstack/kitchen-salt.git'
+    gem 'kitchen-sync'
+    gem 'git'
+
+    group :docker do
+      gem 'kitchen-docker', :git => 'https://github.com/test-kitchen/kitchen-docker.git'
+    end
+
+    group :windows do
+      gem 'vagrant-wrapper'
+      gem 'kitchen-vagrant'
+      gem 'winrm', '~>2.0'
+      gem 'winrm-fs', :git => 'https://github.com/gtmanfred/winrm-fs.git'
+    end
+
+To specify only installing certain groups, use the `--with` and `--without` arguements
+
+    bundle install --with windows --without docker
+
 ## Setup ##
 
 Now the `.kitchen.yml` file needs to be setup for running tests. The following sections should be copied into the {file:docs/example-kitchen.yml.md} file in the root of the directory for the `wordpress-formula`
