@@ -21,7 +21,7 @@ module Kitchen
       default_config :save, {}
       default_config :windows, false
       default_config :sudo_command do |verifier|
-        verifier.windows_os? ? nil : 'sudo env -i bash -l -c "%s"'
+        verifier.windows_os? ? nil : 'sudo env -i LANG=en_US.UTF-8 bash -l -c "%s"'
       end
 
       def sudo(script)
