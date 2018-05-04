@@ -20,6 +20,13 @@ module Kitchen
       default_config :transport, false
       default_config :save, {}
       default_config :windows, false
+      default_config :sudo_command do |verifier|
+        verifier.windows_os? ? nil : 'sudo env -i LANG=en_US.UTF-8 bash -l -c "%s"'
+      end
+
+      def sudo(script)
+        config[:sudo] ? config[:sudo_command] % script : script
+      end
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
