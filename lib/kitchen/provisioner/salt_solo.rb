@@ -111,7 +111,7 @@ module Kitchen
         cmd = ''
         unless windows_os?
           cmd += <<-CHOWN
-            #{sudo('chown')} "${SUDO_USER:-$USER}" -R "#{config[:root_path]}/#{config[:salt_file_root]}"
+            #{sudo('chown')} -R "${SUDO_USER:-$USER}" "#{config[:root_path]}/#{config[:salt_file_root]}"
           CHOWN
         end
         if config[:prepare_salt_environment]

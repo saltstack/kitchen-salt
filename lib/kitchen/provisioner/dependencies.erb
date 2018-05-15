@@ -92,7 +92,7 @@ def install_dependencies
   end
   script += <<-INSTALL
     linkFormulas "$SALT_ROOT"
-    chown "${SUDO_USER:-$USER}" -R "${SALT_SHARE_DIR}" "${SALT_ROOT}";
+    chown -R "${SUDO_USER:-$USER}" "${SALT_SHARE_DIR}" "${SALT_ROOT}";
     echo "Content of $SALT_ROOT :";
     ls -la "$SALT_ROOT";
   INSTALL
