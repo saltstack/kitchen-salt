@@ -54,6 +54,7 @@ module Kitchen
         require_chef: true,
         salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub',
         salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/',
+        salt_arguments: false,
         salt_bootstrap_options: '',
         salt_bootstrap_url: 'https://bootstrap.saltstack.com',
         salt_config: '/etc/salt',
@@ -263,14 +264,19 @@ module Kitchen
           salt_config_path = config[:salt_config]
           salt_call = 'salt-call'
         end
-        cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate")
-        cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
-        cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
-        cmd << " test=#{config[:dry_run]}" if config[:dry_run]
-        cmd << ' --force-color' if config[:salt_force_color]
-        if salt_version > RETCODE_VERSION || salt_version == 'latest'
-          # hope for the best and hope it works eventually
-          cmd << ' --retcode-passthrough'
+        cmd << sudo("#{salt_call} "
+        if config[:salt_arguments]
+          cmd << "#{config[:salt_arguments]}"
+        else    
+          cmd << "--state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate")
+          cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
+          cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
+          cmd << " test=#{config[:dry_run]}" if config[:dry_run]
+          cmd << ' --force-color' if config[:salt_force_color] 
+          if salt_version > RETCODE_VERSION || salt_version == 'latest'
+            # hope for the best and hope it works eventually
+            cmd << ' --retcode-passthrough'
+          end
         end
         cmd << ' 2>&1 ; exit $LASTEXITCODE' if windows_os?
         cmd
