@@ -268,7 +268,7 @@ module Kitchen
         if config[:salt_arguments]
           cmd << "#{config[:salt_arguments]}"
         else    
-          cmd << "--state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate")
+          cmd << "--state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate"
           cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
           cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
           cmd << " test=#{config[:dry_run]}" if config[:dry_run]
