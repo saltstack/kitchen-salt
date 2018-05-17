@@ -264,7 +264,7 @@ module Kitchen
           salt_config_path = config[:salt_config]
           salt_call = 'salt-call'
         end
-        cmd << sudo("#{salt_call} "
+        cmd << sudo("#{salt_call} ")
         if config[:salt_arguments]
           cmd << "#{config[:salt_arguments]}"
         else    
