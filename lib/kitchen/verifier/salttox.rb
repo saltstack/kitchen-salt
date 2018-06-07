@@ -37,7 +37,7 @@ module Kitchen
           (config[:transport] ? "--transport=#{config[:transport]}" : ''),
           (config[:verbose] ? '-v' : ''),
           (config[:run_destructive] ? "--run-destructive" : ''),
-          (config[:coverage_xml] ? "--cov-report xml:#{config[:coverage_xml]}" : ''),
+          (config[:coverage_xml] ? "--cov=salt/ --cov-report xml:#{config[:coverage_xml]}" : ''),
           (config[:xml] ? "--junitxml=#{config[:xml]}" : ''),
           config[:types].collect{|type| "--#{type}"}.join(' '),
           config[:tests].join(' '),
