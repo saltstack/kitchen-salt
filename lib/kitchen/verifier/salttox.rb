@@ -4,7 +4,7 @@ require "kitchen/verifier/base"
 
 module Kitchen
   module Verifier
-    class SaltTox < Kitchen::Verifier::Base
+    class Salttox < Kitchen::Verifier::Base
       kitchen_verifier_api_version 1
 
       plugin_version Kitchen::VERSION
