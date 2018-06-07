@@ -10,7 +10,6 @@ module Kitchen
       plugin_version Kitchen::VERSION
 
       default_config :testingdir, '/testing'
-      default_config :pythonver, 'py2'
       default_config :verbose, false
       default_config :run_destructive, false
       default_config :xml, false
@@ -28,9 +27,9 @@ module Kitchen
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
         end
         command = [
-	  'tox -c ',
+	  'tox -c',
 	  File.join(root_path, config[:testingdir], 'tox.ini'),
-	  "-e #{config[:pythonver]}",
+	  "-e #{instance.suite.name}",
 	  '--',
           '--sysinfo',
           '--output-columns=80',
