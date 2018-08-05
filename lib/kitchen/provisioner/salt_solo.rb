@@ -198,6 +198,7 @@ module Kitchen
         prepare_grains
         prepare_states
         prepare_state_top
+        prepare_cache_commands
         # upload scripts, cached formulas, and setup system repositories
         prepare_dependencies
       end
