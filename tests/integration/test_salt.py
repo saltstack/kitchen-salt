@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function
 import os
 import pytest
 
@@ -45,3 +46,15 @@ def test_path_depends(salt):
     dirs = salt('cp.list_master_dirs')
     print(dirs)
     assert all([formula in dirs for formula in formulas])
+
+
+def test_cache_command_ran(salt):
+    files = salt('cp.list_master')
+    print(files)
+    assert 'cache_commands_test' in files
+
+
+@pytest.mark.skipif('windows' not in os.environ.get('KITCHEN_INSTANCE'), reason='Skip windows specific test')
+def test_path_line_endings(salt):
+    res = salt('cp.get_file_str', 'salt://top.sls')
+    assert res == '---\r\nbase:\r\n  "*":\r\n  - foo\r\n'

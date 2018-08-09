@@ -37,6 +37,7 @@ module Kitchen
 
       DEFAULT_CONFIG = {
         bootstrap_url: 'https://raw.githubusercontent.com/saltstack/kitchen-salt/master/assets/install.sh',
+        cache_commands: [],
         chef_bootstrap_url: 'https://www.chef.io/chef/install.sh',
         dependencies: [],
         dry_run: false,
@@ -197,6 +198,7 @@ module Kitchen
         prepare_grains
         prepare_states
         prepare_state_top
+        prepare_cache_commands
         # upload scripts, cached formulas, and setup system repositories
         prepare_dependencies
       end
@@ -416,6 +418,24 @@ module Kitchen
         dependencies_content = ERB.new(File.read(dependencies_script)).result(binding)
         write_raw_file(File.join(sandbox_path, 'dependencies.sh'), dependencies_content)
       end
+
+      def prepare_cache_commands
+        ctx = to_hash
+        config[:cache_commands].each do |cmd|
+          system(cmd % ctx)
+          if $?.exitstatus.nonzero?
+            raise ActionFailed,
+              "cache_command '#{cmd}' failed to execute (exit status #{$?.exitstatus})"
+          end
+        end
+      end
+
+      def to_hash
+        hash = Hash.new
+        instance_variables.each {|var| hash[var[1..-1]] = instance_variable_get(var) }
+        hash.map{|k,v| [k.to_s.to_sym,v]}.to_h
+      end
+
     end
   end
 end
