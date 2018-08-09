@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function
 import os
 import pytest
 
@@ -45,3 +46,11 @@ def test_path_depends(salt):
     dirs = salt('cp.list_master_dirs')
     print(dirs)
     assert all([formula in dirs for formula in formulas])
+
+
+def test_path_line_endings(salt):
+    res = salt('cp.get_file_str', 'salt://top.sls')
+    if 'windows' in os.environ.get('KITCHEN_INSTANCE'):
+        assert res == '---\r\nbase:\r\n  "*":\r\n  - foo\r\n'
+    else:
+        assert res == '---\nbase:\n  "*":\n  - foo\n'

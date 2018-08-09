@@ -128,6 +128,9 @@ platforms:
       name: vagrant
       gui: true
     provisioner:
+      # On Osx 'brew install unix2dos' or Centos 'yum install tofrodos'
+      cache_commands:
+        - find %{sandbox_path} -type f | xargs unix2dos
       init_environment: |
         Clear-Host
         $AddedLocation ="c:\salt"
