@@ -47,10 +47,12 @@ def test_path_depends(salt):
     print(dirs)
     assert all([formula in dirs for formula in formulas])
 
+def test_cache_command_ran(salt):
+    files = salt('cp.list_master')
+    print(files)
+    assert 'cache_commands_test' in files
 
+@pytest.mark.skipif('windows' not in os.environ.get('KITCHEN_INSTANCE'), reason='Skip windows specific test')
 def test_path_line_endings(salt):
     res = salt('cp.get_file_str', 'salt://top.sls')
-    if 'windows' in os.environ.get('KITCHEN_INSTANCE'):
-        assert res == '---\r\nbase:\r\n  "*":\r\n  - foo\r\n'
-    else:
-        assert res == '---\nbase:\n  "*":\n  - foo\n'
+    assert res == '---\r\nbase:\r\n  "*":\r\n  - foo\r\n'

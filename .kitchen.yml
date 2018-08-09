@@ -15,6 +15,8 @@ provisioner:
   salt_bootstrap_options: -X -p git -p curl -p sudo
   formula: tests
   require_chef: false
+  cache_commands:
+    - touch %{sandbox_path}/srv/salt/cache_commands_test
   init_environment: |
     sudo mkdir -p /tmp/kitchen/var/cache/salt/master
   salt_copy_filter:
@@ -130,6 +132,7 @@ platforms:
     provisioner:
       # On Osx 'brew install unix2dos' or Centos 'yum install tofrodos'
       cache_commands:
+        - touch %{sandbox_path}/srv/salt/cache_commands_test
         - find %{sandbox_path} -type f | xargs unix2dos
       init_environment: |
         Clear-Host
