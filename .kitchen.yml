@@ -7,6 +7,7 @@ driver:
   socket: <%= ENV['DOCKER_HOST'] || 'unix:///var/run/docker.sock' %>
   provision_command:
     - DEBIAN_FRONTEND=noninteractive apt-get install -y python-pip python-dev gcc git locales console-data
+    - mkdir -p /run/sshd
 provisioner:
   name: salt_solo
   salt_install: bootstrap
@@ -62,6 +63,8 @@ provisioner:
       git:
         client:
           enabled: true
+          pkgs:
+          - git
           user:
           - user:
               name: jdoe
@@ -80,6 +83,8 @@ provisioner:
 
 platforms:
   - name: ubuntu-18.04
+    driver:
+      run_command: '/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no -o PasswordAuthentication=yes -o PidFile=/tmp/sshd.pid'
     provisioner:
       salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/18.04/amd64/'
       salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/18.04/amd64/latest/SALTSTACK-GPG-KEY.pub'
@@ -174,7 +179,7 @@ suites:
     includes:
       - debian-8
       - debian-9
-      - ubuntu-14.04
+      - ubuntu-18.04
       - ubuntu-16.04
   - name: yum
     provisioner:
