@@ -268,7 +268,7 @@ module Kitchen
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
         cmd << ' --force-color' if config[:salt_force_color]
-        if salt_version > RETCODE_VERSION || salt_version == 'latest'
+        if "#{salt_version}" > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd << ' --retcode-passthrough'
         end
@@ -285,7 +285,7 @@ module Kitchen
         #  https://github.com/saltstack/salt/pull/11337
         # Unless we know we have a version that supports --retcode-passthrough
         # attempt to scan the output for signs of failure
-        if config[:salt_version] <= RETCODE_VERSION
+        if "#{config[:salt_version]}" <= RETCODE_VERSION
           # scan the output for signs of failure, there is a risk of false negatives
           fail_grep = 'grep -e Result.*False -e Data.failed.to.compile -e No.matching.sls.found.for'
           # capture any non-zero exit codes from the salt-call | tee pipe
