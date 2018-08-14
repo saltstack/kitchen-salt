@@ -17,7 +17,8 @@ rvm:
 env:
   matrix:
     - SUITE=centos
-    - SUITE=ubuntu
+    - SUITE=ubuntu-16
+    - SUITE=ubuntu-18
     - SUITE=debian
 
 sudo: true
