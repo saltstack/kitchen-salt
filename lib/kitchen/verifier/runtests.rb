@@ -32,7 +32,7 @@ module Kitchen
           File.join(root_path, config[:testingdir], '/tests/runtests.py'),
           '--sysinfo',
           '--output-columns=80',
-          (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
+          (config[:windows] && config[:tests].empty? ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
           (config[:transport] ? "--transport=#{config[:transport]}" : ''),
           (config[:verbose] ? '-vv' : '-v'),
           (config[:run_destructive] ? "--run-destructive" : ''),
