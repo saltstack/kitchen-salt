@@ -22,6 +22,7 @@ module Kitchen
       default_config :windows, false
       default_config :enable_filenames, false
       default_config :from_filenames, []
+      default_config :names_file, ''
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
@@ -39,7 +40,7 @@ module Kitchen
           File.join(root_path, config[:testingdir], '/tests/runtests.py'),
           '--sysinfo',
           '--output-columns=80',
-          (config[:windows] && config[:tests].empty? ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
+          (config[:names_file] && config[:tests].empty? ? "--names-file=#{config[:names_file]}" : ''),
           (config[:transport] ? "--transport=#{config[:transport]}" : ''),
           (config[:verbose] ? '-vv' : '-v'),
           (config[:run_destructive] ? "--run-destructive" : ''),
