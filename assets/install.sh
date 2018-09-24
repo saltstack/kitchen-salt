@@ -6,6 +6,7 @@
 ## for kitchen tests to run
 ##
 
+os="$(uname -s)"
 packages="ruby ruby-dev"
 
 # install_file TYPE FILENAME
@@ -41,6 +42,13 @@ install_file() {
       echo "installing with rvm..."
       gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
       \curl -sSL https://get.rvm.io | bash -s stable --ruby
+      ;;
+    "freebsd")
+      echo "installing with pkg..."
+      packages="ruby devel/ruby-gems"
+      env ASSUME_ALWAYS_YES=YES
+      export ASSUME_ALWAYS_YES=YES
+      pkg install -y $packages
       ;;
     *)
       echo "Unknown platform: $platform"
