@@ -31,6 +31,7 @@ before_install:
 script:
   # Check shell scripts
   - shellcheck lib/kitchen/provisioner/*.sh*
+  - shellcheck assets/*.sh*
   # Run test-kitchen with docker driver:
   - bundle exec rake "integration:verify[$SUITE]"
 
