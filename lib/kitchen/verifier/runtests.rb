@@ -21,7 +21,7 @@ module Kitchen
       default_config :save, {}
       default_config :windows, false
       default_config :enable_filenames, false
-      default_config :from_filenames, ''
+      default_config :from_filenames, []
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
@@ -32,7 +32,7 @@ module Kitchen
         if ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
           repo = Git.open('.')
-          config[:from_filenames] = '--from-filenames ' + repo.diff("origin/#{ENV['CHANGE_TARGET']}", "origin/#{ENV['BRANCH_NAME']}").name_status.keys.join(',')
+          config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}", "origin/#{ENV['BRANCH_NAME']}").name_status.keys
         end
         command = [
           (config[:windows] ? 'python.exe' : config[:python_bin]),
@@ -47,7 +47,7 @@ module Kitchen
           (config[:xml] ? "--xml=#{config[:xml]}" : ''),
           config[:types].collect{|type| "--#{type}"}.join(' '),
           config[:tests].collect{|test| "-n #{test}"}.join(' '),
-          (config[:enable_filenames] ? config[:from_filenames] : ''),
+          (config[:enable_filenames] and config[:from_filenames] ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
           '2>&1',
         ].join(' ')
         if config[:windows]
