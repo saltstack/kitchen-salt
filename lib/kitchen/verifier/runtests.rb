@@ -20,6 +20,7 @@ module Kitchen
       default_config :transport, false
       default_config :save, {}
       default_config :windows, false
+      default_config :enable_filenames, false
       default_config :from_filenames, ''
 
       def call(state)
@@ -46,7 +47,7 @@ module Kitchen
           (config[:xml] ? "--xml=#{config[:xml]}" : ''),
           config[:types].collect{|type| "--#{type}"}.join(' '),
           config[:tests].collect{|test| "-n #{test}"}.join(' '),
-          config[:from_filenames],
+          (config[:enable_filenames] ? config[:from_filenames] : ''),
           '2>&1',
         ].join(' ')
         if config[:windows]
