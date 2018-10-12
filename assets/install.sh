@@ -139,3 +139,4 @@ fi
 
 # Install dependencies
 install_deps "$platform"
+exit 0
