@@ -29,7 +29,7 @@ module Kitchen
         if ENV['KITCHEN_TESTS']
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
         end
-        if ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
+        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
           repo = Git.open('.')
           config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}", "origin/#{ENV['BRANCH_NAME']}").name_status.keys
@@ -47,7 +47,7 @@ module Kitchen
           (config[:xml] ? "--xml=#{config[:xml]}" : ''),
           config[:types].collect{|type| "--#{type}"}.join(' '),
           config[:tests].collect{|test| "-n #{test}"}.join(' '),
-          (config[:enable_filenames] and config[:from_filenames] ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
+	  (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
           '2>&1',
         ].join(' ')
         if config[:windows]
