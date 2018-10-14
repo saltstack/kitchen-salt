@@ -32,7 +32,7 @@ module Kitchen
         if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
           repo = Git.open('.')
-          config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}", "origin/#{ENV['BRANCH_NAME']}").name_status.keys
+	  config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}", "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
         end
         command = [
           (config[:windows] ? 'python.exe' : config[:python_bin]),
