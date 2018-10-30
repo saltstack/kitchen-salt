@@ -9,7 +9,7 @@ sh -c '
     GPGKEY_DIR="#{config[:root_path]}/etc/salt/gpgkeys/"
     mkdir -p "$GPGKEY_DIR"
     chmod 0700 "$GPGKEY_DIR"
-    gpg --no-default-keyring --homedir "$GPGKEY_DIR" --import < "#{config[:root_path]}/gpgkey.txt"
+    gpg --allow-secret-key-import --no-default-keyring --homedir "$GPGKEY_DIR" --import < "#{config[:root_path]}/gpgkey.txt"
   fi'
 GPGKEY
 %>

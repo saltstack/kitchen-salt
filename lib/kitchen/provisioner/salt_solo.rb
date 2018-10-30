@@ -265,7 +265,7 @@ module Kitchen
           # install/update dependencies
           cmd << sudo("chmod +x #{config[:root_path]}/*.sh;")
           cmd << sudo("#{config[:root_path]}/dependencies.sh;")
-	  cmd << sudo("#{config[:root_path]}/gpgkey.sh;")
+          cmd << sudo("#{config[:root_path]}/gpgkey.sh;")
           salt_config_path = config[:salt_config]
           salt_call = 'salt-call'
         end
@@ -327,16 +327,12 @@ module Kitchen
         info('Preparing gpg_key')
         debug("Using gpg key: #{config[:gpg_key]}")
 
-        require 'gpgme'
-
-        GPGME::Engine.home_dir = config[:gpg_home]
-        key = GPGME::Key.find(:secret, config[:gpg_key]).first
-        write_raw_file(File.join(sandbox_path, 'gpgkey.txt'), key.export(:armor => true))
+        system("gpg --homedir #{config[:gpg_home]} -o #{File.join(sandbox_path, 'gpgkey.txt')} --armor --export-secret-keys #{config[:gpg_key]}")
 
         gpg_template = File.expand_path('./../gpgkey.erb', __FILE__)
         erb = ERB.new(File.read(gpg_template)).result(binding)
         debug('Install Command:' + erb.to_s)
-	write_raw_file(File.join(sandbox_path, 'gpgkey.sh'), erb)
+        write_raw_file(File.join(sandbox_path, 'gpgkey.sh'), erb)
       end
 
       def prepare_minion_base_config
