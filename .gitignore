@@ -17,6 +17,7 @@ rdoc
 test/tmp
 test/version_tmp
 tmp
+/gpgkeys
 
 .cache
 __pycache__

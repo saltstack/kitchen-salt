@@ -41,6 +41,8 @@ module Kitchen
         chef_bootstrap_url: 'https://www.chef.io/chef/install.sh',
         dependencies: [],
         dry_run: false,
+        gpg_key: nil,
+        gpg_home: '~/.gnupg/',
         install_after_init_environment: false,
         is_file_root: false,
         local_salt_root: nil,
@@ -192,6 +194,7 @@ module Kitchen
       def create_sandbox
         super
         prepare_data
+        prepare_gpg_key
         prepare_install
         prepare_minion
         prepare_pillars
@@ -262,6 +265,7 @@ module Kitchen
           # install/update dependencies
           cmd << sudo("chmod +x #{config[:root_path]}/*.sh;")
           cmd << sudo("#{config[:root_path]}/dependencies.sh;")
+	  cmd << sudo("#{config[:root_path]}/gpgkey.sh;")
           salt_config_path = config[:salt_config]
           salt_call = 'salt-call'
         end
@@ -315,6 +319,24 @@ module Kitchen
         tmpdata_dir = File.join(sandbox_path, 'data')
         FileUtils.mkdir_p(tmpdata_dir)
         cp_r_with_filter(config[:data_path], tmpdata_dir, config[:salt_copy_filter])
+      end
+
+      def prepare_gpg_key
+        return unless config[:gpg_key]
+
+        info('Preparing gpg_key')
+        debug("Using gpg key: #{config[:gpg_key]}")
+
+        require 'gpgme'
+
+        GPGME::Engine.home_dir = config[:gpg_home]
+        key = GPGME::Key.find(:secret, config[:gpg_key]).first
+        write_raw_file(File.join(sandbox_path, 'gpgkey.txt'), key.export(:armor => true))
+
+        gpg_template = File.expand_path('./../gpgkey.erb', __FILE__)
+        erb = ERB.new(File.read(gpg_template)).result(binding)
+        debug('Install Command:' + erb.to_s)
+	write_raw_file(File.join(sandbox_path, 'gpgkey.sh'), erb)
       end
 
       def prepare_minion_base_config

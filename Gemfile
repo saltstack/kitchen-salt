@@ -13,6 +13,10 @@ group :git do
   gem 'git'
 end
 
+group :gpg do
+  gem 'gpgme'
+end
+
 group :windows do
   gem 'winrm', '~>2.0'
   gem 'winrm-fs', '~>1.0'
