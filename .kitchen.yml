@@ -6,7 +6,7 @@ driver:
   use_sudo: false
   socket: <%= ENV['DOCKER_HOST'] || 'unix:///var/run/docker.sock' %>
   provision_command:
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python-pip python-dev gcc git locales console-data
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python-pip python-dev gcc git locales console-data gnupg
     - mkdir -p /run/sshd
 provisioner:
   name: salt_solo
@@ -16,6 +16,8 @@ provisioner:
   salt_bootstrap_options: -X -p git -p curl -p sudo
   formula: tests
   require_chef: false
+  gpg_key: test@example.com
+  gpg_home: gpgkeys
   cache_commands:
     - touch %{sandbox_path}/srv/salt/cache_commands_test
   init_environment: |
@@ -61,25 +63,10 @@ provisioner:
       base:
         "*":
           - git
-    git.sls:
-      git:
-        client:
-          enabled: true
-          pkgs:
-          - git
-          user:
-          - user:
-              name: jdoe
-              email: j@doe.com
-      linux:
-        system:
-          enabled: true
-          user:
-            jdoe:
-              enabled: true
-              sudo: true
-              full_name: John Doe
-              home: /home/jdoe
+          - gpgtest
+  pillars_from_directories:
+  - source:  tests/pillars/
+    dest: srv/pillar/
   grains:
     noservices: True
 

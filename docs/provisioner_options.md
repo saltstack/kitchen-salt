@@ -446,6 +446,18 @@ pip binary in the `$PATH` or path to a pip binary to use for installing salt.
 
 ## Extra Config Options ##
 
+### gpg_dir ###
+
+default: `~/.gnupg/`
+
+Directory that the gnupg keyring is located.
+
+### gpg_key ###
+
+default: `nil`
+
+Identifier for the gpg key to transfer to the test instance.  Email or key id will work.
+
 ### init_environment ###
 
 default: `""`

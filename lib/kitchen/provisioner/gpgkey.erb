@@ -1,0 +1,15 @@
+<%=
+<<-GPGKEY
+sh -c '
+#{Util.shell_helpers}
+  # if gpg key exists, install
+  echo "Checking for a GPG Key"
+  if [ -f "#{config[:root_path]}/gpgkey.txt" ]; then
+    echo "Installing \"#{config[:root_path]}/gpgkey.txt\""
+    GPGKEY_DIR="#{config[:root_path]}/etc/salt/gpgkeys/"
+    mkdir -p "$GPGKEY_DIR"
+    chmod 0700 "$GPGKEY_DIR"
+    gpg --allow-secret-key-import --no-default-keyring --homedir "$GPGKEY_DIR" --import < "#{config[:root_path]}/gpgkey.txt"
+  fi'
+GPGKEY
+%>
