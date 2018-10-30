@@ -446,7 +446,7 @@ pip binary in the `$PATH` or path to a pip binary to use for installing salt.
 
 ## Extra Config Options ##
 
-### gpg_dir ###
+### gpg_home ###
 
 default: `~/.gnupg/`
 
