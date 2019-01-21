@@ -60,7 +60,7 @@ module Kitchen
         end
 
         # Be sure to copy the remote artifacts directory to the local machine
-        config[:save]["#{File.join(root_path, config[:testingdir], 'artifacts')}/"] = 'artifacts'
+        config[:save]["#{File.join(root_path, config[:testingdir], 'artifacts')}"] = "#{Dir.pwd}/"
 
         command = [
           'tox -c',
