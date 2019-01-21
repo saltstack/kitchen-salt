@@ -15,6 +15,7 @@ module Kitchen
       default_config :transport, false
       default_config :save, {}
       default_config :windows, false
+      default_config :verbose, false
       default_config :run_destructive, false
 
       # New opts
@@ -71,7 +72,7 @@ module Kitchen
           (config[:junitxml] ? junitxml : ''),
           (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
           (config[:transport] ? "--transport=#{config[:transport]}" : ''),
-          (config[:verbose] ? '-v' : ''),
+          (config[:verbose] ? '-vv' : '-v'),
           (config[:run_destructive] ? "--run-destructive" : ''),
           config[:passthrough_opts].join(' '),
           (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
