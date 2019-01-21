@@ -15,18 +15,14 @@ module Kitchen
       default_config :transport, false
       default_config :save, {}
       default_config :windows, false
-
-      # Deprecated Opts
-      default_config :verbose, false
       default_config :run_destructive, false
-      default_config :xml, false
-      default_config :coverage_xml, false
-      default_config :types, []
 
       # New opts
       default_config :pytest, false
       default_config :coverage, false
       default_config :junitxml, false
+      default_config :from_filenames, []
+      default_config :enable_filenames, false
       default_config :passthrough_opts, []
 
       def call(state)
@@ -38,8 +34,16 @@ module Kitchen
         toxenv = instance.suite.name
         if config[:pytest]
           toxenv = "#{toxenv}-pytest"
+          tests = config[:tests].join(' ')
         else
           toxenv = "#{toxenv}-runtests"
+          tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
+          # Right now PyTest runs don't support --from-filenames, just runtests
+          if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
+            require 'git'
+            repo = Git.open('.')
+            config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}", "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
+          end
         end
         if config[:coverage]
           toxenv = "#{toxenv}-coverage"
@@ -70,7 +74,8 @@ module Kitchen
           (config[:verbose] ? '-v' : ''),
           (config[:run_destructive] ? "--run-destructive" : ''),
           config[:passthrough_opts].join(' '),
-          config[:tests].join(' '),
+          (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
+          tests,
           '2>&1',
         ].join(' ')
         if config[:windows]
