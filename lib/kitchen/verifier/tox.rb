@@ -18,14 +18,14 @@ module Kitchen
       default_config :run_destructive, false
       default_config :ssh_tests, true
       default_config :proxy_tests, false
-
-      # New opts
       default_config :pytest, false
       default_config :coverage, false
       default_config :junitxml, false
       default_config :from_filenames, []
       default_config :enable_filenames, false
       default_config :passthrough_opts, []
+      default_config :output_columns, 120
+      default_config :sysinfo, true
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
@@ -74,8 +74,8 @@ module Kitchen
           File.join(root_path, config[:testingdir], 'tox.ini'),
           "-e #{toxenv}",
           '--',
-          '--sysinfo',
-          '--output-columns=120',
+          "--output-columns=#{config[:output_columns]}",
+          (config[:sysinfo] ? '--sysinfo' : ''),
           (config[:junitxml] ? junitxml : ''),
           (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
           (config[:transport] ? "--transport=#{config[:transport]}" : ''),
