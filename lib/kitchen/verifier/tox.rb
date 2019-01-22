@@ -60,7 +60,12 @@ module Kitchen
         end
 
         # Be sure to copy the remote artifacts directory to the local machine
-        config[:save]["#{File.join(root_path, config[:testingdir], 'artifacts')}"] = "#{Dir.pwd}/"
+        save = {
+          "#{File.join(root_path, config[:testingdir], 'artifacts')}" => "#{Dir.pwd}/"
+        }
+        # Hash insert order matters, that's why we define a new one and merge
+        # the one from config
+        save.merge!(config[:save])
 
         command = [
           'tox -c',
@@ -101,7 +106,7 @@ module Kitchen
               info("Verify command failed :: #{e}")
             end
           ensure
-            config[:save].each do |remote, local|
+            save.each do |remote, local|
               unless config[:windows]
                 begin
                   conn.execute(sudo("chmod -R +r #{remote}"))
