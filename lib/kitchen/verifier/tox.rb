@@ -40,16 +40,16 @@ module Kitchen
         else
           toxenv = "#{toxenv}-runtests"
           tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
-          # Right now PyTest runs don't support --from-filenames, just runtests
-          if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
-            require 'git'
-            repo = Git.open(Dir.pwd)
-            config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}",
-                                                "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
-          end
         end
         if config[:coverage]
           toxenv = "#{toxenv}-coverage"
+        end
+
+        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
+          require 'git'
+          repo = Git.open(Dir.pwd)
+          config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}",
+                                              "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
         end
 
         if config[:junitxml]
