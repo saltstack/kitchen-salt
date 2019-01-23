@@ -39,8 +39,8 @@ then
   #{sudo('sh')} $BOOTSTRAP #{bootstrap_options}
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "pip" ]
 then
-  echo "Makesure setuptools is new enough"
-  #{sudo(salt_pip_bin)} install "setuptools>=30"
+  echo "Makesure setuptools and pip are new enough"
+#{sudo(salt_pip_bin)} install "setuptools>=30" "pip>=19.0"
   echo #{sudo(salt_pip_bin)} #{salt_pip_install_command} #{salt_pip_pkg}
   #{sudo(salt_pip_bin)} #{salt_pip_install_command} #{salt_pip_pkg}
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]
