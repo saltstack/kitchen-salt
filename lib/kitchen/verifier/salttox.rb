@@ -27,10 +27,10 @@ module Kitchen
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
         end
         command = [
-	  'tox -c',
-	  File.join(root_path, config[:testingdir], 'tox.ini'),
-	  "-e #{instance.suite.name}",
-	  '--',
+          'tox -c',
+          File.join(root_path, config[:testingdir], 'tox.ini'),
+          "-e #{instance.suite.name}",
+          '--',
           '--sysinfo',
           '--output-columns=80',
           (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
