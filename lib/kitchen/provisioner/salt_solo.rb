@@ -265,7 +265,7 @@ module Kitchen
           # install/update dependencies
           cmd << sudo("chmod +x #{config[:root_path]}/*.sh;")
           cmd << sudo("#{config[:root_path]}/dependencies.sh;")
-          cmd << sudo("#{config[:root_path]}/gpgkey.sh;")
+          cmd << sudo("#{config[:root_path]}/gpgkey.sh;") if config[:gpg_key]
           salt_config_path = config[:salt_config]
           salt_call = 'salt-call'
         end
