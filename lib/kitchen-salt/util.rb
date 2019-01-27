@@ -55,6 +55,12 @@ module Kitchen
         end
       end
 
+      def salt_call
+        return config[:salt_call_command] if config[:salt_call_command]
+        return 'c:\\salt\\salt-call.bat' if windows_os?
+        'salt-call'
+      end
+
       def write_raw_file(name, contents)
         FileUtils.mkdir_p(File.dirname(name))
         File.open(name, 'wb') do |file|
