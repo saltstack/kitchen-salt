@@ -333,7 +333,7 @@ This is also used to verify that the correct version of salt was installed befor
 
 default: `https://bootstrap.saltstack.com`
 
-Location of the bootstrap script. This can also be a file located locally.
+Location of the bootstrap script. This can also be a file located locally. If running a local file, `install_after_init_environment` must be set to `true`.
 
 For Windows, use the [powershell script](https://github.com/saltstack/salt-bootstrap/blob/develop/bootstrap-salt.ps1)
 
