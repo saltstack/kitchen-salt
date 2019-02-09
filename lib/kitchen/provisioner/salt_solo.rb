@@ -264,7 +264,7 @@ module Kitchen
           # install/update dependencies
           cmd << sudo("chmod +x #{config[:root_path]}/*.sh;")
           cmd << sudo("#{config[:root_path]}/dependencies.sh;")
-          cmd << sudo("#{config[:root_path]}/gpgkey.sh;")
+          cmd << sudo("#{config[:root_path]}/gpgkey.sh;") if config[:gpg_key]
           salt_config_path = config[:salt_config]
         end
         cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate")
