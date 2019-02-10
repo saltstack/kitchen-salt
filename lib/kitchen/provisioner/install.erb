@@ -24,7 +24,7 @@ sh -c '
 #{Util.shell_helpers}
 
 # what version of salt is installed?
-command -v salt-call >/dev/null 2>&1 && SALT_VERSION=$(salt-call --version|cut -d " " -f 2)
+command -v #{salt_call} >/dev/null 2>&1 && SALT_VERSION=$(#{salt_call} --version|cut -d " " -f 2)
 command -v locale-gen >/dev/null 2>&1 && #{sudo('locale-gen')} en_US.UTF-8
 set +x
 export DEBIAN_FRONTEND=noninteractive
@@ -98,7 +98,7 @@ EOL
 fi
 
 # check again, now that an install of some form should have happened
-command -v salt-call >/dev/null 2>&1 && FULL_SALT_VERSION=$(salt-call --version|cut -d " " -f 2)
+command -v #{salt_call} >/dev/null 2>&1 && FULL_SALT_VERSION=$(#{salt_call} --version|cut -d " " -f 2)
 
 # extract short format of Salt version
 if [ ! -z "${FULL_SALT_VERSION}" ]

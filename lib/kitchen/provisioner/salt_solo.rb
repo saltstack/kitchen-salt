@@ -258,7 +258,6 @@ module Kitchen
 
         cmd = ''
         if windows_os?
-          salt_call = "c:\\salt\\salt-call.bat"
           salt_config_path = config[:salt_config]
           cmd << "(get-content #{os_join(config[:root_path], salt_config_path, 'minion')}) -replace '\\$env:TEMP', $env:TEMP | set-content #{os_join(config[:root_path], salt_config_path, 'minion')} ;"
         else
@@ -267,7 +266,6 @@ module Kitchen
           cmd << sudo("#{config[:root_path]}/dependencies.sh;")
           cmd << sudo("#{config[:root_path]}/gpgkey.sh;")
           salt_config_path = config[:salt_config]
-          salt_call = 'salt-call'
         end
         cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
@@ -453,7 +451,6 @@ module Kitchen
         instance_variables.each {|var| hash[var[1..-1]] = instance_variable_get(var) }
         hash.map{|k,v| [k.to_s.to_sym,v]}.to_h
       end
-
     end
   end
 end

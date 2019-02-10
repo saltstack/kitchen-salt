@@ -5,8 +5,8 @@ bootstrap_options = config[:salt_bootstrap_options]
 salt_version = config[:salt_version]
 
 <<-POWERSHELL
-if (Test-Path c:\\salt\\salt-call.bat) {
-  $installed_version = $(c:\\salt\\salt-call.bat --version).split(' ')[1] 
+if (Test-Path #{salt_call}) {
+  $installed_version = $(#{salt_call} --version).split(' ')[1]
 }
 if (-Not $(Test-Path c:\\temp)) {
   New-Item -Path c:\\temp -itemtype directory
@@ -15,7 +15,7 @@ if (-Not $installed_version -And "#{salt_install}" -eq "bootstrap") {
   (New-Object net.webclient).DownloadFile("#{salt_url}", "c:\\temp\\salt_bootstrap.ps1")
   #{sudo('powershell')} c:\\temp\\salt_bootstrap.ps1 #{bootstrap_options}
 }
-$FULL_SALT_VERSION = $(c:\\salt\\salt-call.bat --version).split(' ')[1]
+$FULL_SALT_VERSION = $(#{salt_call} --version).split(' ')[1]
 if ($FULL_SALT_VERSION) {
   $YEAR = $FULL_SALT_VERSION.split('.')[0]
   $MONTH = $FULL_SALT_VERSION.split('.')[1]
