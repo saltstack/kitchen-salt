@@ -2,7 +2,7 @@
 salt_install = config[:salt_install]
 salt_url = config[:salt_bootstrap_url]
 salt_version = config[:salt_version]
-bootstrap_options = config[:salt_bootstrap_options].gsub(/%s/, salt_version)
+bootstrap_options = config[:salt_bootstrap_options] % [salt_version]
 
 <<-POWERSHELL
 if (Test-Path #{salt_call}) {
