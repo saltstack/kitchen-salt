@@ -47,7 +47,7 @@ function fetchGitFormula() {
               popd &>/dev/null
           else
               echo "git clone $source $GIT_FORMULAS_PATH/$name -b $branch"
-              git clone "$source" "$GIT_FORMULAS_PATH/$name" -b "$branch"
+              GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone "$source" "$GIT_FORMULAS_PATH/$name" -b "$branch"
           fi
           # install dependencies
           FETCHED+=($name)
