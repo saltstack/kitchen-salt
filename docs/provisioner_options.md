@@ -490,6 +490,12 @@ default: `true`
 
 Install chef.  This is required by the busser to run tests, if no verification driver is specified in the `.kitchen.yml`
 
+### run_salt_call ###
+
+default: `true`
+
+If `false` bypassed the `salt-call` command execution. For cases where the guest OS is already provisioned.
+
 ### salt_call_command ###
 
 default for Windows: `c:\salt\salt-call.bat`

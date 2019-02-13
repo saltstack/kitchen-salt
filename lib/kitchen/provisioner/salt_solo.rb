@@ -83,7 +83,8 @@ module Kitchen
         state_top_from_file: false,
         state_top: {},
         vendor_path: nil,
-        vendor_repo: {}
+        vendor_repo: {},
+        run_salt_call: true
       }.freeze
 
       WIN_DEFAULT_CONFIG = {
@@ -283,6 +284,8 @@ module Kitchen
       def run_command
         debug("running driver #{name}")
         debug(diagnose)
+
+        return unless config[:run_salt_call]
 
         # config[:salt_version] can be 'latest' or 'x.y.z', 'YYYY.M.x' etc
         # error return codes are a mess in salt:
