@@ -122,7 +122,7 @@ module Kitchen
                 info("Copying #{remote} to #{local}")
                 conn.download(remote, local)
               rescue => e
-                error("Failed to copy #{remote} to #{local} :: ${e}")
+                error("Failed to copy #{remote} to #{local} :: #{e}")
               end
             end
           end
