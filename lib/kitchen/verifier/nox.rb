@@ -75,7 +75,7 @@ module Kitchen
         command = [
           'nox',
           "-f #{File.join(root_path, config[:testingdir], 'noxfile.py')}",
-          "-e \"#{noxenv}\"",
+          (config[:windows] ? "-e #{noxenv}" : "-e '#{noxenv}'"),
           '--',
           "--output-columns=#{config[:output_columns]}",
           (config[:sysinfo] ? '--sysinfo' : ''),
@@ -89,8 +89,10 @@ module Kitchen
           config[:passthrough_opts].join(' '),
           (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
           tests,
-          '2>&1',
         ].join(' ')
+        if config[:windows]
+          command = "cmd.exe /c --% \"#{command}\" 2>&1"
+        end
         info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
           begin
