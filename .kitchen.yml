@@ -46,7 +46,7 @@ provisioner:
       source: https://github.com/salt-formulas/salt-formula-linux.git
     - name: git
       repo: git
-      source: https://github.com/salt-formulas/salt-formula-git.git
+      source: https://github.com/gtmanfred/salt-formula-git.git
     - name: postfix
       repo: git
       source: https://github.com/salt-formulas/salt-formula-postfix
