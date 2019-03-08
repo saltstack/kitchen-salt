@@ -46,7 +46,8 @@ module Kitchen
         # So, the line below becomes something like:
         #   runtests-2(coverage=True)
         #   pytest-3(coverage=False)
-        noxenv = "#{noxenv}-#{instance.suite.name.gsub('py', '')}(coverage=#{config[:coverage] ? 'True' : 'False'})"
+        suite = instance.suite.name.gsub('py', '').gsub('2', '2.7')
+        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'})"
 
         if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
