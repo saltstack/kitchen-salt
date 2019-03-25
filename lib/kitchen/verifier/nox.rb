@@ -47,7 +47,8 @@ module Kitchen
         #   runtests-2(coverage=True)
         #   pytest-3(coverage=False)
         suite = instance.suite.name.gsub('py', '').gsub('2', '2.7')
-        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'})"
+        transport = "#{config[:transport] ? config[:transport] : 'zeromq'}"
+        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'}, transport=#{transport})"
 
         if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
@@ -82,7 +83,6 @@ module Kitchen
           (config[:sysinfo] ? '--sysinfo' : ''),
           (config[:junitxml] ? junitxml : ''),
           (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
-          (config[:transport] ? "--transport=#{config[:transport]}" : ''),
           (config[:verbose] ? '-vv' : '-v'),
           (config[:run_destructive] ? "--run-destructive" : ''),
           (config[:ssh_tests] ? "--ssh-tests" : ''),
