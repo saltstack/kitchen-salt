@@ -89,7 +89,6 @@ platforms:
         sudo apt-get update
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
       salt_bootstrap_options: -X -p git -p curl -p sudo -p software-properties-common
--   - name: debian-jessie-backports
 +   - name: debian-8
     provisioner:
       salt_apt_repo: 'https://repo.saltstack.com/apt/debian/8/amd64'
