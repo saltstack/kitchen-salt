@@ -41,6 +41,7 @@ module Kitchen
           noxenv = "runtests"
           tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
         end
+        noxenv = "#{noxenv}-#{config[:transport] ? config[:transport] : 'zeromq'}"
         if ENV['NOX_SESSION']
           noxenv = "#{noxenv}-#{ENV['NOX_SESSION']}"
         end
@@ -50,8 +51,7 @@ module Kitchen
         #   runtests-2(coverage=True)
         #   pytest-3(coverage=False)
         suite = instance.suite.name.gsub('py', '').gsub('2', '2.7')
-        transport = "#{config[:transport] ? config[:transport] : 'zeromq'}"
-        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'}, transport='#{transport}')"
+        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'})"
 
         if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
