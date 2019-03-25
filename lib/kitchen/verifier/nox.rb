@@ -4,7 +4,7 @@ require "kitchen/verifier/base"
 
 module Kitchen
   module Verifier
-    class Tox < Kitchen::Verifier::Base
+    class Nox < Kitchen::Verifier::Base
       kitchen_verifier_api_version 1
 
       plugin_version Kitchen::VERSION
@@ -33,17 +33,25 @@ module Kitchen
         if ENV['KITCHEN_TESTS']
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
         end
-        toxenv = instance.suite.name
+        noxenv = instance.suite.name
         if config[:pytest]
-          toxenv = "#{toxenv}-pytest"
+          noxenv = "pytest"
           tests = config[:tests].join(' ')
         else
-          toxenv = "#{toxenv}-runtests"
+          noxenv = "runtests"
           tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
         end
-        if config[:coverage]
-          toxenv = "#{toxenv}-coverage"
+        noxenv = "#{noxenv}-#{config[:transport] ? config[:transport] : 'zeromq'}"
+        if ENV['NOX_SESSION']
+          noxenv = "#{noxenv}-#{ENV['NOX_SESSION']}"
         end
+        # Nox env's are not py<python-version> named, they just use the <python-version>
+        # Additionally, nox envs are parametrised to enable or disable test coverage
+        # So, the line below becomes something like:
+        #   runtests-2(coverage=True)
+        #   pytest-3(coverage=False)
+        suite = instance.suite.name.gsub('py', '').gsub('2', '2.7')
+        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'})"
 
         if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
@@ -70,15 +78,14 @@ module Kitchen
         save.merge!(config[:save])
 
         command = [
-          'tox -c',
-          File.join(root_path, config[:testingdir], 'tox.ini'),
-          "-e #{toxenv}",
+          'nox',
+          "-f #{File.join(root_path, config[:testingdir], 'noxfile.py')}",
+          (config[:windows] ? "-e #{noxenv}" : "-e '#{noxenv}'"),
           '--',
           "--output-columns=#{config[:output_columns]}",
           (config[:sysinfo] ? '--sysinfo' : ''),
           (config[:junitxml] ? junitxml : ''),
           (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
-          (config[:transport] ? "--transport=#{config[:transport]}" : ''),
           (config[:verbose] ? '-vv' : '-v'),
           (config[:run_destructive] ? "--run-destructive" : ''),
           (config[:ssh_tests] ? "--ssh-tests" : ''),
@@ -86,10 +93,9 @@ module Kitchen
           config[:passthrough_opts].join(' '),
           (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
           tests,
-          '2>&1',
         ].join(' ')
         if config[:windows]
-           command = "cmd.exe /c \"#{command}\" 2>&1"
+          command = "cmd.exe /c --% \"#{command}\" 2>&1"
         end
         info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
