@@ -41,6 +41,9 @@ module Kitchen
           noxenv = "runtests"
           tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
         end
+        if ENV['NOX_SESSION']
+          noxenv = "#{noxenv}-#{ENV['NOX_SESSION']}"
+        end
         # Nox env's are not py<python-version> named, they just use the <python-version>
         # Additionally, nox envs are parametrised to enable or disable test coverage
         # So, the line below becomes something like:
@@ -48,7 +51,7 @@ module Kitchen
         #   pytest-3(coverage=False)
         suite = instance.suite.name.gsub('py', '').gsub('2', '2.7')
         transport = "#{config[:transport] ? config[:transport] : 'zeromq'}"
-        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'}, transport=#{transport})"
+        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'}, transport='#{transport}')"
 
         if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
