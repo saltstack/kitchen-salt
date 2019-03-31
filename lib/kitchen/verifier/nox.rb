@@ -33,17 +33,21 @@ module Kitchen
         if ENV['KITCHEN_TESTS']
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
         end
-        noxenv = instance.suite.name
-        if config[:pytest]
-          noxenv = "pytest"
-          tests = config[:tests].join(' ')
-        else
-          noxenv = "runtests"
-          tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
+
+        if ENV['NOX_PASSTHROUGH_OPTS']
+          ENV['NOX_PASSTHROUGH_OPTS'].split(' ').each{|opt| config[:passthrough_opts].push(opt)}
         end
-        noxenv = "#{noxenv}-#{config[:transport] ? config[:transport] : 'zeromq'}"
-        if ENV['NOX_SESSION']
-          noxenv = "#{noxenv}-#{ENV['NOX_SESSION']}"
+
+        if ENV['NOX_ENV_NAME']
+          noxenv = ENV['NOX_ENV_NAME']
+        else
+          # Default to runtests-zeromq
+          noxenv = "runtests-zeromq"
+        end
+        if noxenv.include? "pytest"
+          tests = config[:tests].join(' ')
+        elsif noxenv.include? "runtests"
+          tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
         end
         # Nox env's are not py<python-version> named, they just use the <python-version>
         # Additionally, nox envs are parametrised to enable or disable test coverage
@@ -62,7 +66,7 @@ module Kitchen
 
         if config[:junitxml]
           junitxml = File.join(root_path, config[:testingdir], 'artifacts', 'xml-unittests-output')
-          if config[:pytest]
+          if noxenv.include? "pytest"
             junitxml = "--junitxml=#{File.join(junitxml, 'test-results.xml')}"
           else
             junitxml = "--xml=#{junitxml}"
