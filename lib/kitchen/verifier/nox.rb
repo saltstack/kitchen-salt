@@ -11,13 +11,10 @@ module Kitchen
 
       default_config :testingdir, '/testing'
       default_config :tests, []
-      default_config :transport, false
       default_config :save, {}
       default_config :windows, false
       default_config :verbose, false
       default_config :run_destructive, false
-      default_config :ssh_tests, true
-      default_config :proxy_tests, false
       default_config :pytest, false
       default_config :coverage, false
       default_config :junitxml, false
@@ -92,8 +89,6 @@ module Kitchen
           (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
           (config[:verbose] ? '-vv' : '-v'),
           (config[:run_destructive] ? "--run-destructive" : ''),
-          (config[:ssh_tests] ? "--ssh-tests" : ''),
-          (config[:proxy_tests] ? "--proxy-tests" : ''),
           config[:passthrough_opts].join(' '),
           (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
           tests,
