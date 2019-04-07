@@ -41,18 +41,24 @@ module Kitchen
           # Default to runtests-zeromq
           noxenv = "runtests-zeromq"
         end
+
+        # Is the nox env alreay including the Python version?
+        if not noxenv.match(/^(.*)-([\d]{1})(\.([\d]{1}))?$/)
+          # Nox env's are not py<python-version> named, they just use the <python-version>
+          # Additionally, nox envs are parametrised to enable or disable test coverage
+          # So, the line below becomes something like:
+          #   runtests-2(coverage=True)
+          #   pytest-3(coverage=False)
+          suite = instance.suite.name.gsub('py', '').gsub('2', '2.7')
+          noxenv = "#{noxenv}-#{suite}"
+        end
+        noxenv = "#{noxenv}(coverage=#{config[:coverage] ? 'True' : 'False'})"
+
         if noxenv.include? "pytest"
           tests = config[:tests].join(' ')
         elsif noxenv.include? "runtests"
           tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
         end
-        # Nox env's are not py<python-version> named, they just use the <python-version>
-        # Additionally, nox envs are parametrised to enable or disable test coverage
-        # So, the line below becomes something like:
-        #   runtests-2(coverage=True)
-        #   pytest-3(coverage=False)
-        suite = instance.suite.name.gsub('py', '').gsub('2', '2.7')
-        noxenv = "#{noxenv}-#{suite}(coverage=#{config[:coverage] ? 'True' : 'False'})"
 
         if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
           require 'git'
