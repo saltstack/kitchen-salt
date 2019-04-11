@@ -31,6 +31,10 @@ module Kitchen
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
         end
 
+        if ENV['NOX_ENABLE_FROM_FILENAMES']
+          config[:enable_filenames] = true
+        end
+
         if ENV['NOX_PASSTHROUGH_OPTS']
           ENV['NOX_PASSTHROUGH_OPTS'].split(' ').each{|opt| config[:passthrough_opts].push(opt)}
         end
