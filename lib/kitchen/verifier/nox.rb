@@ -112,7 +112,13 @@ module Kitchen
             if config[:windows]
               conn.execute('$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")')
               conn.execute("$env:PythonPath = [Environment]::ExpandEnvironmentVariables(\"#{root_path}\\testing\")")
+              if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
+                conn.execute('$env:CI = "1"')
+              end
             else
+              if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
+                command = "CI=1 #{command}"
+              end
               begin
                 conn.execute(sudo("chown -R $USER #{root_path}"))
               rescue => e
