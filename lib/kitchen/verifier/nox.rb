@@ -81,9 +81,11 @@ module Kitchen
         end
 
         # Be sure to copy the remote artifacts directory to the local machine
-        save = {
-          "#{File.join(root_path, config[:testingdir], 'artifacts')}" => "#{Dir.pwd}/"
-        }
+        if config[:windows]
+          save = {'$env:KitchenTestingDir/artifacts/' => "#{Dir.pwd}"}
+        else
+          save = {"#{File.join(root_path, config[:testingdir], 'artifacts')}/" => "#{Dir.pwd}"}
+        end
         # Hash insert order matters, that's why we define a new one and merge
         # the one from config
         save.merge!(config[:save])
@@ -111,9 +113,10 @@ module Kitchen
           begin
             if config[:windows]
               conn.execute('$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")')
-              conn.execute("$env:PythonPath = [Environment]::ExpandEnvironmentVariables(\"#{root_path}\\testing\")")
+              conn.execute("$env:PythonPath = [Environment]::ExpandEnvironmentVariables(\"#{File.join(root_path, config[:testingdir])}\")")
+              conn.execute("[Environment]::SetEnvironmentVariable(\"KitchenTestingDir\", [Environment]::ExpandEnvironmentVariables(\"#{File.join(root_path, config[:testingdir])}\"), \"Machine\")")
               if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
-                conn.execute('$env:CI = "1"')
+                conn.execute('[Environment]::SetEnvironmentVariable("CI", "1", "Machine")')
               end
             else
               if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
