@@ -98,13 +98,22 @@ module Kitchen
           "--output-columns=#{config[:output_columns]}",
           (config[:sysinfo] ? '--sysinfo' : ''),
           (config[:junitxml] ? junitxml : ''),
-          (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
           (config[:verbose] ? '-vv' : '-v'),
           (config[:run_destructive] ? "--run-destructive" : ''),
           config[:passthrough_opts].join(' '),
-          (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
-          tests,
         ].join(' ')
+
+        if tests.nil? || tests.empty?
+          # If we're not targetting specific tests...
+          extra_command = [
+            (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
+            (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : '')
+          ].join(' ')
+          command = "#{command} #{extra_command}"
+        else
+          command = "#{command} #{tests}"
+        end
+
         if config[:windows]
           command = "cmd.exe /c --% \"#{command}\" 2>&1"
         end
