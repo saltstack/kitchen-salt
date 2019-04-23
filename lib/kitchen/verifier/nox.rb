@@ -75,7 +75,7 @@ module Kitchen
           sys_stats = ''
         end
 
-        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
+        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME'] and ENV['FORCE_FULL'] != 'true'
           require 'git'
           repo = Git.open(Dir.pwd)
           config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}",
