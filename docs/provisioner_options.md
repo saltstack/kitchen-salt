@@ -140,7 +140,7 @@ Dictionary that will be turned into a top file on the test instance.
 
 default: `base`
 
-Environment to use in the environment to use in minion config file for the file and pillar roots.
+Environment to use in minion config file for the file and pillar roots.
 
 ### state_top_from_file ###
 
