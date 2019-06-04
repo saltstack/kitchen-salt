@@ -63,6 +63,9 @@ module Kitchen
           tests = config[:tests].join(' ')
           if config[:sys_stats]
             sys_stats = '--sys-stats'
+            if not config[:verbose]
+              config[:verbose] = true
+            end
           else
             sys_stats = ''
           end
