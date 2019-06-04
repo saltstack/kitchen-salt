@@ -23,6 +23,7 @@ module Kitchen
       default_config :passthrough_opts, []
       default_config :output_columns, 120
       default_config :sysinfo, true
+      default_config :sys_stats, false
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
@@ -60,8 +61,14 @@ module Kitchen
 
         if noxenv.include? "pytest"
           tests = config[:tests].join(' ')
+          if config[:sys_stats]
+            sys_stats = '--sys-stats'
+          else
+            sys_stats = ''
+          end
         elsif noxenv.include? "runtests"
           tests = config[:tests].collect{|test| "-n #{test}"}.join(' ')
+          sys_stats = ''
         end
 
         if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
@@ -96,10 +103,11 @@ module Kitchen
           (config[:windows] ? "-e #{noxenv}" : "-e '#{noxenv}'"),
           '--',
           "--output-columns=#{config[:output_columns]}",
+          sys_stats,
           (config[:sysinfo] ? '--sysinfo' : ''),
           (config[:junitxml] ? junitxml : ''),
           (config[:verbose] ? '-vv' : '-v'),
-          (config[:run_destructive] ? "--run-destructive" : ''),
+          (config[:run_destructive] ? '--run-destructive' : ''),
           config[:passthrough_opts].join(' '),
         ].join(' ')
 
