@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+require "date"
 require "kitchen/verifier/base"
 
 module Kitchen
@@ -84,7 +85,7 @@ module Kitchen
         if config[:junitxml]
           junitxml = File.join(root_path, config[:testingdir], 'artifacts', 'xml-unittests-output')
           if noxenv.include? "pytest"
-            junitxml = "--junitxml=#{File.join(junitxml, 'test-results.xml')}"
+            junitxml = "--junitxml=#{File.join(junitxml, "test-results-#{DateTime.now.strftime('%Y%m%d%H%M%S.%L')}.xml")}"
           else
             junitxml = "--xml=#{junitxml}"
           end
