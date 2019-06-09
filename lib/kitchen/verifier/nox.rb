@@ -122,7 +122,7 @@ module Kitchen
             (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
             # By default, always runs unit tests on windows
             # XXX: We should stop doing this logic as soon as possible
-            (config[:windows] ? "--unit" : ''),
+            ((noxenv.include? "runtests" and config[:windows]) ? "--unit" : ''),
           ].join(' ')
           command = "#{command} #{extra_command}"
         else
