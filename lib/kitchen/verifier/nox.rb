@@ -120,9 +120,6 @@ module Kitchen
           extra_command = [
             (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
             (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
-            # By default, always runs unit tests on windows
-            # XXX: We should stop doing this logic as soon as possible
-            ((noxenv.include? "runtests" and config[:windows]) ? "--unit" : ''),
           ].join(' ')
           command = "#{command} #{extra_command}"
         else
