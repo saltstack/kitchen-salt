@@ -22,6 +22,7 @@ module Kitchen
       default_config :windows, false
       default_config :enable_filenames, false
       default_config :from_filenames, []
+      default_config :prepend, ''
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
@@ -35,6 +36,7 @@ module Kitchen
 	  config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}", "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
         end
         command = [
+          (config[:prepend]),
           (config[:windows] ? 'python.exe' : config[:python_bin]),
           File.join(root_path, config[:testingdir], '/tests/runtests.py'),
           '--sysinfo',
