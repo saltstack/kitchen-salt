@@ -25,6 +25,7 @@ module Kitchen
       default_config :output_columns, 120
       default_config :sysinfo, true
       default_config :sys_stats, false
+      default_config :environment_vars, {}
 
       def call(state)
         info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
@@ -126,6 +127,14 @@ module Kitchen
           command = "#{command} #{tests}"
         end
 
+        environment_vars = {}
+        if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
+          environment_vars['CI'] = 1
+        end
+        # Hash insert order matters, that's why we define a new one and merge
+        # the one from config
+        environment_vars.merge!(config[:environment_vars])
+
         if config[:windows]
           command = "cmd.exe /c --% \"#{command}\" 2>&1"
         end
@@ -136,12 +145,16 @@ module Kitchen
               conn.execute('$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")')
               conn.execute("$env:PythonPath = [Environment]::ExpandEnvironmentVariables(\"#{File.join(root_path, config[:testingdir])}\")")
               conn.execute("[Environment]::SetEnvironmentVariable(\"KitchenTestingDir\", [Environment]::ExpandEnvironmentVariables(\"#{File.join(root_path, config[:testingdir])}\"), \"Machine\")")
-              if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
-                conn.execute('[Environment]::SetEnvironmentVariable("CI", "1", "Machine")')
+              environment_vars.each do |key, value|
+                conn.execute("[Environment]::SetEnvironmentVariable(\"#{key}\", \"#{value}\", \"Machine\")")
               end
             else
-              if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
-                command = "CI=1 #{command}"
+              command_env = []
+              environment_vars.each do |key, value|
+                command_env.push("#{key}=#{value}")
+              end
+              if not command_env.empty?
+                command = "env #{command_env.join(' ')} #{command}"
               end
               begin
                 conn.execute(sudo("chown -R $USER #{root_path}"))
