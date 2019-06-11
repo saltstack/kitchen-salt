@@ -172,11 +172,7 @@ module Kitchen
             end
             if not only_download_artefacts
               info("Running Command: #{command}")
-              begin
-                conn.execute(sudo(command))
-              rescue => e
-                info("Verify command failed :: #{e}")
-              end
+              conn.execute(sudo(command))
             end
           ensure
             save.each do |remote, local|
