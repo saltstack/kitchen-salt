@@ -28,7 +28,16 @@ module Kitchen
       default_config :environment_vars, {}
 
       def call(state)
-        info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
+        if ENV['ONLY_DOWNLOAD_ARTEFACTS'] || ENV['ONLY_DOWNLOAD_ARTIFACTS']
+          only_download_artefacts = true
+        else
+          only_download_artefacts = false
+        end
+        if only_download_artefacts
+          info("[#{name}] Only downloading artefacts from instance #{instance.name} with state=#{state}")
+        else
+          info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
+        end
         root_path = (config[:windows] ? '%TEMP%\\kitchen' : '/tmp/kitchen')
         if ENV['KITCHEN_TESTS']
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
@@ -138,7 +147,6 @@ module Kitchen
         if config[:windows]
           command = "cmd.exe /c --% \"#{command}\" 2>&1"
         end
-        info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
           begin
             if config[:windows]
@@ -162,10 +170,13 @@ module Kitchen
                 error("Failed to chown #{root_path} :: #{e}")
               end
             end
-            begin
-              conn.execute(sudo(command))
-            rescue => e
-              info("Verify command failed :: #{e}")
+            if not only_download_artefacts
+              info("Running Command: #{command}")
+              begin
+                conn.execute(sudo(command))
+              rescue => e
+                info("Verify command failed :: #{e}")
+              end
             end
           ensure
             save.each do |remote, local|
@@ -185,7 +196,11 @@ module Kitchen
             end
           end
         end
-        debug("[#{name}] Verify completed.")
+        if only_download_artefacts
+          info("[#{name}] Download artefacts completed.")
+        else
+          debug("[#{name}] Verify completed.")
+        end
       end
     end
   end
