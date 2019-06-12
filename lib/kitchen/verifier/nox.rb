@@ -13,7 +13,7 @@ module Kitchen
       default_config :testingdir, '/testing'
       default_config :tests, []
       default_config :save, {}
-      default_config :windows, false
+      default_config :windows, nil
       default_config :verbose, false
       default_config :run_destructive, false
       default_config :pytest, false
@@ -28,6 +28,14 @@ module Kitchen
       default_config :environment_vars, {}
 
       def call(state)
+        if config[:windows].nil?
+          # Since windows is not set, lets try and guess since kitchen actually knows this infomation
+          if instance.platform.os_type == 'windows'
+            config[:windows] = true
+          else
+            config[:windows] = false
+          end
+        end
         if ENV['ONLY_DOWNLOAD_ARTEFACTS'] || ENV['ONLY_DOWNLOAD_ARTIFACTS']
           only_download_artefacts = true
         else
