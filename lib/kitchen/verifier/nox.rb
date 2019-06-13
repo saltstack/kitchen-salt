@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 require "date"
+require "kitchen/errors"
 require "kitchen/verifier/base"
 
 module Kitchen
@@ -36,10 +37,21 @@ module Kitchen
             config[:windows] = false
           end
         end
-        if ENV['ONLY_DOWNLOAD_ARTEFACTS'] || ENV['ONLY_DOWNLOAD_ARTIFACTS']
+        debug("Detected platform for instance #{instance.name}: #{instance.platform.os_type}. Config's windows setting value: #{config[:windows]}")
+        if (ENV['ONLY_DOWNLOAD_ARTEFACTS'] || '') == '1'
           only_download_artefacts = true
         else
           only_download_artefacts = false
+        end
+        if (ENV['DONT_DOWNLOAD_ARTEFACTS'] || '') == '1'
+          dont_download_artefacts = true
+        else
+          dont_download_artefacts = false
+        end
+        if only_download_artefacts and dont_download_artefacts
+          error_msg = "The environment variables 'ONLY_DOWNLOAD_ARTEFACTS' or 'DONT_DOWNLOAD_ARTEFACTS' cannot be both set to '1'"
+          error(error_msg)
+          raise ActionFailed, error_msg
         end
         if only_download_artefacts
           info("[#{name}] Only downloading artefacts from instance #{instance.name} with state=#{state}")
@@ -183,19 +195,21 @@ module Kitchen
               conn.execute(sudo(command))
             end
           ensure
-            save.each do |remote, local|
-              unless config[:windows]
-                begin
-                  conn.execute(sudo("chmod -R +r #{remote}"))
-                rescue => e
-                  error("Failed to chown #{remote} :: #{e}")
+            if not dont_download_artefacts
+              save.each do |remote, local|
+                unless config[:windows]
+                  begin
+                    conn.execute(sudo("chmod -R +r #{remote}"))
+                  rescue => e
+                    error("Failed to chown #{remote} :: #{e}")
+                  end
                 end
-              end
-              begin
-                info("Copying #{remote} to #{local}")
-                conn.download(remote, local)
-              rescue => e
-                error("Failed to copy #{remote} to #{local} :: #{e}")
+                begin
+                  info("Copying #{remote} to #{local}")
+                  conn.download(remote, local)
+                rescue => e
+                  error("Failed to copy #{remote} to #{local} :: #{e}")
+                end
               end
             end
           end
