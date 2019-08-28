@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
 
+require "date"
+require "kitchen/errors"
 require "kitchen/verifier/base"
 
 module Kitchen
@@ -12,7 +14,7 @@ module Kitchen
       default_config :testingdir, '/testing'
       default_config :tests, []
       default_config :save, {}
-      default_config :windows, false
+      default_config :windows, nil
       default_config :verbose, false
       default_config :run_destructive, false
       default_config :pytest, false
@@ -24,9 +26,38 @@ module Kitchen
       default_config :output_columns, 120
       default_config :sysinfo, true
       default_config :sys_stats, false
+      default_config :environment_vars, {}
 
       def call(state)
-        info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
+        if config[:windows].nil?
+          # Since windows is not set, lets try and guess since kitchen actually knows this infomation
+          if instance.platform.os_type == 'windows'
+            config[:windows] = true
+          else
+            config[:windows] = false
+          end
+        end
+        debug("Detected platform for instance #{instance.name}: #{instance.platform.os_type}. Config's windows setting value: #{config[:windows]}")
+        if (ENV['ONLY_DOWNLOAD_ARTEFACTS'] || '') == '1'
+          only_download_artefacts = true
+        else
+          only_download_artefacts = false
+        end
+        if (ENV['DONT_DOWNLOAD_ARTEFACTS'] || '') == '1'
+          dont_download_artefacts = true
+        else
+          dont_download_artefacts = false
+        end
+        if only_download_artefacts and dont_download_artefacts
+          error_msg = "The environment variables 'ONLY_DOWNLOAD_ARTEFACTS' or 'DONT_DOWNLOAD_ARTEFACTS' cannot be both set to '1'"
+          error(error_msg)
+          raise ActionFailed, error_msg
+        end
+        if only_download_artefacts
+          info("[#{name}] Only downloading artefacts from instance #{instance.name} with state=#{state}")
+        else
+          info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
+        end
         root_path = (config[:windows] ? '%TEMP%\\kitchen' : '/tmp/kitchen')
         if ENV['KITCHEN_TESTS']
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
@@ -74,7 +105,7 @@ module Kitchen
           sys_stats = ''
         end
 
-        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME']
+        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME'] and ENV['FORCE_FULL'] != 'true'
           require 'git'
           repo = Git.open(Dir.pwd)
           config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}",
@@ -84,7 +115,7 @@ module Kitchen
         if config[:junitxml]
           junitxml = File.join(root_path, config[:testingdir], 'artifacts', 'xml-unittests-output')
           if noxenv.include? "pytest"
-            junitxml = "--junitxml=#{File.join(junitxml, 'test-results.xml')}"
+            junitxml = "--junitxml=#{File.join(junitxml, "test-results-#{DateTime.now.strftime('%Y%m%d%H%M%S.%L')}.xml")}"
           else
             junitxml = "--xml=#{junitxml}"
           end
@@ -119,31 +150,39 @@ module Kitchen
           extra_command = [
             (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
             (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
-            # By default, always runs unit tests on windows
-            # XXX: We should stop doing this logic as soon as possible
-            (config[:windows] ? "--unit" : ''),
           ].join(' ')
           command = "#{command} #{extra_command}"
         else
           command = "#{command} #{tests}"
         end
 
+        environment_vars = {}
+        if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
+          environment_vars['CI'] = 1
+        end
+        # Hash insert order matters, that's why we define a new one and merge
+        # the one from config
+        environment_vars.merge!(config[:environment_vars])
+
         if config[:windows]
           command = "cmd.exe /c --% \"#{command}\" 2>&1"
         end
-        info("Running Command: #{command}")
         instance.transport.connection(state) do |conn|
           begin
             if config[:windows]
               conn.execute('$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")')
               conn.execute("$env:PythonPath = [Environment]::ExpandEnvironmentVariables(\"#{File.join(root_path, config[:testingdir])}\")")
               conn.execute("[Environment]::SetEnvironmentVariable(\"KitchenTestingDir\", [Environment]::ExpandEnvironmentVariables(\"#{File.join(root_path, config[:testingdir])}\"), \"Machine\")")
-              if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
-                conn.execute('[Environment]::SetEnvironmentVariable("CI", "1", "Machine")')
+              environment_vars.each do |key, value|
+                conn.execute("[Environment]::SetEnvironmentVariable(\"#{key}\", \"#{value}\", \"Machine\")")
               end
             else
-              if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
-                command = "CI=1 #{command}"
+              command_env = []
+              environment_vars.each do |key, value|
+                command_env.push("#{key}=#{value}")
+              end
+              if not command_env.empty?
+                command = "env #{command_env.join(' ')} #{command}"
               end
               begin
                 conn.execute(sudo("chown -R $USER #{root_path}"))
@@ -151,30 +190,35 @@ module Kitchen
                 error("Failed to chown #{root_path} :: #{e}")
               end
             end
-            begin
+            if not only_download_artefacts
+              info("Running Command: #{command}")
               conn.execute(sudo(command))
-            rescue => e
-              info("Verify command failed :: #{e}")
             end
           ensure
-            save.each do |remote, local|
-              unless config[:windows]
-                begin
-                  conn.execute(sudo("chmod -R +r #{remote}"))
-                rescue => e
-                  error("Failed to chown #{remote} :: #{e}")
+            if not dont_download_artefacts
+              save.each do |remote, local|
+                unless config[:windows]
+                  begin
+                    conn.execute(sudo("chmod -R +r #{remote}"))
+                  rescue => e
+                    error("Failed to chown #{remote} :: #{e}")
+                  end
                 end
-              end
-              begin
-                info("Copying #{remote} to #{local}")
-                conn.download(remote, local)
-              rescue => e
-                error("Failed to copy #{remote} to #{local} :: #{e}")
+                begin
+                  info("Copying #{remote} to #{local}")
+                  conn.download(remote, local)
+                rescue => e
+                  error("Failed to copy #{remote} to #{local} :: #{e}")
+                end
               end
             end
           end
         end
-        debug("[#{name}] Verify completed.")
+        if only_download_artefacts
+          info("[#{name}] Download artefacts completed.")
+        else
+          debug("[#{name}] Verify completed.")
+        end
       end
     end
   end
