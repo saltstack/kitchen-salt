@@ -275,7 +275,7 @@ If your `converge` or `verify` step is failing, by default `kitchen` will keep y
 ssh and debug things from there. To run the `state.apply` that converge is doing, run the following : 
 
     kitchen login
-    sudo salt-call --config-dir=etc/salt/ state.apply
+    sudo salt-call --config-dir=/tmp/kitchen/etc/salt/ --log-level=info state.apply 
 
 If you are using the `minion_id` argument run : 
 
