@@ -280,7 +280,7 @@ ssh and debug things from there. To run the `state.apply` that converge is doing
 If you are using the `minion_id` argument run : 
 
     kitchen login
-    sudo salt-call --config-dir=etc/salt/ --id=salt-minion-id state.apply
+    sudo salt-call --config-dir=/tmp/kitchen/etc/salt/ --log-level=info --id=salt-minion-id state.apply
 
 ## Closing ##
 
