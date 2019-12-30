@@ -484,6 +484,12 @@ default: `https://www.chef.io/chef/install.sh`
 
 The chef bootstrap installer, used to provide Ruby for the serverspec test runner on the guest OS.
 
+### pre_salt_command ###
+
+default: nil
+
+Run any command just before running salt_command.
+
 ### require_chef ###
 
 default: `true`
