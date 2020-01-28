@@ -331,6 +331,6 @@ And when the machine is no longer useful, it can be deleted.
 
 And that is the life cycle of the testing instances in https://jenkinsci.saltstack.com
 
-Jenkins however uses `test`, which will create, then converge, then verify, and if verify passes, the instance will be deleted, otherwise Jenkins delete it in a clean up command.
+In jenkins we go through each of the kitchen steps above, but you can use `test`, which will create, then converge, then verify, and if verify passes, the instance will be deleted.
 
 The custom nox verifier is used explicitly for the salt test suite, and will download all junit files for jenkins.
