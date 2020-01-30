@@ -204,7 +204,7 @@ These file paths need to be exported as the `SALT_KITCHEN_VERIFIER` environment 
 Used to run the transport tests. (For Centos 7 and Ubuntu 16.04)
 
     verifier:
-      name: runtests
+      name: nox
       sudo: true
       verbose: true
       run_destructive: true
@@ -282,28 +282,28 @@ Running `bundle exec kitchen list` will show all of the different test cases tha
 
     [root@kitchen-slave02-dev salt-ubuntu-1604-py2]# bundle exec kitchen list
     Instance          Driver  Provisioner  Verifier  Transport  Last Action    Last Error
-    py2-opensuse      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-centos-7      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-centos-6      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-fedora-26     Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-fedora-27     Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-ubuntu-1710   Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-ubuntu-1604   Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-ubuntu-1404   Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-debian-8      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-debian-9      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-arch          Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py2-windows-2016  Ec2     SaltSolo     Runtests  Winrm      <Not Created>  <None>
-    py3-opensuse      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-centos-7      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-fedora-26     Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-fedora-27     Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-ubuntu-1710   Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-ubuntu-1604   Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-debian-8      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-debian-9      Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-arch          Ec2     SaltSolo     Runtests  Rsync      <Not Created>  <None>
-    py3-windows-2016  Ec2     SaltSolo     Runtests  Winrm      <Not Created>  <None>
+    py2-opensuse      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-centos-7      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-centos-6      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-fedora-26     Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-fedora-27     Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-ubuntu-1710   Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-ubuntu-1604   Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-ubuntu-1404   Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-debian-8      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-debian-9      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-arch          Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py2-windows-2016  Ec2     SaltSolo     Nox       Winrm      <Not Created>  <None>
+    py3-opensuse      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-centos-7      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-fedora-26     Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-fedora-27     Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-ubuntu-1710   Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-ubuntu-1604   Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-debian-8      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-debian-9      Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-arch          Ec2     SaltSolo     Nox       Rsync      <Not Created>  <None>
+    py3-windows-2016  Ec2     SaltSolo     Nox       Winrm      <Not Created>  <None>
 
 Any of the Instances on the left can be used with kitchen.  Kitchen will build the server, and store information about it in `.kitchen/<instancename>.yml`.  This information is used for keeping track of which servers have been built and their instance ids. Part of the platform file above is tagging the instances with a `Name` tag so that they can be identified in the aws console, but an extra tag `{created-by: kitchen}` is also set so that they can easily be deleted.
 
@@ -331,6 +331,6 @@ And when the machine is no longer useful, it can be deleted.
 
 And that is the life cycle of the testing instances in https://jenkinsci.saltstack.com
 
-Jenkins however uses `test`, which will create, then converge, then verify, and if verify passes, the instance will be deleted, otherwise Jenkins delete it in a clean up command.
+In jenkins we go through each of the kitchen steps above, but you can use `test`, which will create, then converge, then verify, and if verify passes, the instance will be deleted.
 
-The custom runtests verifier is used explicitly for the salt test suite, and will download all junit files for jenkins.
+The custom nox verifier is used explicitly for the salt test suite, and will download all junit files for jenkins.
