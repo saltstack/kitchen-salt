@@ -63,9 +63,15 @@ def install_dependencies
     if formula.key?(:repo)
       case formula[:repo]
       when 'git'
-        script += <<-INSTALL
-          fetchGitFormula #{formula[:source]} "#{formula[:name]}" "#{formula[:branch] || 'master'}"
-        INSTALL
+        if formula[:sshkey].nil?
+          script += <<-INSTALL
+          fetchGitFormula #{formula[:source]} "#{formula[:name]}" "#{formula[:branch] || 'master'}" 
+          INSTALL
+        else
+          script += <<-INSTALL
+          fetchGitFormula #{formula[:source]} "#{formula[:name]}" "#{formula[:branch] || 'master'}" "#{config[:root_path]}/#{config[:ssh_home]}/#{File.basename(formula[:sshkey])}"
+          INSTALL
+        end
       when 'spm'
         if formula[:package].nil?
           script += <<-INSTALL

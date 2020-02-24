@@ -77,10 +77,11 @@ module Kitchen
         salt_spm_root: '/srv/spm',
         salt_state_top: '/srv/salt/top.sls',
         salt_version: 'latest',
-        salt_yum_repo_key: 'https://repo.saltproject.io/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub',
-        salt_yum_repo_latest: 'https://repo.saltproject.io/yum/redhat/salt-repo-latest-2.el7.noarch.rpm',
-        salt_yum_repo: 'https://repo.saltproject.io/yum/redhat/$releasever/$basearch/archive/%s',
-        salt_yum_rpm_key: 'https://repo.saltproject.io/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
+        salt_yum_repo_key: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub',
+        salt_yum_repo_latest: 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm',
+        salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s',
+        salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
+        ssh_home: '/ssh/',
         state_collection: false,
         state_top_from_file: false,
         state_top: {},
@@ -422,6 +423,7 @@ module Kitchen
       end
 
       def prepare_dependencies
+<<<<<<< HEAD
         # Dependency scripts are bash scripts only
         # Copying them clobbers the kitchen temp directory
         # with a file named `kitchen`. If adding Windows
@@ -429,6 +431,19 @@ module Kitchen
         # sub-directory
         return if windows_os?
 
+=======
+        # Write ssh known_hosts
+        write_raw_file(File.join(sandbox_path, config[:ssh_home], "known_hosts"), File.read(File.expand_path("../known_hosts", __FILE__)))
+        # Write git deploy keys.
+        config[:dependencies].each do |dependency|
+          unless dependency[:sshkey].nil? 
+            outfile = File.join(sandbox_path, config[:ssh_home], File.basename(dependency[:sshkey]))
+            contents = File.read(File.expand_path(dependency[:sshkey]))
+            info("Copying #{dependency[:sshkey]} to #{outfile}")
+            write_raw_file(outfile, contents)
+          end
+        end
+>>>>>>> Add sshkey option for git based formula dependencies.
         # upload scripts
         sandbox_scripts_path = File.join(sandbox_path, config[:salt_config], 'scripts')
         info("Preparing scripts into #{config[:salt_config]}/scripts")
