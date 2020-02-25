@@ -34,11 +34,14 @@ function fetchDependencies() {
 function fetchGitFormula() {
     test -n "${FETCHED}" || declare -a FETCHED=()
     export GIT_FORMULAS_PATH=${GIT_FORMULAS_PATH:-/usr/share/salt-formulas/env/_formulas}
-    if [ $4 != "NULL" ]
+
+    if [[ -n $4 ]]
     then
         sshbin=$(which ssh)
         export GIT_SSH_COMMAND="${sshbin} -o UserKnownHostsFile=/tmp/kitchen/ssh/known_hosts -o StrictHostKeyChecking=no -i ${4}"
+        export GIT_SSH="/tmp/kitchen/git_ssh.sh"
     fi
+
     mkdir -p "$GIT_FORMULAS_PATH"
     if [ -n "$1" ]; then
         source="$1"
@@ -54,7 +57,7 @@ function fetchGitFormula() {
               popd &>/dev/null || exit
           else
               echo "git clone $source $GIT_FORMULAS_PATH/$name -b $branch"
-              git clone "$source" "$GIT_FORMULAS_PATH/$name" -b "$branch"
+              git clone "$source" "$GIT_FORMULAS_PATH/$name" -b "$branch" || exit 1
           fi
           # install dependencies
           FETCHED+=("$name")

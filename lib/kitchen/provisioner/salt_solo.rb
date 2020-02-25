@@ -81,7 +81,8 @@ module Kitchen
         salt_yum_repo_latest: 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm',
         salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s',
         salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
-        ssh_home: '/ssh/',
+        ssh_home: '/ssh',
+	ssh_key: nil,
         state_collection: false,
         state_top_from_file: false,
         state_top: {},
@@ -434,12 +435,25 @@ module Kitchen
 =======
         # Write ssh known_hosts
         write_raw_file(File.join(sandbox_path, config[:ssh_home], "known_hosts"), File.read(File.expand_path("../known_hosts", __FILE__)))
-        # Write git deploy keys.
+        # Write general deploy key. 
+        unless config[:ssh_key].nil?
+            outfile = File.join(sandbox_path, config[:ssh_home], File.basename(config[:ssh_key]))
+            contents = File.read(File.expand_path(config[:ssh_key]))
+            if contents.include?("ENCRYPTED")
+              raise("Encrypted key not supported offending key: #{config[:ssh_key]}")
+            end
+            info("Copying #{config[:ssh_key]} to #{outfile}")
+            write_raw_file(outfile, contents)
+        end
+        # Write dependency overridden deploykey
         config[:dependencies].each do |dependency|
-          if dependency[:sshkey].present? 
-            outfile = File.join(sandbox_path, config[:ssh_home], File.basename(dependency[:sshkey]))
-            contents = File.read(File.expand_path(dependency[:sshkey]))
-            info("Copying #{dependency[:sshkey]} to #{outfile}")
+          unless dependency[:ssh_key].nil? 
+            outfile = File.join(sandbox_path, config[:ssh_home], File.basename(dependency[:ssh_key]))
+            contents = File.read(File.expand_path(dependency[:ssh_key]))
+            if contents.include?("ENCRYPTED")
+              raise("Encrypted key not supported offending key: #{dependency[:ssh_key]}")
+            end
+            info("Copying #{dependency[:ssh_key]} to #{outfile}")
             write_raw_file(outfile, contents)
           end
         end
@@ -470,7 +484,7 @@ module Kitchen
         end
 
         # upload scripts
-        %w[formula-fetch.sh repository-setup.sh].each do |script|
+        %w[formula-fetch.sh repository-setup.sh git_ssh.sh].each do |script|
           write_raw_file(File.join(sandbox_path, script), File.read(File.expand_path("../#{script}", __FILE__)))
         end
         dependencies_script = File.expand_path('./../dependencies.erb', __FILE__)
