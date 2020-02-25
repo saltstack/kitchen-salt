@@ -436,7 +436,7 @@ module Kitchen
         write_raw_file(File.join(sandbox_path, config[:ssh_home], "known_hosts"), File.read(File.expand_path("../known_hosts", __FILE__)))
         # Write git deploy keys.
         config[:dependencies].each do |dependency|
-          unless dependency[:sshkey].nil? 
+          if dependency[:sshkey].present? 
             outfile = File.join(sandbox_path, config[:ssh_home], File.basename(dependency[:sshkey]))
             contents = File.read(File.expand_path(dependency[:sshkey]))
             info("Copying #{dependency[:sshkey]} to #{outfile}")
