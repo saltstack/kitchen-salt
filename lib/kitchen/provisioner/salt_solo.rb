@@ -408,6 +408,13 @@ module Kitchen
       end
 
       def prepare_dependencies
+        # Dependency scripts are bash scripts only
+        # Copying them clobbers the kitchen temp directory
+        # with a file named `kitchen`. If adding Windows
+        # support for dependencies, relocate into a
+        # sub-directory
+        return if windows_os?
+
         # upload scripts
         sandbox_scripts_path = File.join(sandbox_path, config[:salt_config], 'scripts')
         info("Preparing scripts into #{config[:salt_config]}/scripts")
