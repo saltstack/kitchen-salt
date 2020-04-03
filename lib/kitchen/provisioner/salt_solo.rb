@@ -106,7 +106,7 @@ module Kitchen
       end
 
       def install_command
-        unless config[:salt_install] == 'pip' || config[:install_after_init_environment]
+        unless not config[:salt_install] || config[:salt_install] == 'pip' || config[:install_after_init_environment]
           setup_salt
         end
       end
