@@ -488,7 +488,7 @@ The chef bootstrap installer, used to provide Ruby for the serverspec test runne
 
 default: nil
 
-Run any command just before running salt_command.
+Run any command just before running salt_command. If not successful, execution stops.
 
 ### require_chef ###
 
