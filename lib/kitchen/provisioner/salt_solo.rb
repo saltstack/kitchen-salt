@@ -64,6 +64,7 @@ module Kitchen
         salt_env: 'base',
         salt_file_root: '/srv/salt',
         salt_force_color: false,
+        salt_enable_color: true,
         salt_install: 'bootstrap',
         salt_minion_config_dropin_files: [],
         salt_minion_config_template: nil,
@@ -277,6 +278,7 @@ module Kitchen
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
         cmd << ' --force-color' if config[:salt_force_color]
+        cmd << ' --no-color' if not config[:salt_enable_color]
         if "#{salt_version}" > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd << ' --retcode-passthrough'
