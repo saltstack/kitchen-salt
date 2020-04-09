@@ -107,7 +107,8 @@ module Kitchen
       end
 
       def install_command
-        unless not config[:salt_install] || config[:salt_install] == 'pip' || config[:install_after_init_environment]
+        return unless config[:salt_install]
+        unless not config[:salt_install] == 'pip' || config[:install_after_init_environment]
           setup_salt
         end
       end
@@ -124,6 +125,7 @@ module Kitchen
             #{config[:prepare_salt_environment]}
           PREPARE
         end
+        return cmd unless config[:salt_install]
         if config[:salt_install] == 'pip' || config[:install_after_init_environment]
           cmd << setup_salt
         end
@@ -209,6 +211,7 @@ module Kitchen
       end
 
       def prepare_install
+        return unless config[:salt_install]
         salt_version = config[:salt_version]
         if config[:salt_install] == 'pip'
           debug('Using pip to install')
