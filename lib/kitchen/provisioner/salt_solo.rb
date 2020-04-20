@@ -64,6 +64,7 @@ module Kitchen
         salt_env: 'base',
         salt_file_root: '/srv/salt',
         salt_force_color: false,
+        salt_enable_color: true,
         salt_install: 'bootstrap',
         salt_minion_config_dropin_files: [],
         salt_minion_config_template: nil,
@@ -106,6 +107,7 @@ module Kitchen
       end
 
       def install_command
+        return unless config[:salt_install]
         unless config[:salt_install] == 'pip' || config[:install_after_init_environment]
           setup_salt
         end
@@ -123,6 +125,7 @@ module Kitchen
             #{config[:prepare_salt_environment]}
           PREPARE
         end
+        return cmd unless config[:salt_install]
         if config[:salt_install] == 'pip' || config[:install_after_init_environment]
           cmd << setup_salt
         end
@@ -208,6 +211,7 @@ module Kitchen
       end
 
       def prepare_install
+        return unless config[:salt_install]
         salt_version = config[:salt_version]
         if config[:salt_install] == 'pip'
           debug('Using pip to install')
@@ -270,13 +274,14 @@ module Kitchen
         end
 
         if config[:pre_salt_command]
-          cmd << "#{config[:pre_salt_command]};"
+          cmd << "#{config[:pre_salt_command]} && "
         end
         cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
         cmd << ' --force-color' if config[:salt_force_color]
+        cmd << ' --no-color' if not config[:salt_enable_color]
         if "#{salt_version}" > RETCODE_VERSION || salt_version == 'latest'
           # hope for the best and hope it works eventually
           cmd << ' --retcode-passthrough'

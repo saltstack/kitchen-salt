@@ -17,7 +17,7 @@ module Kitchen
       default_config :windows, nil
       default_config :verbose, false
       default_config :run_destructive, false
-      default_config :pytest, false
+      default_config :runtests, false
       default_config :coverage, false
       default_config :junitxml, false
       default_config :from_filenames, []
@@ -73,12 +73,14 @@ module Kitchen
 
         if ENV['NOX_ENV_NAME']
           noxenv = ENV['NOX_ENV_NAME']
-        else
-          # Default to runtests-zeromq
+        elsif config[:runtests] == true
           noxenv = "runtests-zeromq"
+        else
+          # Default to pytest-zeromq
+          noxenv = "pytest-zeromq"
         end
 
-        # Is the nox env alreay including the Python version?
+        # Is the nox env already including the Python version?
         if not noxenv.match(/^(.*)-([\d]{1})(\.([\d]{1}))?$/)
           # Nox env's are not py<python-version> named, they just use the <python-version>
           # Additionally, nox envs are parametrised to enable or disable test coverage
