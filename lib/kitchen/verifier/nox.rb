@@ -199,7 +199,13 @@ module Kitchen
           ensure
             if not dont_download_artefacts
               save.each do |remote, local|
-                unless config[:windows]
+                if config[:windows]
+                  begin
+                    conn.execute("powershell Compress-Archive #{remote} #{remote}artifacts.zip -Force")
+                  rescue => e
+                    error("Failed to create zip")
+                  end
+                else
                   begin
                     conn.execute(sudo("chmod -R +r #{remote}"))
                   rescue => e
@@ -208,7 +214,13 @@ module Kitchen
                 end
                 begin
                   info("Copying #{remote} to #{local}")
-                  conn.download(remote, local)
+                  if config[:windows]
+                    conn.download(remote + "artifacts.zip", local + "/artifacts.zip")
+                    system('unzip -o artifacts.zip')
+                    system('rm artifacts.zip')
+                  else
+                    conn.download(remote, local)
+                  end
                 rescue => e
                   error("Failed to copy #{remote} to #{local} :: #{e}")
                 end
