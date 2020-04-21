@@ -27,6 +27,7 @@ module Kitchen
       default_config :sysinfo, true
       default_config :sys_stats, false
       default_config :environment_vars, {}
+      default_config :zip_windows_artifacts, false
 
       def call(state)
         if config[:windows].nil?
@@ -200,10 +201,12 @@ module Kitchen
             if not dont_download_artefacts
               save.each do |remote, local|
                 if config[:windows]
-                  begin
-                    conn.execute("powershell Compress-Archive #{remote} #{remote}artifacts.zip -Force")
-                  rescue => e
-                    error("Failed to create zip")
+                  if config[:zip_windows_artifacts]
+                    begin
+                      conn.execute("powershell Compress-Archive #{remote} #{remote}artifacts.zip -Force")
+                    rescue => e
+                      error("Failed to create zip")
+                    end
                   end
                 else
                   begin
@@ -215,9 +218,11 @@ module Kitchen
                 begin
                   info("Copying #{remote} to #{local}")
                   if config[:windows]
-                    conn.download(remote + "artifacts.zip", local + "/artifacts.zip")
-                    system('unzip -o artifacts.zip')
-                    system('rm artifacts.zip')
+                    if config[:zip_windows_artifacts]
+                      conn.download(remote + "artifacts.zip", local + "/artifacts.zip")
+                      system('unzip -o artifacts.zip')
+                      system('rm artifacts.zip')
+                    end
                   else
                     conn.download(remote, local)
                   end
