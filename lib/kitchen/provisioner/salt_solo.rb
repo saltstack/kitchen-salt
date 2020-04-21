@@ -56,7 +56,7 @@ module Kitchen
         remote_states: nil,
         require_chef: true,
         salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub',
-        salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/',
+        salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64',
         salt_bootstrap_options: '',
         salt_bootstrap_url: 'https://bootstrap.saltstack.com',
         salt_config: '/etc/salt',
@@ -107,6 +107,7 @@ module Kitchen
       end
 
       def install_command
+        return unless config[:salt_install]
         unless config[:salt_install] == 'pip' || config[:install_after_init_environment]
           setup_salt
         end
@@ -124,6 +125,7 @@ module Kitchen
             #{config[:prepare_salt_environment]}
           PREPARE
         end
+        return cmd unless config[:salt_install]
         if config[:salt_install] == 'pip' || config[:install_after_init_environment]
           cmd << setup_salt
         end
@@ -209,6 +211,7 @@ module Kitchen
       end
 
       def prepare_install
+        return unless config[:salt_install]
         salt_version = config[:salt_version]
         if config[:salt_install] == 'pip'
           debug('Using pip to install')
