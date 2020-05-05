@@ -274,7 +274,7 @@ module Kitchen
         end
 
         if config[:pre_salt_command]
-          cmd << "#{config[:pre_salt_command]} && "
+          cmd << "( set -x ; #{config[:pre_salt_command]} ) && "
         end
         cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate")
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
