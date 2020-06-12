@@ -269,6 +269,19 @@ With either of these, test-kitchen will do the following
 
 If `kitchen test` was run, then the `kitchen list` command will show all the instances and what the result of their last command was.
 
+## Run test interactivaly ##
+
+If your `converge` or `verify` step is failing, by default `kitchen` will keep your VM running, so you can login using 
+ssh and debug things from there. To run the `state.apply` that converge is doing, run the following : 
+
+    kitchen login
+    sudo salt-call --config-dir=/tmp/kitchen/etc/salt/ --log-level=debug state.apply 
+
+If you are using the `minion_id` argument run : 
+
+    kitchen login
+    sudo salt-call --config-dir=/tmp/kitchen/etc/salt/ --log-level=debug --id=salt-minion-id state.apply
+
 ## Closing ##
 
 This instance is now tested.  For more information about `kitchen-salt` and `test-kitchen` in general please see the following links:
