@@ -315,7 +315,7 @@ Method by which salt will be installed:
 - **apt**: install salt from an apt repository.
 - **distrib**: install the version of salt that comes with the distribution.
 - **ppa**: install salt from a ppa.
-- **none**: bypass salt installation.
+- **false**: bypass salt installation.
 
 Except for `distrib` and `bootstrap`, most of these options will require extra configuration to make sure it fits the tests distribution version.  Unless the newest version is used, then it should just work for yum and apt setups.
 
@@ -488,7 +488,7 @@ The chef bootstrap installer, used to provide Ruby for the serverspec test runne
 
 default: nil
 
-Run any command just before running salt_command.
+Run any command just before running salt_command. If not successful, execution stops.
 
 ### require_chef ###
 

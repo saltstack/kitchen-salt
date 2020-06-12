@@ -17,7 +17,7 @@ module Kitchen
       default_config :windows, nil
       default_config :verbose, false
       default_config :run_destructive, false
-      default_config :pytest, false
+      default_config :runtests, false
       default_config :coverage, false
       default_config :junitxml, false
       default_config :from_filenames, []
@@ -27,6 +27,7 @@ module Kitchen
       default_config :sysinfo, true
       default_config :sys_stats, false
       default_config :environment_vars, {}
+      default_config :zip_windows_artifacts, false
 
       def call(state)
         if config[:windows].nil?
@@ -73,12 +74,14 @@ module Kitchen
 
         if ENV['NOX_ENV_NAME']
           noxenv = ENV['NOX_ENV_NAME']
-        else
-          # Default to runtests-zeromq
+        elsif config[:runtests] == true
           noxenv = "runtests-zeromq"
+        else
+          # Default to pytest-zeromq
+          noxenv = "pytest-zeromq"
         end
 
-        # Is the nox env alreay including the Python version?
+        # Is the nox env already including the Python version?
         if not noxenv.match(/^(.*)-([\d]{1})(\.([\d]{1}))?$/)
           # Nox env's are not py<python-version> named, they just use the <python-version>
           # Additionally, nox envs are parametrised to enable or disable test coverage
@@ -197,7 +200,15 @@ module Kitchen
           ensure
             if not dont_download_artefacts
               save.each do |remote, local|
-                unless config[:windows]
+                if config[:windows]
+                  if config[:zip_windows_artifacts]
+                    begin
+                      conn.execute("powershell Compress-Archive #{remote} #{remote}artifacts.zip -Force")
+                    rescue => e
+                      error("Failed to create zip")
+                    end
+                  end
+                else
                   begin
                     conn.execute(sudo("chmod -R +r #{remote}"))
                   rescue => e
@@ -206,7 +217,15 @@ module Kitchen
                 end
                 begin
                   info("Copying #{remote} to #{local}")
-                  conn.download(remote, local)
+                  if config[:windows]
+                    if config[:zip_windows_artifacts]
+                      conn.download(remote + "artifacts.zip", local + "/artifacts.zip")
+                      system('unzip -o artifacts.zip')
+                      system('rm artifacts.zip')
+                    end
+                  else
+                    conn.download(remote, local)
+                  end
                 rescue => e
                   error("Failed to copy #{remote} to #{local} :: #{e}")
                 end
