@@ -574,7 +574,7 @@ Location to place the minion config in the sandbox.
 
 default: `nil`
 
-Local custom minion config template to be used in kitchen-salt.  The default is {file:lib/kitchen/provisioner/minion.erb}
+Local custom minion config template to be used in kitchen-salt. If filename ends in '.erb' it will be loaded as an Ruby ERB template, else it will be copied without modification. The default is {file:lib/kitchen/provisioner/minion.erb}
 
 ### salt_minion_id ###
 
