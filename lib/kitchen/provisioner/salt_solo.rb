@@ -47,6 +47,7 @@ module Kitchen
         is_file_root: false,
         local_salt_root: nil,
         omnibus_cachier: false,
+        pillar_env: nil,
         pillars_from_directories: [],
         pip_bin: 'pip',
         pip_editable: false,
