@@ -13,7 +13,7 @@ provisioner:
   salt_install: bootstrap
   salt_version: latest
   salt_bootstrap_url: https://bootstrap.saltstack.com
-  salt_bootstrap_options: -X -p git -p curl -p sudo
+  salt_bootstrap_options: -x python3 -X -p git -p curl -p sudo
   formula: tests
   require_chef: false
   gpg_key: test@example.com
@@ -81,22 +81,22 @@ platforms:
         sudo mkdir -p /tmp/kitchen/var/cache/salt/master
         sudo apt-get update
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
-      salt_bootstrap_options: -X -p git -p curl -p sudo -p software-properties-common
+      salt_bootstrap_options: -x python3 -X -p git -p curl -p sudo -p software-properties-common
   - name: ubuntu-16.04
     provisioner:
       init_environment: |
         sudo mkdir -p /tmp/kitchen/var/cache/salt/master
         sudo apt-get update
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
-      salt_bootstrap_options: -X -p git -p curl -p sudo -p software-properties-common
-  - name: debian-8
-    provisioner:
-      salt_apt_repo: 'https://repo.saltstack.com/apt/debian/8/amd64'
-      salt_apt_repo_key: 'https://repo.saltstack.com/apt/debian/8/amd64/latest/SALTSTACK-GPG-KEY.pub'
+      salt_bootstrap_options: -x python3 -X -p git -p curl -p sudo -p software-properties-common
   - name: debian-9
     provisioner:
       salt_apt_repo: 'https://repo.saltstack.com/apt/debian/9/amd64'
       salt_apt_repo_key: 'https://repo.saltstack.com/apt/debian/9/amd64/latest/SALTSTACK-GPG-KEY.pub'
+  - name: debian-10
+    provisioner:
+      salt_apt_repo: 'https://repo.saltstack.com/apt/debian/10/amd64'
+      salt_apt_repo_key: 'https://repo.saltstack.com/apt/debian/10/amd64/latest/SALTSTACK-GPG-KEY.pub'
   - name: centos-7
     driver_config:
       provision_command:
@@ -105,15 +105,14 @@ platforms:
     provisioner:
       salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
       salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/latest/SALTSTACK-GPG-KEY.pub'
-  - name: centos-6
-    provisioner:
-      salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
-      salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/6/x86_64/latest/SALTSTACK-GPG-KEY.pub'
-      pip_bin: pip2.7
+  - name: centos-8
     driver_config:
       provision_command:
-        - yum install -y epel-release https://centos6.iuscommunity.org/ius-release.rpm
-        - yum install -y python27-pip python27-devel gcc git gcc-c++
+        - yum install -y epel-release
+        - yum install -y python3-pip python3-devel gcc git gcc-c++
+    provisioner:
+      salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
+      salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/8/x86_64/latest/SALTSTACK-GPG-KEY.pub'
 <% if @vagrant != false %>
   - name: windows-2012r2
     driver:
@@ -170,8 +169,8 @@ suites:
     provisioner:
       salt_install: apt
     includes:
-      - debian-8
       - debian-9
+      - debian-10
       - ubuntu-18.04
       - ubuntu-16.04
   - name: yum
@@ -181,8 +180,8 @@ suites:
         sudo mkdir -p /tmp/kitchen/var/cache/salt/master
         sudo yum install -y git
     includes:
-      - centos-6
       - centos-7
+      - centos-8
   - name: bootstrap
 <% if @vagrant != false %>
     excludes:
