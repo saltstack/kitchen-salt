@@ -203,9 +203,14 @@ module Kitchen
                 if config[:windows]
                   if config[:zip_windows_artifacts]
                     begin
-                      conn.execute("powershell Compress-Archive #{remote} #{remote}artifacts.zip -Force")
+                      conn.execute("7z.exe a #{remote}artifacts.zip #{remote}")
                     rescue => e
-                      error("Failed to create zip")
+                      begin
+                        info("7z.exe failed, attempting zip with powershell Compress-Archive")
+                        conn.execute("powershell Compress-Archive #{remote} #{remote}artifacts.zip -Force")
+                      rescue => e2
+                        error("Failed to create zip")
+                      end
                     end
                   end
                 else
