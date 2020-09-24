@@ -302,6 +302,12 @@ The result would be:
     |- baz
     |- [contents of qux]
 
+### pillar_env ###
+
+default: `nil`
+
+Environment to use in minion config file for the pillar root, if different from `salt_env`.
+
 ## Install Salt ##
 
 ### salt_install ###

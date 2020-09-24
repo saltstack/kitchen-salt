@@ -9,7 +9,7 @@ file_roots:
    - <%= os_join(config[:root_path], config[:salt_spm_root], 'salt') %>
 
 pillar_roots:
- <%= config[:salt_env] %>:
+ <%= config[:pillar_env] || config[:salt_env] %>:
    - <%= os_join(config[:root_path], config[:salt_pillar_root]) %>
    - <%= os_join(config[:root_path], config[:salt_spm_root], 'pillar') %>
 
