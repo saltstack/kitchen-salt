@@ -277,7 +277,15 @@ module Kitchen
         if config[:pre_salt_command]
           cmd << "#{config[:pre_salt_command]} && "
         end
-        cmd << sudo("#{salt_call} --state-output=changes --config-dir=#{os_join(config[:root_path], salt_config_path)} state.highstate")
+        cmd << sudo("#{salt_call}")
+        state_output = config[:salt_minion_extra_config][:state_output]
+        if state_output
+          cmd << " --state-output=#{state_output}"
+        else
+          cmd << " --state-output=changes"
+        end
+        cmd << " --config-dir=#{os_join(config[:root_path], salt_config_path)}"
+        cmd << " state.highstate"
         cmd << " --log-level=#{config[:log_level]}" if config[:log_level]
         cmd << " --id=#{config[:salt_minion_id]}" if config[:salt_minion_id]
         cmd << " test=#{config[:dry_run]}" if config[:dry_run]
