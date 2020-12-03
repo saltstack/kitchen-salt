@@ -92,7 +92,7 @@ elif test -f "/etc/arch-release"; then
     platform="arch"
 elif test -f "/etc/system-release"; then
   platform="$(sed 's/^\(.\+\) release.\+/\1/' /etc/system-release | tr '[:upper:]' '[:lower:]')"
-  if test "$platform" = "amazon linux ami"; then
+  if test "$platform" = "amazon linux ami" || test "$platform" = "amazon linux"; then
     platform="redhat"
   fi
 elif test -f "etc/alpine-release"; then
