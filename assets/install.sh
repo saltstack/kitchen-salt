@@ -68,6 +68,7 @@ install_deps() {
     exit 1
   fi
 
+  echo "$(command -v ruby)"
   # make links to binaries
   mkdir -p /opt/chef/embedded/bin/
   [ ! -e /opt/chef/embedded/bin/gem ] && ln -s "$(command -v gem)" /opt/chef/embedded/bin/
@@ -92,7 +93,7 @@ elif test -f "/etc/arch-release"; then
     platform="arch"
 elif test -f "/etc/system-release"; then
   platform="$(sed 's/^\(.\+\) release.\+/\1/' /etc/system-release | tr '[:upper:]' '[:lower:]')"
-  if test "$platform" = "amazon linux ami"; then
+  if test "$platform" = "amazon linux ami" || test "$platform" = "amazon linux"; then
     platform="redhat"
   fi
 elif test -f "etc/alpine-release"; then
