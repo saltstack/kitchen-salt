@@ -42,15 +42,15 @@ function fetchGitFormula() {
         if ! [[ "${FETCHED[*]}" =~ $name ]]; then # dependency not yet fetched
           echo "Fetching: $name"
           if test -e "$GIT_FORMULAS_PATH/$name"; then
-              pushd "$GIT_FORMULAS_PATH/$name" &>/dev/null
+              pushd "$GIT_FORMULAS_PATH/$name" &>/dev/null || exit
               test ! -e .git || git pull -r
-              popd &>/dev/null
+              popd &>/dev/null || exit
           else
               echo "git clone $source $GIT_FORMULAS_PATH/$name -b $branch"
               git clone "$source" "$GIT_FORMULAS_PATH/$name" -b "$branch"
           fi
           # install dependencies
-          FETCHED+=($name)
+          FETCHED+=("$name")
           if [ -e "$GIT_FORMULAS_PATH/$name/metadata.yml" ]; then
             fetchDependencies "$GIT_FORMULAS_PATH/$name/metadata.yml"
           fi

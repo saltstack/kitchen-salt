@@ -11,4 +11,4 @@ This provisioner is tested with kitchen-docker against CentOS, Ubuntu, and Debia
 
 ## Documentation ##
 
-<https://kitchen.saltstack.com>
+<https://kitchen.saltproject.io>

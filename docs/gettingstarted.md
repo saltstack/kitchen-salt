@@ -46,8 +46,8 @@ The following instructions will allow for a global install of rbenv.
 
 1. Install ruby and set it as the version to use by default
 
-       rbenv install 2.4.2
-       rbenv global 2.4.2
+       rbenv install 2.6.3
+       rbenv global 2.6.3
 
 If gemsets are needed, the [rbenv-gemset](https://github.com/jf/rbenv-gemset) plugin can be added to the gemsets repository.
 

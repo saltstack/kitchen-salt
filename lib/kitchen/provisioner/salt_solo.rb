@@ -52,14 +52,14 @@ module Kitchen
         pip_bin: 'pip',
         pip_editable: false,
         pip_extra_index_url: [],
-        pip_index_url: 'https://pypi.python.org/simple/',
+        pip_index_url: 'https://pypi.org/simple/',
         pip_pkg: 'salt==%s',
         remote_states: nil,
         require_chef: true,
-        salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub',
-        salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/16.04/amd64',
+        salt_apt_repo_key: 'https://repo.saltproject.io/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub',
+        salt_apt_repo: 'https://repo.saltproject.io/apt/ubuntu/16.04/amd64',
         salt_bootstrap_options: '',
-        salt_bootstrap_url: 'https://bootstrap.saltstack.com',
+        salt_bootstrap_url: 'https://bootstrap.saltproject.io',
         salt_config: '/etc/salt',
         salt_copy_filter: [],
         salt_env: 'base',
@@ -77,10 +77,10 @@ module Kitchen
         salt_spm_root: '/srv/spm',
         salt_state_top: '/srv/salt/top.sls',
         salt_version: 'latest',
-        salt_yum_repo_key: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub',
-        salt_yum_repo_latest: 'https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm',
-        salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s',
-        salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
+        salt_yum_repo_key: 'https://repo.saltproject.io/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub',
+        salt_yum_repo_latest: 'https://repo.saltproject.io/yum/redhat/salt-repo-latest-2.el7.noarch.rpm',
+        salt_yum_repo: 'https://repo.saltproject.io/yum/redhat/$releasever/$basearch/archive/%s',
+        salt_yum_rpm_key: 'https://repo.saltproject.io/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub',
         state_collection: false,
         state_top_from_file: false,
         state_top: {},
@@ -91,7 +91,7 @@ module Kitchen
 
       WIN_DEFAULT_CONFIG = {
         chef_bootstrap_url: 'https://omnitruck.chef.io/install.ps1',
-        salt_bootstrap_url: 'https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1'
+        salt_bootstrap_url: 'https://winbootstrap.saltproject.io/develop'
       }.freeze
 
       # salt-call version that supports the undocumented --retcode-passthrough command
