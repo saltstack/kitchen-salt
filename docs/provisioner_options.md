@@ -337,11 +337,11 @@ This is also used to verify that the correct version of salt was installed befor
 
 ### salt_bootstrap_url ###
 
-default: `https://bootstrap.saltstack.com`
+default: `https://bootstrap.saltproject.io`
 
 Location of the bootstrap script. This can also be a file located locally. If running a local file, `install_after_init_environment` must be set to `true`.
 
-For Windows, use the [powershell script](https://github.com/saltstack/salt-bootstrap/blob/develop/bootstrap-salt.ps1)
+For Windows, use the [powershell script](https://winbootstrap.saltproject.io/develop)
 
 ### salt_bootstrap_options ###
 
@@ -356,7 +356,7 @@ For example, this could be used to install salt from the develop branch:
         provisioner:
           salt_bootstrap_options: -M -N git develop
 
-Details on the various options available at the [salt-bootstrap](https://docs.saltstack.com/en/latest/topics/tutorials/salt_bootstrap.html) documentation.
+Details on the various options available at the [salt-bootstrap](https://docs.saltproject.io/en/latest/topics/tutorials/salt_bootstrap.html) documentation.
 
 For the Windows Powershell script:
 
@@ -383,12 +383,12 @@ For example, below is a custom bootstrap option for centos6 requiring python2.7,
 
 ### salt_apt_repo ###
 
-default: `https://repo.saltstack.com/apt/ubuntu/16.04/amd64/`
+default: `https://repo.saltproject.io/apt/ubuntu/16.04/amd64`
 This should be the top level of the apt repository so that the `salt_version` can be appended to the url.
 
 ### salt_apt_repo_key ###
 
-default: `https://repo.saltstack.com/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub`
+default: `https://repo.saltproject.io/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub`
 
 The location of the apt repo key.
 
@@ -396,31 +396,31 @@ The location of the apt repo key.
 
 default: `ppa:saltstack/salt`
 
-Specify the ppa to enable for installing.  This is probably not as useful anymore now that salt is managed from the [official repos](https://repo.saltstack.com/#ubuntu)
+Specify the ppa to enable for installing.  This is probably not as useful anymore now that salt is managed from the [official repos](https://repo.saltproject.io/#ubuntu)
 
 ### salt_yum_rpm_key ###
 
-default: `https://repo.saltstack.com/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub`
+default: `https://repo.saltproject.io/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub`
 
 The rpm key that should be installed for verifying signatures of the yum repo packages.
 
 ### salt_yum_repo ###
 
-default: `https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s`
+default: `https://repo.saltproject.io/yum/redhat/$releasever/$basearch/archive/%s`
 
-The baseurl for the yum repository.  `%s` is replaced with `salt_version`. More information on [SaltStack Package Repo](https://repo.saltstack.com/)
+The baseurl for the yum repository.  `%s` is replaced with `salt_version`. More information on [SaltStack Package Repo](https://repo.saltproject.io/)
 
 ### salt_yum_repo_key ###
 
-default: `https://repo.saltstack.com/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub`
+default: `https://repo.saltproject.io/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub`
 
-The gpg key url to the key for the yum repository file. `%s` is replaced with `salt_version`. More information on [SaltStack Package Repo](https://repo.saltstack.com/)
+The gpg key url to the key for the yum repository file. `%s` is replaced with `salt_version`. More information on [SaltStack Package Repo](https://repo.saltproject.io/)
 
 ### salt_yum_repo_latest ###
 
-default : `https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el7.noarch.rpm`
+default : `https://repo.saltproject.io/yum/redhat/salt-repo-latest-2.el7.noarch.rpm`
 
-The url for the yum repository rpm. Used to install if `salt_version` is `latest`. More information on [SaltStack Package Repo](https://repo.saltstack.com/)
+The url for the yum repository rpm. Used to install if `salt_version` is `latest`. More information on [SaltStack Package Repo](https://repo.saltproject.io/)
 
 ### pip_pkg ###
 
@@ -436,7 +436,7 @@ Install using the editable flag for pip
 
 ### pip_index_url ###
 
-default: `https://pypi.python.org/simple/`
+default: `https://pypi.org/simple/`
 
 Path to the pypi simple index to use for installing salt.
 

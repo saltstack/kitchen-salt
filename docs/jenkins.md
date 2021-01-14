@@ -6,7 +6,7 @@
 
 # Setting up kitchen to run tests like Jenkins #
 
-The new SaltStack Jenkins setup at https://jenkinsci.saltstack.com is using kitchen and the kitchen-ec2 driver to build servers for testing.
+The new SaltStack Jenkins setup at https://jenkins.saltproject.io is using kitchen and the kitchen-ec2 driver to build servers for testing.
 
 The only thing that needs to be available is `ruby` and `gem` or `bundler` (`gem install bundler`). The rest of this guide will be using bundler. If you need to install ruby, there is a guide available for managed versions using rbenv or rvm available in the {file:docs/gettingstarted.md} doc.
 
@@ -113,7 +113,7 @@ The following fields will need to be filled out:
         username: ec2-user
       provisioner:
         salt_bootstrap_options: -UX -p rsync git v<%= version %>
-        salt_bootstrap_url: https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.sh
+        salt_bootstrap_url: https://bootstrap.saltproject.io
     - name: centos-7
       driver:
         tags:
@@ -177,7 +177,7 @@ The following fields will need to be filled out:
           Name: kitchen-windows-2016-<%= 10.times.map{[('a'..'z').to_a, (0..9).to_a].join[rand(36)]}.join %>
         retryable_tries: 120
       provisioner:
-        salt_bootstrap_url: https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1
+        salt_bootstrap_url: https://winbootstrap.saltproject.io
         salt_bootstrap_options: -version <%= version %> -runservice false
         init_environment: |
           reg add "hklm\system\currentcontrolset\control\session manager\memory management" /v pagingfiles /t reg_multi_sz /d "d:\pagefile.sys 4096 8192" /f
@@ -329,7 +329,7 @@ And when the machine is no longer useful, it can be deleted.
 
     bundle exec kitchen destroy py2-centos-7
 
-And that is the life cycle of the testing instances in https://jenkinsci.saltstack.com
+And that is the life cycle of the testing instances in https://jenkins.saltproject.io
 
 In jenkins we go through each of the kitchen steps above, but you can use `test`, which will create, then converge, then verify, and if verify passes, the instance will be deleted.
 

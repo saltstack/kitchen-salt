@@ -6,14 +6,18 @@ driver:
   use_sudo: false
   socket: <%= ENV['DOCKER_HOST'] || 'unix:///var/run/docker.sock' %>
   provision_command:
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python-pip python-dev gcc git locales console-data gnupg
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python3-dev gcc git locales console-data gnupg
     - mkdir -p /run/sshd
+    - echo en_US.UTF-8 UTF-8 >> /etc/locale.gen; locale-gen; update-locale 'LANG="en_US.UTF-8"'
+    - echo export LANG=en_US.UTF-8 > ~kitchen/.bashrc
+    - echo 'export PATH=$PATH:/usr/sbin:/sbin' >> ~kitchen/.bashrc
 provisioner:
   name: salt_solo
   salt_install: bootstrap
-  salt_version: latest
-  salt_bootstrap_url: https://bootstrap.saltstack.com
-  salt_bootstrap_options: -X -p git -p curl -p sudo
+  salt_version: 3000.6
+  salt_bootstrap_url: https://bootstrap.saltproject.io
+  salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo stable 3000.6
+  pip_bin: pip3
   formula: tests
   require_chef: false
   gpg_key: test@example.com
@@ -75,45 +79,37 @@ platforms:
     driver:
       run_command: '/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no -o PasswordAuthentication=yes -o PidFile=/tmp/sshd.pid'
     provisioner:
-      salt_apt_repo: 'https://repo.saltstack.com/apt/ubuntu/18.04/amd64'
-      salt_apt_repo_key: 'https://repo.saltstack.com/apt/ubuntu/18.04/amd64/latest/SALTSTACK-GPG-KEY.pub'
+      salt_apt_repo: 'https://repo.saltproject.io/py3/ubuntu/18.04/amd64/archive'
+      salt_apt_repo_key: 'https://repo.saltproject.io/py3/ubuntu/18.04/amd64/latest/SALTSTACK-GPG-KEY.pub'
       init_environment: |
         sudo mkdir -p /tmp/kitchen/var/cache/salt/master
         sudo apt-get update
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
-      salt_bootstrap_options: -X -p git -p curl -p sudo -p software-properties-common
+      salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo -p software-properties-common stable 3000.6
   - name: ubuntu-16.04
     provisioner:
+      salt_apt_repo: 'https://repo.saltproject.io/py3/ubuntu/16.04/amd64/archive'
+      salt_apt_repo_key: 'https://repo.saltproject.io/py3/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub'
       init_environment: |
         sudo mkdir -p /tmp/kitchen/var/cache/salt/master
         sudo apt-get update
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
-      salt_bootstrap_options: -X -p git -p curl -p sudo -p software-properties-common
-  - name: debian-8
-    provisioner:
-      salt_apt_repo: 'https://repo.saltstack.com/apt/debian/8/amd64'
-      salt_apt_repo_key: 'https://repo.saltstack.com/apt/debian/8/amd64/latest/SALTSTACK-GPG-KEY.pub'
+      salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo -p software-properties-common stable 3000.6
   - name: debian-9
     provisioner:
-      salt_apt_repo: 'https://repo.saltstack.com/apt/debian/9/amd64'
-      salt_apt_repo_key: 'https://repo.saltstack.com/apt/debian/9/amd64/latest/SALTSTACK-GPG-KEY.pub'
+      salt_apt_repo: 'https://repo.saltproject.io/py3/debian/9/amd64/archive'
+      salt_apt_repo_key: 'https://repo.saltproject.io/py3/debian/9/amd64/latest/SALTSTACK-GPG-KEY.pub'
   - name: centos-7
     driver_config:
       provision_command:
+        - echo . /etc/profile >> ~kitchen/.bashrc
+        - echo export LANG=en_US.UTF-8 >> ~kitchen/.bashrc
+        - sed -i '/secure_path/d' /etc/sudoers
         - yum install -y epel-release
-        - yum install -y python-pip python-devel gcc git gcc-c++
+        - yum install -y python3-pip python3-devel gcc git gcc-c++
     provisioner:
-      salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
-      salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/7/x86_64/latest/SALTSTACK-GPG-KEY.pub'
-  - name: centos-6
-    provisioner:
-      salt_yum_repo: 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/%s'
-      salt_yum_rpm_key: 'https://repo.saltstack.com/yum/redhat/6/x86_64/latest/SALTSTACK-GPG-KEY.pub'
-      pip_bin: pip2.7
-    driver_config:
-      provision_command:
-        - yum install -y epel-release https://centos6.iuscommunity.org/ius-release.rpm
-        - yum install -y python27-pip python27-devel gcc git gcc-c++
+      salt_yum_repo: 'https://repo.saltproject.io/py3/redhat/7/x86_64/archive/%s'
+      salt_yum_rpm_key: 'https://repo.saltproject.io/py3/redhat/7/x86_64/latest/SALTSTACK-GPG-KEY.pub'
 <% if @vagrant != false %>
   - name: windows-2012r2
     driver:
@@ -133,7 +129,7 @@ platforms:
         $OldPath = (Get-ItemProperty -Path "$Reg" -Name PATH).Path
         $NewPath= $OldPath + ’;’ + $AddedLocation
         Set-ItemProperty -Path "$Reg" -Name PATH –Value $NewPath
-      salt_bootstrap_url: https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.ps1
+      salt_bootstrap_url: https://winbootstrap.saltproject.io/develop
       salt_bootstrap_options: ''
       state_top:
         base:
@@ -170,7 +166,6 @@ suites:
     provisioner:
       salt_install: apt
     includes:
-      - debian-8
       - debian-9
       - ubuntu-18.04
       - ubuntu-16.04
@@ -181,7 +176,6 @@ suites:
         sudo mkdir -p /tmp/kitchen/var/cache/salt/master
         sudo yum install -y git
     includes:
-      - centos-6
       - centos-7
   - name: bootstrap
 <% if @vagrant != false %>

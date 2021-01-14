@@ -68,7 +68,7 @@ install_deps() {
     exit 1
   fi
 
-  echo "$(command -v ruby)"
+  command -v ruby
   # make links to binaries
   mkdir -p /opt/chef/embedded/bin/
   [ ! -e /opt/chef/embedded/bin/gem ] && ln -s "$(command -v gem)" /opt/chef/embedded/bin/
