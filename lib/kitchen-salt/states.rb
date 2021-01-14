@@ -77,7 +77,7 @@ module Kitchen
         cp_r_with_filter(File.join(path, formula), formula_dir, config[:salt_copy_filter])
 
         # copy across the _modules etc directories for python implementation
-        %w(_modules _states _grains _renderers _returners _utils).each do |extrapath|
+        %w(_modules _states _grains _renderers _returners _runners _utils).each do |extrapath|
           prepare_formula_dir(path, extrapath)
         end
       end
