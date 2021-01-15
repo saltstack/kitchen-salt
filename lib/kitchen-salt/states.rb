@@ -20,6 +20,9 @@ module Kitchen
           # load a top.sls from disk
           if config[:local_salt_root].nil?
             top_file = 'top.sls'
+            unless config[:state_collection].nil?
+              top_file = File.join(config[:state_collection], top_file)
+            end
           else
             top_file = File.join(config[:local_salt_root], 'salt/top.sls')
           end
@@ -96,6 +99,9 @@ module Kitchen
 
         if config[:local_salt_root].nil?
           states_location = config[:kitchen_root]
+          unless config[:state_collection].nil?
+            states_location = File.join(states_location, config[:state_collection])
+          end
         else
           states_location = File.join(config[:local_salt_root], 'salt')
         end
