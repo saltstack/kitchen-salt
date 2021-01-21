@@ -6,7 +6,7 @@
 # kitchen-salt #
 [![Gem Version](https://badge.fury.io/rb/kitchen-salt.svg)](https://badge.fury.io/rb/kitchen-salt)
 [![Gem Downloads](https://ruby-gem-downloads-badge.herokuapp.com/kitchen-salt?type=total&color=brightgreen)](https://rubygems.org/gems/kitchen-salt)
-[![Build Status](https://travis-ci.org/saltstack/kitchen-salt.png)](https://travis-ci.org/saltstack/kitchen-salt)
+[![Build Status](https://github.com/saltstack/kitchen-salt/workflows/Tests/badge.svg)](https://github.com/saltstack/kitchen-salt/actions)
 
 A Test Kitchen Provisioner for Salt
 
@@ -24,7 +24,7 @@ More details on all the configuration options are in {file:docs/provisioner_opti
 You'll need a driver box that is supported by the SaltStack [bootstrap](https://github.com/saltstack/salt-bootstrap) system.
 
 ## Continuous Integration and Testing
-PR's and other changes should validated using Travis-CI, kitchen-docker, multiple state dependencies, the modified version of kitchen-salt and the latest version of test-kitchen.
+PR's and other changes should validated using Github Actions, kitchen-docker, multiple state dependencies, the modified version of kitchen-salt and the latest version of test-kitchen.
 
 ## Releasing ##
 
