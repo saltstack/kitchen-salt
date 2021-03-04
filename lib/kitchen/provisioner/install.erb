@@ -40,7 +40,12 @@ then
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "pip" ]
 then
   echo "Make sure setuptools and pip are new enough"
-  #{sudo(salt_pip_bin)} install "setuptools>=30" "pip>=9"
+  export REQUIREMENTS_FILE=$(mktemp)
+  echo "setuptools >=30,<54.* ; python_version < '3.6'" > $REQUIREMENTS_FILE
+  echo "setuptools >=30,!=50.*,!=51.*,!=52.*; python_version >= '3.6'" > $REQUIREMENTS_FILE
+  echo "pip >=9,<21.0.0 ; python_version < '3.6'" >> $REQUIREMENTS_FILE
+  echo "pip >=9 ; python_version >= '3.6'" >> $REQUIREMENTS_FILE
+  #{sudo(salt_pip_bin)} install -r $REQUIREMENTS_FILE
   echo #{sudo(salt_pip_bin)} #{salt_pip_install_command} #{salt_pip_pkg}
   #{sudo(salt_pip_bin)} #{salt_pip_install_command} #{salt_pip_pkg}
 elif [ -z "${SALT_VERSION}" -a "#{salt_install}" = "apt" ]

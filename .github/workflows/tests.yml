@@ -4,38 +4,49 @@ on: [push, pull_request]
 
 jobs:
   Tests:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         os:
         - centos
         - debian
-        - ubuntu-16
-        - ubuntu-18
+        - ubuntu
     steps:
     - uses: actions/checkout@v2
+
+    - name: Set Python Cache Key
+      run: echo "PY=$(python --version --version | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
+
     - uses: actions/cache@v2
       with:
         path: |
           bundle
           virtualenv
-        key: Tests-${{ matrix.os }}-${{ hashFiles('Gemfile', 'test-requirements.txt') }}
+        key: Tests-${{ matrix.os }}-${{ env.PY }}-${{ hashFiles('Gemfile', 'test-requirements.txt') }}
+
     - name: Install System Deps
       run: |
         sudo apt-get update
         sudo apt-get install -y curl git python3-pip ruby-dev ruby-bundler shellcheck virtualenv
+
     - name: Install Python Deps
       run: |
         if [ ! -e virtualenv/bin/activate ]; then /usr/bin/virtualenv -p /usr/bin/python3 virtualenv; fi
         . virtualenv/bin/activate
         pip3 install -U -r test-requirements.txt
+
     - name: Install Ruby Deps
       run: |
-        /usr/bin/bundle install --without vagrant windows --path bundle
+        /usr/bin/bundle config set --local path 'bundle'
+        /usr/bin/bundle config set --local without 'vagrant windows'
+        /usr/bin/bundle install
+
     - name: Install GPG Key
       run: |
         install -d -m 700 gpgkeys
         gpg --no-default-keyring --homedir gpgkeys --import < tests/gpgkeys/test.txt
+
     - name: Test
       run: |
         . virtualenv/bin/activate
@@ -43,6 +54,7 @@ jobs:
         shellcheck assets/*.sh*
         LANG=en_US.UTF-8 /usr/bin/bundle exec rake "integration:verify[${{ matrix.os }}]"
         /usr/bin/bundle exec kitchen list ${{ matrix.os }}
+
     - name: Cleanup
       run: |
         /usr/bin/bundle exec rake "integration:destroy[${{ matrix.os }}]"
