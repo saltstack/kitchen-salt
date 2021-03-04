@@ -15,12 +15,17 @@ module Kitchen
       default_config :tests, []
       default_config :save, {}
       default_config :windows, nil
+      default_config :windows do |verifier|
+        verifier.windows_os? ? true : false
+      end
       default_config :verbose, false
       default_config :run_destructive, false
       default_config :runtests, false
       default_config :coverage, false
       default_config :junitxml, false
       default_config :from_filenames, []
+      default_config :from_filenames_basename, "changed-files-list.txt"
+      default_config :from_filenames_path, false
       default_config :enable_filenames, false
       default_config :passthrough_opts, []
       default_config :output_columns, 120
@@ -29,15 +34,33 @@ module Kitchen
       default_config :environment_vars, {}
       default_config :zip_windows_artifacts, false
 
-      def call(state)
-        if config[:windows].nil?
-          # Since windows is not set, lets try and guess since kitchen actually knows this infomation
-          if instance.platform.os_type == 'windows'
-            config[:windows] = true
-          else
-            config[:windows] = false
-          end
+      def initialize(config = {})
+        super(config)
+        debug("Running kitchen-salt nox verifier initialize method")
+
+        if ENV['NOX_ENABLE_FROM_FILENAMES']
+          config[:enable_filenames] = true
         end
+
+        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME'] and ENV['FORCE_FULL'] != 'true'
+          require 'git'
+          repo = Git.open(Dir.pwd)
+          config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}",
+                                              "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
+          debug("Populating `from_filenames` with: #{config[:from_filenames]}")
+        end
+        if config[:windows] && config[:from_filenames].any?
+          # On windows, if the changed files list is too big, it will error.
+          # Let's then pass an absolute path to a text file which contains the list of changed
+          # files, one per line.
+          config[:from_filenames_path] = "#{Dir.pwd}\\#{config[:from_filenames_basename]}"
+          from_filenames_contents = "#{config[:from_filenames].join('\n')}"
+          File.open(config[:from_filenames_path], "w") { |f| f.write from_filenames_contents }
+          debug("Created #{config[:from_filenames_path]} with contents:\n#{from_filenames_contents}")
+        end
+      end
+
+      def call(state)
         debug("Detected platform for instance #{instance.name}: #{instance.platform.os_type}. Config's windows setting value: #{config[:windows]}")
         if (ENV['ONLY_DOWNLOAD_ARTEFACTS'] || '') == '1'
           only_download_artefacts = true
@@ -62,10 +85,6 @@ module Kitchen
         root_path = (config[:windows] ? '%TEMP%\\kitchen' : '/tmp/kitchen')
         if ENV['KITCHEN_TESTS']
           ENV['KITCHEN_TESTS'].split(' ').each{|test| config[:tests].push(test)}
-        end
-
-        if ENV['NOX_ENABLE_FROM_FILENAMES']
-          config[:enable_filenames] = true
         end
 
         if ENV['NOX_PASSTHROUGH_OPTS']
@@ -108,13 +127,6 @@ module Kitchen
           sys_stats = ''
         end
 
-        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME'] and ENV['FORCE_FULL'] != 'true'
-          require 'git'
-          repo = Git.open(Dir.pwd)
-          config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}",
-                                              "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
-        end
-
         if config[:junitxml]
           junitxml = File.join(root_path, config[:testingdir], 'artifacts', 'xml-unittests-output')
           if noxenv.include? "pytest"
@@ -150,11 +162,18 @@ module Kitchen
 
         if tests.nil? || tests.empty?
           # If we're not targetting specific tests...
-          extra_command = [
-            (config[:from_filenames].any? ? "--from-filenames=#{config[:from_filenames].join(',')}" : ''),
-            (config[:windows] ? "--names-file=#{root_path}\\testing\\tests\\whitelist.txt" : ''),
-          ].join(' ')
-          command = "#{command} #{extra_command}"
+          extra_command = []
+          if config[:windows]
+            extra_command.push("--names-file=#{root_path}\\testing\\tests\\whitelist.txt")
+            if config[:from_filenames_path]
+                extra_command.push("--from-filenames=#{root_path}\\testing\\#{config[:from_filenames_basename]}")
+            end
+          else
+            if config[:from_filenames].any?
+              extra_command.push("--from-filenames=#{config[:from_filenames].join(',')}")
+            end
+          end
+          command = "#{command} #{extra_command.join(' ')}"
         else
           command = "#{command} #{tests}"
         end
@@ -166,6 +185,9 @@ module Kitchen
         # Hash insert order matters, that's why we define a new one and merge
         # the one from config
         environment_vars.merge!(config[:environment_vars])
+
+        # Strip trailing whitespace
+        command = command.rstrip
 
         if config[:windows]
           command = "cmd.exe /c --% \"#{command}\" 2>&1"
@@ -209,7 +231,7 @@ module Kitchen
                         info("7z.exe failed, attempting zip with powershell Compress-Archive")
                         conn.execute("powershell Compress-Archive #{remote} #{remote}artifacts.zip -Force")
                       rescue => e2
-                        error("Failed to create zip")
+                        error("Failed to create zip: #{e2}")
                       end
                     end
                   end
