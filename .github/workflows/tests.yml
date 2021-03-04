@@ -38,7 +38,9 @@ jobs:
 
     - name: Install Ruby Deps
       run: |
-        /usr/bin/bundle install --without vagrant windows --path bundle
+        /usr/bin/bundle config set --local path 'bundle'
+        /usr/bin/bundle config set --local without 'vagrant windows'
+        /usr/bin/bundle install
 
     - name: Install GPG Key
       run: |
