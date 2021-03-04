@@ -86,20 +86,11 @@ platforms:
         sudo apt-get update
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
       salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo -p software-properties-common stable 3000.6
-  - name: ubuntu-16.04
+  - name: debian-10
     provisioner:
-      salt_apt_repo: 'https://repo.saltproject.io/py3/ubuntu/16.04/amd64/archive'
-      salt_apt_repo_key: 'https://repo.saltproject.io/py3/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub'
-      init_environment: |
-        sudo mkdir -p /tmp/kitchen/var/cache/salt/master
-        sudo apt-get update
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
-      salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo -p software-properties-common stable 3000.6
-  - name: debian-9
-    provisioner:
-      salt_apt_repo: 'https://repo.saltproject.io/py3/debian/9/amd64/archive'
-      salt_apt_repo_key: 'https://repo.saltproject.io/py3/debian/9/amd64/latest/SALTSTACK-GPG-KEY.pub'
-  - name: centos-7
+      salt_apt_repo: 'https://repo.saltproject.io/py3/debian/10/amd64/archive'
+      salt_apt_repo_key: 'https://repo.saltproject.io/py3/debian/10/amd64/latest/SALTSTACK-GPG-KEY.pub'
+  - name: centos-8
     driver_config:
       provision_command:
         - echo . /etc/profile >> ~kitchen/.bashrc
@@ -108,8 +99,8 @@ platforms:
         - yum install -y epel-release
         - yum install -y python3-pip python3-devel gcc git gcc-c++
     provisioner:
-      salt_yum_repo: 'https://repo.saltproject.io/py3/redhat/7/x86_64/archive/%s'
-      salt_yum_rpm_key: 'https://repo.saltproject.io/py3/redhat/7/x86_64/latest/SALTSTACK-GPG-KEY.pub'
+      salt_yum_repo: 'https://repo.saltproject.io/py3/redhat/8/x86_64/archive/%s'
+      salt_yum_rpm_key: 'https://repo.saltproject.io/py3/redhat/8/x86_64/latest/SALTSTACK-GPG-KEY.pub'
 <% if @vagrant != false %>
   - name: windows-2012r2
     driver:

@@ -11,8 +11,7 @@ jobs:
         os:
         - centos
         - debian
-        - ubuntu-16
-        - ubuntu-18
+        - ubuntu
     steps:
     - uses: actions/checkout@v2
 
