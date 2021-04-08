@@ -1,4 +1,5 @@
 # kitchen-salt #
+
 [![Gem Version](https://badge.fury.io/rb/kitchen-salt.svg)](https://badge.fury.io/rb/kitchen-salt)
 [![Gem Downloads](https://ruby-gem-downloads-badge.herokuapp.com/kitchen-salt?type=total&color=brightgreen)](https://rubygems.org/gems/kitchen-salt)
 [![Build Status](https://github.com/saltstack/kitchen-salt/workflows/Tests/badge.svg)](https://github.com/saltstack/kitchen-salt/actions)
@@ -9,6 +10,25 @@ The provider works by generating a salt-minion config, creating pillars based on
 
 This provisioner is tested with kitchen-docker against CentOS, Ubuntu, and Debian.
 
-## Documentation ##
+## Installation and Setup ##
 
-<https://kitchen.saltproject.io>
+You'll need the test-kitchen and kitchen-salt gem's installed in your system, along with kitchen-vagrant or some other suitable driver for test-kitchen.  Please see the [gettingstarted documentation](docs/gettingstarted.md).
+
+## Provisioner Options ##
+
+More details on all the configuration options are in the [provisioner_options documentation](docs/provisioner_options.md).
+
+## Requirements ##
+
+You'll need a driver box that is supported by the SaltStack [bootstrap](https://github.com/saltstack/salt-bootstrap) system.
+
+## Continuous Integration and Testing ##
+
+PR's and other changes should validated using Github Actions, kitchen-docker, multiple state dependencies, the modified version of kitchen-salt and the latest version of test-kitchen.
+
+## Releasing ##
+
+    # hack. work. test.
+    git add stuff
+    git commit -v
+    gem bump --release --tag
