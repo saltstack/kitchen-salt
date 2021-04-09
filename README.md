@@ -14,6 +14,9 @@ This provisioner is tested with kitchen-docker against CentOS, Ubuntu, and Debia
 
 You'll need the test-kitchen and kitchen-salt gem's installed in your system, along with kitchen-vagrant or some other suitable driver for test-kitchen.  Please see the [gettingstarted documentation](docs/gettingstarted.md).
 
+To generate more detailed documentation of ruby classes, in an HTML rendered local website for viewing,
+please the documentation on how to [Generate and locally view docs](docs/gettingstarted.md#generate-and-locally-view-docs).
+
 ## Provisioner Options ##
 
 More details on all the configuration options are in the [provisioner_options documentation](docs/provisioner_options.md).
