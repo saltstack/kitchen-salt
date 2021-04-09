@@ -31,7 +31,7 @@ The following instructions will allow for a global install of rbenv.
    - [Basic GitHub Checkout/setup of rbenv](https://github.com/rbenv/rbenv#basic-github-checkout)
    - [Installation of `ruby-build`](https://github.com/rbenv/ruby-build#installation)
 
-1. Install ruby and set it as the version to use by default
+1. Install ruby and set `2.6.3` as the version to use by default. Salt uses this version of Ruby in CI pipelines, which is why it is preferred here, but newer version of ruby may work without issue.
 
        rbenv install 2.6.3
        rbenv local 2.6.3
