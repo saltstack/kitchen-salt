@@ -41,3 +41,6 @@ html/
 .idea_modules/
 atlassian-ide-plugin.xml
 .vscode
+
+# rbenv
+.ruby-version
