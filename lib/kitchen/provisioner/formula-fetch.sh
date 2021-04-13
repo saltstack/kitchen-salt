@@ -37,7 +37,7 @@ function fetchGitFormula() {
 
     if [[ -n $4 ]]
     then
-        sshbin=$(which ssh)
+        sshbin=$(command -v ssh)
         export GIT_SSH_COMMAND="${sshbin} -o UserKnownHostsFile=/tmp/kitchen/ssh/known_hosts -o StrictHostKeyChecking=no -i ${4}"
         export GIT_SSH="/tmp/kitchen/git_ssh.sh"
     fi
