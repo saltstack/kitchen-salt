@@ -424,7 +424,6 @@ module Kitchen
       end
 
       def prepare_dependencies
-<<<<<<< HEAD
         # Dependency scripts are bash scripts only
         # Copying them clobbers the kitchen temp directory
         # with a file named `kitchen`. If adding Windows
@@ -432,7 +431,6 @@ module Kitchen
         # sub-directory
         return if windows_os?
 
-=======
         # Write ssh known_hosts
         write_raw_file(File.join(sandbox_path, config[:ssh_home], "known_hosts"), File.read(File.expand_path("../known_hosts", __FILE__)))
         # Write general deploy key. 
@@ -457,7 +455,7 @@ module Kitchen
             write_raw_file(outfile, contents)
           end
         end
->>>>>>> Add sshkey option for git based formula dependencies.
+
         # upload scripts
         sandbox_scripts_path = File.join(sandbox_path, config[:salt_config], 'scripts')
         info("Preparing scripts into #{config[:salt_config]}/scripts")
