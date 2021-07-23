@@ -1,5 +1,9 @@
 source 'https://rubygems.org'
 
+group :cicd do
+  gem 'thor', '~> 0.20.3'
+end
+
 group :vagrant do
   gem 'vagrant-wrapper'
   gem 'kitchen-vagrant'
