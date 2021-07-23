@@ -34,33 +34,8 @@ module Kitchen
       default_config :environment_vars, {}
       default_config :zip_windows_artifacts, false
 
-      def initialize(config = {})
-        super(config)
-        debug("Running kitchen-salt nox verifier initialize method")
-
-        if ENV['NOX_ENABLE_FROM_FILENAMES']
-          config[:enable_filenames] = true
-        end
-
-        if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME'] and ENV['FORCE_FULL'] != 'true'
-          require 'git'
-          repo = Git.open(Dir.pwd)
-          config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}",
-                                              "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
-          debug("Populating `from_filenames` with: #{config[:from_filenames]}")
-        end
-        if config[:windows] && config[:from_filenames].any?
-          # On windows, if the changed files list is too big, it will error.
-          # Let's then pass an absolute path to a text file which contains the list of changed
-          # files, one per line.
-          config[:from_filenames_path] = "#{Dir.pwd}\\#{config[:from_filenames_basename]}"
-          from_filenames_contents = "#{config[:from_filenames].join('\n')}"
-          File.open(config[:from_filenames_path], "w") { |f| f.write from_filenames_contents }
-          debug("Created #{config[:from_filenames_path]} with contents:\n#{from_filenames_contents}")
-        end
-      end
-
       def call(state)
+        create_sandbox
         debug("Detected platform for instance #{instance.name}: #{instance.platform.os_type}. Config's windows setting value: #{config[:windows]}")
         if (ENV['ONLY_DOWNLOAD_ARTEFACTS'] || '') == '1'
           only_download_artefacts = true
@@ -81,6 +56,26 @@ module Kitchen
           info("[#{name}] Only downloading artefacts from instance #{instance.name} with state=#{state}")
         else
           info("[#{name}] Verify on instance #{instance.name} with state=#{state}")
+          if ENV['NOX_ENABLE_FROM_FILENAMES']
+            config[:enable_filenames] = true
+          end
+
+          if config[:enable_filenames] and ENV['CHANGE_TARGET'] and ENV['BRANCH_NAME'] and ENV['FORCE_FULL'] != 'true'
+            require 'git'
+            repo = Git.open(Dir.pwd)
+            config[:from_filenames] = repo.diff("origin/#{ENV['CHANGE_TARGET']}",
+                                                "origin/#{ENV['BRANCH_NAME']}").name_status.keys.select{|file| file.end_with?('.py')}
+            debug("Populating `from_filenames` with: #{config[:from_filenames]}")
+            if config[:windows] && config[:from_filenames].any?
+              # On windows, if the changed files list is too big, it will error.
+              # Let's then pass an absolute path to a text file which contains the list of changed
+              # files, one per line.
+              config[:from_filenames_path] = File.join(sandbox_path, config[:from_filenames_basename])
+              from_filenames_contents = "#{config[:from_filenames].join('\n')}"
+              File.open(config[:from_filenames_path], "w") { |f| f.write from_filenames_contents }
+              info("Created #{config[:from_filenames_path]} with contents:\n#{from_filenames_contents}")
+            end
+          end
         end
         root_path = (config[:windows] ? '%TEMP%\\kitchen' : '/tmp/kitchen')
         if ENV['KITCHEN_TESTS']
@@ -166,6 +161,7 @@ module Kitchen
           if config[:windows]
             extra_command.push("--names-file=#{root_path}\\testing\\tests\\whitelist.txt")
             if config[:from_filenames_path]
+                # Add the required command flag for the tests runner
                 extra_command.push("--from-filenames=#{root_path}\\testing\\#{config[:from_filenames_basename]}")
             end
           else
@@ -216,6 +212,11 @@ module Kitchen
               end
             end
             if not only_download_artefacts
+              if config[:from_filenames_path]
+                upload_file_path = "$env:KitchenTestingDir\\#{config[:from_filenames_basename]}"
+                info("Uploading #{config[:from_filenames_path]} to #{upload_file_path} on #{instance.to_str}")
+                conn.upload(config[:from_filenames_path], "#{upload_file_path}")
+              end
               info("Running Command: #{command}")
               conn.execute(sudo(command))
             end
@@ -265,6 +266,8 @@ module Kitchen
         else
           debug("[#{name}] Verify completed.")
         end
+      ensure
+        cleanup_sandbox
       end
     end
   end
