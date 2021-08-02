@@ -144,6 +144,7 @@ module Kitchen
         command = [
           'nox',
           "-f #{File.join(root_path, config[:testingdir], 'noxfile.py')}",
+          (config[:windows] ? "--envdir=C:\\Windows\\Temp\\nox" : ""),
           (config[:windows] ? "-e #{noxenv}" : "-e '#{noxenv}'"),
           '--',
           "--output-columns=#{config[:output_columns]}",
