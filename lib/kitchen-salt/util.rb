@@ -57,7 +57,6 @@ module Kitchen
 
       def salt_call
         return config[:salt_call_command] if config[:salt_call_command]
-        return 'c:\\salt\\salt-call.bat' if windows_os?
         'salt-call'
       end
 
