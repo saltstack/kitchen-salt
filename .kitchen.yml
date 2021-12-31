@@ -104,10 +104,11 @@ platforms:
 <% if @vagrant != false %>
   - name: windows-2012r2
     driver:
-      box: opentable/win-2012r2-datacenter-amd64-nocm
+      box: devopsgroup-io/windows_server-2012r2-standard-amd64-nocm
       communicator: winrm
+      linked_clone: true
       name: vagrant
-      gui: true
+      gui: false
     provisioner:
       # On Osx 'brew install unix2dos' or Centos 'yum install tofrodos'
       cache_commands:
@@ -120,8 +121,17 @@ platforms:
         $OldPath = (Get-ItemProperty -Path "$Reg" -Name PATH).Path
         $NewPath= $OldPath + ’;’ + $AddedLocation
         Set-ItemProperty -Path "$Reg" -Name PATH –Value $NewPath
+      pillars:
+        top.sls:
+          base:
+            "*": []
       salt_bootstrap_url: https://winbootstrap.saltproject.io/develop
       salt_bootstrap_options: ''
+      salt_minion_extra_config:
+        file_roots:
+          base:
+            - C:\Users\vagrant\AppData\Local\Temp\kitchen\srv\salt
+            - C:\Users\vagrant\AppData\Local\Temp\kitchen\srv\salt\tests\formula-foo
       state_top:
         base:
           "*":

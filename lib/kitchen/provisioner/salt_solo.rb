@@ -140,8 +140,13 @@ module Kitchen
         # if salt_verison is set, bootstrap is being used & bootstrap_options is empty,
         # set the bootstrap_options string to git install the requested version
         if (salt_version != 'latest') && (config[:salt_install] == 'bootstrap') && config[:salt_bootstrap_options].empty?
-          debug("Using bootstrap git to install #{salt_version}")
-          config[:salt_bootstrap_options] = "-P git v#{salt_version}"
+          if windows_os?
+            debug("Using bootstrap to install #{salt_version}")
+            config[:salt_bootstrap_options] = "-version #{salt_version}"
+          else
+            debug("Using bootstrap git to install #{salt_version}")
+            config[:salt_bootstrap_options] = "-P git v#{salt_version}"
+          end
         end
 
         install_template = if windows_os?

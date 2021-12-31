@@ -41,6 +41,7 @@ def test_spm_depends(salt):
     assert all([formula in dirs for formula in formulas])
 
 
+@pytest.mark.skipif('windows' in os.environ.get('KITCHEN_INSTANCE'), reason='Dependencies not supported on windows')
 def test_path_depends(salt):
     formulas = set(['foo',])
     dirs = salt('cp.list_master_dirs')
