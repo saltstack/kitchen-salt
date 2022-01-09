@@ -7,6 +7,7 @@ driver:
   socket: <%= ENV['DOCKER_HOST'] || 'unix:///var/run/docker.sock' %>
   provision_command:
     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python3-dev gcc git locales console-data gnupg
+    - pip3 install --upgrade pip
     - mkdir -p /run/sshd
     - echo en_US.UTF-8 UTF-8 >> /etc/locale.gen; locale-gen; update-locale 'LANG="en_US.UTF-8"'
     - echo export LANG=en_US.UTF-8 > ~kitchen/.bashrc
