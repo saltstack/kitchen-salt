@@ -5,7 +5,7 @@ salt_version = config[:salt_version]
 bootstrap_options = config[:salt_bootstrap_options] % [salt_version]
 
 <<-POWERSHELL
-if (Test-Path #{salt_call}) {
+if (Get-Command #{salt_call}) {
   $installed_version = $(#{salt_call} --version).split(' ')[1]
 }
 if (-Not $(Test-Path c:\\temp)) {
@@ -15,6 +15,7 @@ if (-Not $installed_version -And "#{salt_install}" -eq "bootstrap") {
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
   (New-Object net.webclient).DownloadFile("#{salt_url}", "c:\\temp\\salt_bootstrap.ps1")
   #{sudo('powershell')} c:\\temp\\salt_bootstrap.ps1 #{bootstrap_options}
+  $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 }
 $FULL_SALT_VERSION = $(#{salt_call} --version).split(' ')[1]
 if ($FULL_SALT_VERSION) {

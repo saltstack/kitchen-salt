@@ -15,4 +15,5 @@ linux:
         enabled: true
         sudo: true
         full_name: John Doe
+        gid: users
         home: /home/jdoe

@@ -510,8 +510,7 @@ If `false` bypassed the `salt-call` command execution. For cases where the guest
 
 ### salt_call_command ###
 
-default for Windows: `c:\salt\salt-call.bat`
-default for others: `salt-call`
+default: `salt-call`
 
 Command used to invoke `salt-call`.
 
