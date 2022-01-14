@@ -99,7 +99,7 @@ module Kitchen
 
         if config[:local_salt_root].nil?
           states_location = config[:kitchen_root]
-          unless config[:state_collection].nil?
+          if config[:state_collection]
             states_location = File.join(states_location, config[:state_collection])
           end
         else
