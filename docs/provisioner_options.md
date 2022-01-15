@@ -22,7 +22,7 @@ Name of the formula directory for finding where the state files are located.
 
 ### state_collection ###
 
-default: `nil`
+default: `false`
 
 Directory containing salt states that is not a formula
 
