@@ -198,7 +198,7 @@ module Kitchen
         if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
           environment_vars['CI'] = 1
         end
-        if skip_install_requirements:
+        if skip_install_requirements
             environment_vars["SKIP_REQUIREMENTS_INSTALL"] = 1
         end
         # Hash insert order matters, that's why we define a new one and merge
