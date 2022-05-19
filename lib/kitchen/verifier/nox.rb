@@ -47,11 +47,29 @@ module Kitchen
         else
           dont_download_artefacts = false
         end
+
         if only_download_artefacts and dont_download_artefacts
           error_msg = "The environment variables 'ONLY_DOWNLOAD_ARTEFACTS' or 'DONT_DOWNLOAD_ARTEFACTS' cannot be both set to '1'"
           error(error_msg)
           raise ActionFailed, error_msg
         end
+        if (ENV['ONLY_INSTALL_REQUIREMENTS'] || '') == '1'
+          only_install_requirements = true
+        else
+          only_install_requirements = false
+        end
+        if (ENV['SKIP_INSTALL_REQUIREMENTS'] || '') == '1'
+          skip_install_requirements = true
+        else
+          skip_install_requirements = false
+        end
+
+        if only_install_requirements and skip_install_requirements
+          error_msg = "The environment variables 'ONLY_INSTALL_REQUIREMENTS' and 'SKIP_INSTALL_REQUIREMENTS' cannot be both set to '1'"
+          error(error_msg)
+          raise ActionFailed, error_msg
+        end
+
         if only_download_artefacts
           info("[#{name}] Only downloading artefacts from instance #{instance.name} with state=#{state}")
         else
@@ -146,6 +164,7 @@ module Kitchen
           "-f #{File.join(root_path, config[:testingdir], 'noxfile.py')}",
           (config[:windows] ? "--envdir=C:\\Windows\\Temp\\nox" : ""),
           (config[:windows] ? "-e #{noxenv}" : "-e '#{noxenv}'"),
+          (only_install_requirements ? "--install-only" : ""),
           '--',
           "--output-columns=#{config[:output_columns]}",
           sys_stats,
@@ -178,6 +197,9 @@ module Kitchen
         environment_vars = {}
         if ENV['CI'] || ENV['DRONE'] || ENV['JENKINS_URL']
           environment_vars['CI'] = 1
+        end
+        if skip_install_requirements:
+            environment_vars["SKIP_REQUIREMENTS_INSTALL"] = 1
         end
         # Hash insert order matters, that's why we define a new one and merge
         # the one from config
