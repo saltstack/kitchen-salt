@@ -33,6 +33,7 @@ module Kitchen
       default_config :sys_stats, false
       default_config :environment_vars, {}
       default_config :zip_windows_artifacts, false
+      default_config :pytest_nox_session, false
 
       def call(state)
         create_sandbox
@@ -113,6 +114,12 @@ module Kitchen
           noxenv = "pytest-zeromq"
         end
 
+        if noxenv.start_with?("test-")
+          config[:pytest_nox_session] = true
+        elsif noxenv.include?("pytest")
+          config[:pytest_nox_session] = true
+        end
+
         # Is the nox env already including the Python version?
         if not noxenv.match(/^(.*)-([\d]{1})(\.([\d]{1}))?$/)
           # Nox env's are not py<python-version> named, they just use the <python-version>
@@ -125,7 +132,7 @@ module Kitchen
         end
         noxenv = "#{noxenv}(coverage=#{config[:coverage] ? 'True' : 'False'})"
 
-        if noxenv.start_with?("test-") || noxenv.include? "pytest"
+        if config[:pytest_nox_session]
           tests = config[:tests].join(' ')
           if config[:sys_stats]
             sys_stats = '--sys-stats'
@@ -142,7 +149,7 @@ module Kitchen
 
         if config[:junitxml]
           junitxml = File.join(root_path, config[:testingdir], 'artifacts', 'xml-unittests-output')
-          if noxenv.start_with?("test-") || noxenv.include? "pytest"
+          if config[:pytest_nox_session]
             junitxml = "--junitxml=#{File.join(junitxml, "test-results-#{DateTime.now.strftime('%Y%m%d%H%M%S.%L')}.xml")}"
           else
             junitxml = "--xml=#{junitxml}"
