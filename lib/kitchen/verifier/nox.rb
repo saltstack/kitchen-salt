@@ -125,7 +125,7 @@ module Kitchen
         end
         noxenv = "#{noxenv}(coverage=#{config[:coverage] ? 'True' : 'False'})"
 
-        if noxenv.include? "pytest"
+        if noxenv.start_with?("test-") || noxenv.include? "pytest"
           tests = config[:tests].join(' ')
           if config[:sys_stats]
             sys_stats = '--sys-stats'
@@ -142,7 +142,7 @@ module Kitchen
 
         if config[:junitxml]
           junitxml = File.join(root_path, config[:testingdir], 'artifacts', 'xml-unittests-output')
-          if noxenv.include? "pytest"
+          if noxenv.start_with?("test-") || noxenv.include? "pytest"
             junitxml = "--junitxml=#{File.join(junitxml, "test-results-#{DateTime.now.strftime('%Y%m%d%H%M%S.%L')}.xml")}"
           else
             junitxml = "--xml=#{junitxml}"
