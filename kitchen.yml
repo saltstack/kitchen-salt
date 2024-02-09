@@ -15,9 +15,9 @@ driver:
 provisioner:
   name: salt_solo
   salt_install: bootstrap
-  salt_version: 3004
+  salt_version: 3006
   salt_bootstrap_url: https://bootstrap.saltproject.io
-  salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo stable 3004
+  salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo stable 3006
   pip_bin: pip3
   formula: tests
   require_chef: false
@@ -76,21 +76,29 @@ provisioner:
     noservices: True
 
 platforms:
-  - name: ubuntu-18.04
+  - name: ubuntu-20.04
     driver:
       run_command: '/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no -o PasswordAuthentication=yes -o PidFile=/tmp/sshd.pid'
     provisioner:
-      salt_apt_repo: 'https://repo.saltproject.io/py3/ubuntu/18.04/amd64/archive'
-      salt_apt_repo_key: 'https://repo.saltproject.io/py3/ubuntu/18.04/amd64/latest/SALTSTACK-GPG-KEY.pub'
+      salt_apt_repo: 'https://repo.saltproject.io/salt/py3/ubuntu/20.04/amd64/archive'
+      salt_apt_repo_key: 'https://repo.saltproject.io/py3/ubuntu/20.04/amd64/latest/SALT-PROJECT-GPG-PUBKEY-2023.gpg'
       init_environment: |
         sudo mkdir -p /tmp/kitchen/var/cache/salt/master
         sudo apt-get update
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y software-properties-common
-      salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo -p software-properties-common stable 3004
+      salt_bootstrap_options: -X -x python3 -p git -p curl -p sudo -p software-properties-common stable 3006
   - name: debian-10
     provisioner:
-      salt_apt_repo: 'https://repo.saltproject.io/py3/debian/10/amd64/archive'
-      salt_apt_repo_key: 'https://repo.saltproject.io/py3/debian/10/amd64/latest/SALTSTACK-GPG-KEY.pub'
+      salt_apt_repo: 'https://repo.saltproject.io/salt/py3/debian/10/amd64/minor'
+      salt_apt_repo_key: 'https://repo.saltproject.io/salt/py3/debian/10/amd64/latest/SALT-PROJECT-GPG-PUBKEY-2023.gpg'
+  - name: debian-11
+    provisioner:
+      salt_apt_repo: 'https://repo.saltproject.io/salt/py3/debian/11/amd64/minor'
+      salt_apt_repo_key: 'https://repo.saltproject.io/salt/py3/debian/11/amd64/latest/SALT-PROJECT-GPG-PUBKEY-2023.gpg'
+  - name: debian-12
+    provisioner:
+      salt_apt_repo: 'https://repo.saltproject.io/salt/py3/debian/12/amd64/minor'
+      salt_apt_repo_key: 'https://repo.saltproject.io/salt/py3/debian/12/amd64/latest/SALT-PROJECT-GPG-PUBKEY-2023.gpg'
   - name: centos-8
     driver_config:
       provision_command:
@@ -100,8 +108,19 @@ platforms:
         - yum install -y epel-release
         - yum install -y python3-pip python3-devel gcc git gcc-c++
     provisioner:
-      salt_yum_repo: 'https://repo.saltproject.io/py3/redhat/8/x86_64/archive/%s'
-      salt_yum_rpm_key: 'https://repo.saltproject.io/py3/redhat/8/x86_64/latest/SALTSTACK-GPG-KEY.pub'
+      salt_yum_repo: 'https://repo.saltproject.io/salt/py3/redhat/8/x86_64/minor/%s'
+      salt_yum_rpm_key: 'https://repo.saltproject.io/salt/py3/redhat/8/x86_64/latest/SALT-PROJECT-GPG-PUBKEY-2023.pub'
+  - name: centos-9
+    driver_config:
+      provision_command:
+        - echo . /etc/profile >> ~kitchen/.bashrc
+        - echo export LANG=en_US.UTF-8 >> ~kitchen/.bashrc
+        - sed -i '/secure_path/d' /etc/sudoers
+        - yum install -y epel-release
+        - yum install -y python3-pip python3-devel gcc git gcc-c++
+    provisioner:
+      salt_yum_repo: 'https://repo.saltproject.io/salt/py3/redhat/9/x86_64/minor/%s'
+      salt_yum_rpm_key: 'https://repo.saltproject.io/salt/py3/redhat/9/x86_64/latest/SALT-PROJECT-GPG-PUBKEY-2023.pub'
 <% if @vagrant != false %>
   - name: windows-2012r2
     driver:
@@ -168,9 +187,11 @@ suites:
     provisioner:
       salt_install: apt
     includes:
-      - debian-9
-      - ubuntu-18.04
-      - ubuntu-16.04
+      - debian-10
+      - debian-11
+      - debian-12
+      - ubuntu-20.04
+      - ubuntu-22.04
   - name: yum
     provisioner:
       salt_install: yum
@@ -179,6 +200,8 @@ suites:
         sudo yum install -y git
     includes:
       - centos-7
+      - centos-8
+      - centos-9
   - name: bootstrap
 <% if @vagrant != false %>
     excludes:

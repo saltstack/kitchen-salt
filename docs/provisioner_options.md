@@ -388,7 +388,7 @@ This should be the top level of the apt repository so that the `salt_version` ca
 
 ### salt_apt_repo_key ###
 
-default: `https://repo.saltproject.io/apt/ubuntu/16.04/amd64/latest/SALTSTACK-GPG-KEY.pub`
+default: `https://repo.saltproject.io/salt/py3/ubuntu/20.04/amd64/SALT-PROJECT-GPG-PUBKEY-2023.gpg`
 
 The location of the apt repo key.
 
@@ -400,25 +400,25 @@ Specify the ppa to enable for installing.  This is probably not as useful anymor
 
 ### salt_yum_rpm_key ###
 
-default: `https://repo.saltproject.io/yum/redhat/7/x86_64/archive/%s/SALTSTACK-GPG-KEY.pub`
+default: `https://repo.saltproject.io/salt/py3/redhat/7/x86_64/minor/%s/SALT-PROJECT-GPG-PUBKEY-2023.pub`
 
 The rpm key that should be installed for verifying signatures of the yum repo packages.
 
 ### salt_yum_repo ###
 
-default: `https://repo.saltproject.io/yum/redhat/$releasever/$basearch/archive/%s`
+default: `https://repo.saltproject.io/salt/py3/redhat/$releasever/$basearch/minor/%s.repo`
 
 The baseurl for the yum repository.  `%s` is replaced with `salt_version`. More information on [SaltStack Package Repo](https://repo.saltproject.io/)
 
 ### salt_yum_repo_key ###
 
-default: `https://repo.saltproject.io/yum/redhat/$releasever/$basearch/archive/%s/SALTSTACK-GPG-KEY.pub`
+default: `https://repo.saltproject.io/salt/py3/redhat/$releasever/$basearch/minor/%s/SALT-PROJECT-GPG-PUBKEY-2023.pub`
 
 The gpg key url to the key for the yum repository file. `%s` is replaced with `salt_version`. More information on [SaltStack Package Repo](https://repo.saltproject.io/)
 
 ### salt_yum_repo_latest ###
 
-default : `https://repo.saltproject.io/yum/redhat/salt-repo-latest-2.el7.noarch.rpm`
+default : https://repo.saltproject.io/salt/py3/redhat/$releasever/$basearch/latest.repo`
 
 The url for the yum repository rpm. Used to install if `salt_version` is `latest`. More information on [SaltStack Package Repo](https://repo.saltproject.io/)
 
